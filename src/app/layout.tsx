@@ -1,5 +1,6 @@
 import { Fraunces, Inter } from "next/font/google";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@/lib/providers";
 import "@/styles/globals.css";
 
 const fraunces = Fraunces({
@@ -22,10 +23,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${inter.variable}`}
+      suppressHydrationWarning
+    >
       <body>
-        {children}
-        <Toaster position="top-center" />
+        <ThemeProvider>
+          {children}
+          <Toaster position="top-center" />
+        </ThemeProvider>
       </body>
     </html>
   );

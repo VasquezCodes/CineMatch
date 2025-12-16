@@ -235,6 +235,28 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+    transition: background-color 1s cubic-bezier(0.16, 1, 0.3, 1),
+      color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Transiciones suaves para cambio de tema */
+  *,
+  ::before,
+  ::after {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 1s;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Excluir transiciones de elementos interactivos para mantener respuesta inmediata */
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  [role="link"] {
+    transition-property: background-color, border-color, color, fill, stroke,
+      transform, opacity, box-shadow;
   }
 
   ::selection {
