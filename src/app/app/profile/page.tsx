@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Card,
   CardHeader,
@@ -6,17 +7,64 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Settings, Heart } from "lucide-react";
+import { User, Settings, Heart, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Section, SectionGrid } from "@/components/layout";
+import { SECONDARY_ROUTES } from "@/config/routes";
 
 export default function ProfilePage() {
+  // Mock: simula cualidades seleccionadas
+  // En producción vendría de auth/db
+  const selectedQualities = [
+    "Cinematografía",
+    "Música",
+    "Empatía",
+    "Filosofía",
+    "Originalidad",
+    "Complejidad",
+  ];
+
   return (
     <div className="space-y-8">
       <PageHeader
         title="Perfil"
         description="Preferencias y ajustes de tu experiencia."
       />
+
+      {/* Perfil cinéfilo */}
+      <Section title="Perfil cinéfilo">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <ClipboardCheck className="h-5 w-5 text-muted-foreground" />
+              <CardTitle>Cualidades valoradas</CardTitle>
+            </div>
+            <CardDescription>
+              Aspectos del cine que más te importan y que usamos para
+              recomendarte películas
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="mb-3 text-sm font-medium text-muted-foreground">
+                Cualidades seleccionadas ({selectedQualities.length})
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {selectedQualities.map((quality) => (
+                  <Badge key={quality} variant="secondary">
+                    {quality}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <Button variant="outline" asChild className="w-full sm:w-auto">
+              <Link href={SECONDARY_ROUTES.QUALIFICATION}>
+                Editar cualificación
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </Section>
 
       <Section title="Información básica">
         <SectionGrid cols={2}>

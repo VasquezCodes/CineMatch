@@ -9,6 +9,7 @@ import {
   TrendingUp,
   Gamepad2,
   Users,
+  ClipboardCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { APP_ROUTES, SECONDARY_ROUTES } from "./routes";
@@ -75,5 +76,10 @@ export const SECONDARY_NAV_ITEMS: NavItem[] = [
     label: "Comunidad",
     href: SECONDARY_ROUTES.COMMUNITY,
     icon: Users,
+  },
+  {
+    label: "Cualificación",
+    href: SECONDARY_ROUTES.QUALIFICATION,
+    icon: ClipboardCheck,
   },
 ];

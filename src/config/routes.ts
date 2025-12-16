@@ -15,6 +15,7 @@ export const SECONDARY_ROUTES = {
   INSIGHTS: "/app/insights",
   GAMES: "/app/games",
   COMMUNITY: "/app/community",
+  QUALIFICATION: "/app/qualification",
 } as const;
 
 export type AppRoute = (typeof APP_ROUTES)[keyof typeof APP_ROUTES];

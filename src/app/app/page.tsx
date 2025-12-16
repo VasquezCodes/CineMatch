@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Upload, BarChart3, Sparkles } from "lucide-react";
+import { Upload, BarChart3, Sparkles, ClipboardCheck } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -8,41 +8,78 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { PageHeader, Section, SectionGrid } from "@/components/layout";
-import { APP_ROUTES } from "@/config/routes";
+import { APP_ROUTES, SECONDARY_ROUTES } from "@/config/routes";
 
 export default function AppPage() {
+  // Mock: simula si el usuario ya completó la cualificación
+  // En producción vendría de auth/db
+  const isQualified = true;
+
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Home"
-        description="Tu punto de entrada al flujo CineMatch."
+        title="Tu espacio"
+        description="Gestioná tu perfil y descubrí nuevas películas que se alinean con tu criterio cinéfilo."
       />
 
       <Section>
-        <SectionGrid cols={3}>
+        <SectionGrid cols={2}>
+          {/* Perfil cinéfilo */}
           <Card>
             <CardHeader>
-              <Upload className="h-8 w-8 text-primary" aria-hidden="true" />
-              <CardTitle>1. Sube tu lista</CardTitle>
+              <div className="flex items-start justify-between gap-3">
+                <ClipboardCheck className="h-8 w-8 text-primary" aria-hidden="true" />
+                {isQualified && (
+                  <Badge variant="secondary" className="text-xs">
+                    Completado
+                  </Badge>
+                )}
+              </div>
+              <CardTitle>Perfil cinéfilo</CardTitle>
               <CardDescription>
-                Importa tu Watchlist desde Letterboxd, IMDb o ingresa títulos
-                manualmente
+                {isQualified
+                  ? "Tu perfil de cualificación está listo. Podés editarlo cuando quieras."
+                  : "Definí qué aspectos del cine valoras para recibir mejores recomendaciones."}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild className="w-full">
-                <Link href={APP_ROUTES.UPLOAD}>Comenzar</Link>
+              <Button
+                variant={isQualified ? "outline" : "default"}
+                asChild
+                className="w-full"
+              >
+                <Link href={SECONDARY_ROUTES.QUALIFICATION}>
+                  {isQualified ? "Editar cualificación" : "Comenzar"}
+                </Link>
               </Button>
             </CardContent>
           </Card>
 
+          {/* Upload Watchlist */}
+          <Card>
+            <CardHeader>
+              <Upload className="h-8 w-8 text-primary" aria-hidden="true" />
+              <CardTitle>Subir Watchlist</CardTitle>
+              <CardDescription>
+                Importá tu lista desde Letterboxd, IMDb o ingresá títulos manualmente
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <Link href={APP_ROUTES.UPLOAD}>Importar lista</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Análisis */}
           <Card>
             <CardHeader>
               <BarChart3 className="h-8 w-8 text-primary" aria-hidden="true" />
-              <CardTitle>2. Analiza tus gustos</CardTitle>
+              <CardTitle>Análisis</CardTitle>
               <CardDescription>
-                Descubre patrones en tus preferencias, géneros favoritos y más
+                Descubrí patrones en tus preferencias y explorá tu historial
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -52,10 +89,11 @@ export default function AppPage() {
             </CardContent>
           </Card>
 
-          <Card className="sm:col-span-2 lg:col-span-1">
+          {/* Recomendaciones */}
+          <Card>
             <CardHeader>
               <Sparkles className="h-8 w-8 text-primary" aria-hidden="true" />
-              <CardTitle>3. Recibe recomendaciones</CardTitle>
+              <CardTitle>Recomendaciones</CardTitle>
               <CardDescription>
                 Películas personalizadas basadas en tu perfil cinematográfico
               </CardDescription>
