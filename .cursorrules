@@ -97,6 +97,19 @@ If a request touches out-of-scope areas, explain what is missing and ask for dir
 - No inline styles unless strictly required (and then explain why).
 - No `!important`.
 
+### Design System & Color System (MANDATORY)
+- **`src/styles/globals.css` is the SINGLE SOURCE OF TRUTH for colors and design tokens.**
+  - **NEVER** override, modify, or bypass the CSS variables defined in `globals.css`.
+  - **NEVER** hardcode color values (hex, rgb, etc.) in components. Always use CSS variables or Tailwind classes that reference the design tokens.
+  - **NEVER** add new color tokens without explicit approval and updating `globals.css` first.
+  - If a color is needed, check `globals.css` first and use the existing tokens (e.g., `var(--cm-accent)`, `var(--background)`, etc.).
+  - Using colors outside the system will break visual consistency and must be avoided at all costs.
+- **`designSystem.md` is the reference guide for all design decisions.**
+  - Consult `designSystem.md` before implementing new UI patterns, components, or layouts.
+  - Follow the naming conventions, spacing scale, typography scale, and layout patterns defined there.
+  - When in doubt about design decisions, refer to `designSystem.md` first.
+- Both files (`globals.css` and `designSystem.md`) must be respected in every implementation.
+
 ### Accessibility (mandatory)
 - Use semantic HTML and correct headings order.
 - All interactive elements must be keyboard accessible.

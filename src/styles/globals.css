@@ -1,3 +1,191 @@
 @import "tailwindcss";
 
+/* -------------------------------------------------------
+   CineMatch — Global CSS Tokens (PALETA OFICIAL)
+   Light:
+   - Background: #FFFFFF
+   - Surface/Card: #F8FAFC
+   - Border: #E2E8F0
+   - Text Main: #0F172A
+   - Text Muted: #64748B
+   - Accent: #16A34A
 
+   Dark:
+   - Background: #0B1120
+   - Surface/Card: #1E293B
+   - Border: #334155
+   - Text Main: #F1F5F9
+   - Text Muted: #94A3B8
+   - Accent: #22C55E
+-------------------------------------------------------- */
+
+@layer base {
+  :root {
+    /* Raw palette (Light) */
+    --cm-bg: #ffffff;
+    --cm-surface: #f8fafc;
+    --cm-border: #e2e8f0;
+    --cm-text: #0f172a;
+    --cm-text-muted: #64748b;
+    --cm-accent: #16a34a;
+
+    /* RGB helpers (solo para alpha, sin inventar colores) */
+    --cm-bg-rgb: 255 255 255; /* #FFFFFF */
+    --cm-surface-rgb: 248 250 252; /* #F8FAFC */
+    --cm-border-rgb: 226 232 240; /* #E2E8F0 */
+    --cm-text-rgb: 15 23 42; /* #0F172A */
+    --cm-muted-rgb: 100 116 139; /* #64748B */
+    --cm-accent-rgb: 22 163 74; /* #16A34A */
+
+    /* Semantic tokens (compatibles con shadcn/ui) */
+    --background: var(--cm-bg);
+    --foreground: var(--cm-text);
+
+    --card: var(--cm-surface);
+    --card-foreground: var(--cm-text);
+
+    --popover: var(--cm-surface);
+    --popover-foreground: var(--cm-text);
+
+    --border: var(--cm-border);
+    --input: var(--cm-border);
+
+    --muted: var(--cm-surface);
+    --muted-foreground: var(--cm-text-muted);
+
+    --primary: var(--cm-accent);
+    --primary-foreground: var(--cm-bg);
+
+    --secondary: var(--cm-surface);
+    --secondary-foreground: var(--cm-text);
+
+    --accent: var(--cm-accent);
+    --accent-foreground: var(--cm-bg);
+
+    /* No hay “rojo” aprobado: destructive usa Accent hasta que definas uno */
+    --destructive: var(--cm-accent);
+    --destructive-foreground: var(--cm-bg);
+
+    --ring: var(--cm-accent);
+
+    /* Radius */
+    --radius: 12px;
+
+    /* Focus ring (alpha sobre accent) */
+    --focus-ring: 0 0 0 3px rgb(var(--cm-accent-rgb) / 0.35);
+
+    /* Shadows (alpha sobre text) */
+    --shadow-sm: 0 1px 2px rgb(var(--cm-text-rgb) / 0.06);
+    --shadow-md: 0 10px 28px rgb(var(--cm-text-rgb) / 0.1);
+
+    /* Motion */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+    --dur-1: 120ms;
+    --dur-2: 180ms;
+    --dur-3: 240ms;
+  }
+
+  .dark {
+    /* Raw palette (Dark) */
+    --cm-bg: #0b1120;
+    --cm-surface: #1e293b;
+    --cm-border: #334155;
+    --cm-text: #f1f5f9;
+    --cm-text-muted: #94a3b8;
+    --cm-accent: #22c55e;
+
+    --cm-bg-rgb: 11 17 32; /* #0B1120 */
+    --cm-surface-rgb: 30 41 59; /* #1E293B */
+    --cm-border-rgb: 51 65 85; /* #334155 */
+    --cm-text-rgb: 241 245 249; /* #F1F5F9 */
+    --cm-muted-rgb: 148 163 184; /* #94A3B8 */
+    --cm-accent-rgb: 34 197 94; /* #22C55E */
+
+    /* Semantic tokens */
+    --background: var(--cm-bg);
+    --foreground: var(--cm-text);
+
+    --card: var(--cm-surface);
+    --card-foreground: var(--cm-text);
+
+    --popover: var(--cm-surface);
+    --popover-foreground: var(--cm-text);
+
+    --border: var(--cm-border);
+    --input: var(--cm-border);
+
+    --muted: var(--cm-surface);
+    --muted-foreground: var(--cm-text-muted);
+
+    --primary: var(--cm-accent);
+    --primary-foreground: var(--cm-bg);
+
+    --secondary: var(--cm-surface);
+    --secondary-foreground: var(--cm-text);
+
+    --accent: var(--cm-accent);
+    --accent-foreground: var(--cm-bg);
+
+    --destructive: var(--cm-accent);
+    --destructive-foreground: var(--cm-bg);
+
+    --ring: var(--cm-accent);
+
+    --focus-ring: 0 0 0 3px rgb(var(--cm-accent-rgb) / 0.38);
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.28);
+    --shadow-md: 0 12px 30px rgb(0 0 0 / 0.38);
+  }
+
+  /* Base */
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    color-scheme: light;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .dark html {
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  ::selection {
+    background: rgb(var(--cm-accent-rgb) / 0.25);
+    color: var(--foreground);
+  }
+
+  :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  /* Scrollbar (solo alpha; sin nuevos colores) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--cm-text-rgb) / 0.35)
+      rgb(var(--cm-border-rgb) / 0.6);
+  }
+
+  .dark * {
+    scrollbar-color: rgb(var(--cm-text-rgb) / 0.35)
+      rgb(var(--cm-border-rgb) / 0.6);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      scroll-behavior: auto !important;
+      transition-duration: 1ms !important;
+      animation-duration: 1ms !important;
+    }
+  }
+}
