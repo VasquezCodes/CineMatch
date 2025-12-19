@@ -1,9 +1,5 @@
-import Link from "next/link";
-import { Upload } from "lucide-react";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Button } from "@/components/ui/button";
 import { PageHeader, Section } from "@/components/layout";
-import { APP_ROUTES } from "@/config/routes";
+import { UploadWatchlistForm } from "@/features/watchlist";
 
 export default function UploadPage() {
   return (
@@ -14,15 +10,9 @@ export default function UploadPage() {
       />
 
       <Section>
-        <EmptyState
-          icon={<Upload className="h-12 w-12" />}
-          title="No hay Watchlist cargada"
-          description="Sube tu lista de películas y series de Letterboxd, IMDb o ingresa títulos manualmente para comenzar."
-          action={
-            <Button asChild>
-              <Link href={APP_ROUTES.ANALYSIS}>Simular carga</Link>
-            </Button>
-          }
+        <UploadWatchlistForm
+          accept=".svg"
+          maxSizeMB={10}
         />
       </Section>
     </div>
