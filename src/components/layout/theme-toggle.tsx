@@ -57,7 +57,7 @@ export function ThemeToggle() {
             animate={{ rotate: 0, scale: 1, opacity: 1 }}
             exit={{ rotate: 90, scale: 0, opacity: 0 }}
             transition={{
-              duration: 1,
+              duration: 0.5,
               ease: [0.16, 1, 0.3, 1],
             }}
           >
@@ -70,7 +70,7 @@ export function ThemeToggle() {
             animate={{ rotate: 0, scale: 1, opacity: 1 }}
             exit={{ rotate: -90, scale: 0, opacity: 0 }}
             transition={{
-              duration: 1,
+              duration: 0.5,
               ease: [0.16, 1, 0.3, 1],
             }}
           >

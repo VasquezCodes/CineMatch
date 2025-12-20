@@ -1,1 +1,1 @@
-// Feature exports
+export * from "./components/AuthCard";

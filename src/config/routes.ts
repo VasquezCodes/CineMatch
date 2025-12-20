@@ -7,6 +7,7 @@ export const APP_ROUTES = {
   ANALYSIS: "/app/analysis",
   RECOMMENDATIONS: "/app/recommendations",
   PROFILE: "/app/profile",
+  LOGIN: "/login",
 } as const;
 
 // Rutas secundarias (features adicionales)

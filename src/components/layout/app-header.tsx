@@ -30,14 +30,16 @@ export function AppHeader() {
         {/* Acciones secundarias */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Perfil de usuario"
-            className="size-9"
-          >
-            <User className="size-4" />
-          </Button>
+          <Link href={APP_ROUTES.LOGIN}>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Perfil de usuario"
+              className="size-9"
+            >
+              <User className="size-4" />
+            </Button>
+          </Link>
         </div>
       </div>
     </header>
