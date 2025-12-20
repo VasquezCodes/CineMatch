@@ -11,6 +11,7 @@ import {
   Info,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils/index";
@@ -79,6 +80,12 @@ export function UploadWatchlistForm({
     setError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
+  React.useEffect(() => {
+    if (status === "success") {
+      toast.success("Archivo subido con éxito");
+    }
+  }, [status]);
 
   return (
     <div className={cn("w-full max-w-4xl mx-auto space-y-8", className)}>
