@@ -1,305 +1,110 @@
 @import "tailwindcss";
 
-/* -------------------------------------------------------
-   Tailwind v4 Theme Configuration
-   Mapea TODAS las variables semánticas a Tailwind v4
-   Esto permite que las clases como bg-primary, text-foreground, etc. funcionen
--------------------------------------------------------- */
 @theme {
-  /* Colores base */
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
-
-  /* Card/Surface */
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
-
-  /* Popover */
   --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
-
-  /* Bordes e inputs */
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
-
-  /* Muted (text secundario y backgrounds suaves) */
   --color-muted: hsl(var(--muted));
   --color-muted-foreground: hsl(var(--muted-foreground));
-
-  /* Primary (Accent verde) */
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
-
-  /* Secondary */
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
-
-  /* Accent */
   --color-accent: hsl(var(--accent));
   --color-accent-foreground: hsl(var(--accent-foreground));
-
-  /* Destructive */
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
-
-  /* Ring (focus states) */
   --color-ring: hsl(var(--ring));
 }
 
-/* -------------------------------------------------------
-   CineMatch — Global CSS Tokens (PALETA OFICIAL)
-   Light:
-   - Background: #FFFFFF
-   - Surface/Card: #F8FAFC
-   - Border: #E2E8F0
-   - Text Main: #0F172A
-   - Text Muted: #64748B
-   - Accent: #16A34A
-
-   Dark:
-   - Background: #0B1120
-   - Surface/Card: #1E293B
-   - Border: #334155
-   - Text Main: #F1F5F9
-   - Text Muted: #94A3B8
-   - Accent: #22C55E
--------------------------------------------------------- */
-
 @layer base {
   :root {
-    /* Typography */
-    /* --font-heading: Configurada por Next.js Font (Fraunces) */
-    /* --font-body: Configurada por Next.js Font (Inter) */
-
-    /* Raw palette (Light) */
-    --cm-bg: #ffffff;
-    --cm-surface: #f8fafc;
-    --cm-border: #e2e8f0;
-    --cm-text: #0f172a;
-    --cm-text-muted: #64748b;
-    --cm-accent: #16a34a;
-
-    /* RGB helpers (solo para alpha, sin inventar colores) */
-    --cm-bg-rgb: 255 255 255; /* #FFFFFF */
-    --cm-surface-rgb: 248 250 252; /* #F8FAFC */
-    --cm-border-rgb: 226 232 240; /* #E2E8F0 */
-    --cm-text-rgb: 15 23 42; /* #0F172A */
-    --cm-muted-rgb: 100 116 139; /* #64748B */
-    --cm-accent-rgb: 22 163 74; /* #16A34A */
-
-    /* Semantic tokens (compatibles con shadcn/ui) */
-    /* MAPEADOS EXACTAMENTE A LA PALETA OFICIAL DE CINEMATCH */
-
-    /* Background: #FFFFFF */
     --background: 0 0% 100%;
-    /* Text Main: #0F172A */
     --foreground: 222 47% 11%;
-
-    /* Surface/Card: #F8FAFC */
     --card: 210 40% 98%;
     --card-foreground: 222 47% 11%;
-
     --popover: 210 40% 98%;
     --popover-foreground: 222 47% 11%;
-
-    /* Border: #E2E8F0 */
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-
-    /* Surface/Card: #F8FAFC para muted */
     --muted: 210 40% 98%;
-    /* Text Muted: #64748B */
     --muted-foreground: 215 16% 47%;
-
-    /* Accent: #16A34A */
     --primary: 142 76% 36%;
     --primary-foreground: 0 0% 100%;
-
-    /* Surface para secondary */
     --secondary: 210 40% 98%;
     --secondary-foreground: 222 47% 11%;
-
-    /* Accent: #16A34A */
     --accent: 142 76% 36%;
     --accent-foreground: 0 0% 100%;
-
-    /* Destructive */
     --destructive: 20.5 90.2% 48.2%;
     --destructive-foreground: 0 0% 100%;
-
-    --ring: 142 76% 36%;
-    --ring-offset: 0 0% 100%;
-
-    /* Radius */
-    --radius: 0.75rem; /* 12px */
-
-    /* Focus ring (alpha sobre accent) */
-    --focus-ring: 0 0 0 3px rgb(var(--cm-accent-rgb) / 0.35);
-
-    /* Shadows (alpha sobre text) */
-    --shadow-sm: 0 1px 2px rgb(var(--cm-text-rgb) / 0.06);
-    --shadow-md: 0 10px 28px rgb(var(--cm-text-rgb) / 0.1);
-
-    /* Motion */
-    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-    --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
-    --dur-1: 120ms;
-    --dur-2: 180ms;
-    --dur-3: 240ms;
+    --ring: 215 20.2% 65.1%;
+    --radius: 0.75rem;
+    --cm-text-rgb: 15 23 42;
+    --cm-border-rgb: 226 232 240;
+    --cm-accent-rgb: 22 163 74;
   }
 
   .dark {
-    /* Raw palette (Dark) */
-    --cm-bg: #0b1120;
-    --cm-surface: #1e293b;
-    --cm-border: #334155;
-    --cm-text: #f1f5f9;
-    --cm-text-muted: #94a3b8;
-    --cm-accent: #22c55e;
-
-    --cm-bg-rgb: 11 17 32; /* #0B1120 */
-    --cm-surface-rgb: 30 41 59; /* #1E293B */
-    --cm-border-rgb: 51 65 85; /* #334155 */
-    --cm-text-rgb: 241 245 249; /* #F1F5F9 */
-    --cm-muted-rgb: 148 163 184; /* #94A3B8 */
-    --cm-accent-rgb: 34 197 94; /* #22C55E */
-
-    /* Semantic tokens */
-    /* MAPEADOS EXACTAMENTE A LA PALETA OFICIAL DARK DE CINEMATCH */
-
-    /* Background: #0B1120 */
     --background: 223 49% 8%;
-    /* Text Main: #F1F5F9 */
     --foreground: 210 40% 96%;
-
-    /* Surface/Card: #1E293B */
     --card: 217 33% 17%;
     --card-foreground: 210 40% 96%;
-
     --popover: 217 33% 17%;
     --popover-foreground: 210 40% 96%;
-
-    /* Border: #334155 */
     --border: 215 25% 27%;
     --input: 215 25% 27%;
-
-    /* Surface/Card para muted */
     --muted: 217 33% 17%;
-    /* Text Muted: #94A3B8 */
     --muted-foreground: 215 20% 65%;
-
-    /* Accent: #22C55E */
     --primary: 142 71% 45%;
     --primary-foreground: 223 49% 8%;
-
-    /* Surface para secondary */
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 96%;
-
-    /* Accent: #22C55E */
     --accent: 142 71% 45%;
     --accent-foreground: 223 49% 8%;
-
-    /* Destructive */
     --destructive: 20.5 90.2% 48.2%;
     --destructive-foreground: 0 0% 100%;
-
-    --ring: 142 71% 45%;
-    --ring-offset: 223 49% 8%;
-
-    --focus-ring: 0 0 0 3px rgb(var(--cm-accent-rgb) / 0.38);
-
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.28);
-    --shadow-md: 0 12px 30px rgb(0 0 0 / 0.38);
+    --ring: 215 20.2% 65.1%;
+    --cm-text-rgb: 241 245 249;
+    --cm-border-rgb: 51 65 85;
+    --cm-accent-rgb: 34 197 94;
   }
 
-  /* Base */
   *,
   ::before,
   ::after {
     border-color: hsl(var(--border));
   }
 
-  html {
-    color-scheme: light;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  html.dark {
-    color-scheme: dark;
-  }
-
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: var(--font-body), system-ui, -apple-system, sans-serif;
-    transition: background-color 1s cubic-bezier(0.16, 1, 0.3, 1),
-      color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: var(--font-body), system-ui, sans-serif;
   }
 
-  /* Transiciones suaves para cambio de tema */
-  *,
-  ::before,
-  ::after {
-    transition-property: background-color, border-color, color, fill, stroke;
-    transition-duration: 1s;
-    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  /* Excluir transiciones de elementos interactivos para mantener respuesta inmediata */
-  button,
-  input,
-  select,
-  textarea,
-  [role="button"],
-  [role="link"] {
-    transition-property: background-color, border-color, color, fill, stroke,
-      transform, opacity, box-shadow;
+  /* Focus Ring Estilo Blur Casi Imperceptible */
+  :focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 1px hsl(var(--background)),
+      0 0 8px 2px hsl(var(--ring) / 0.15), 0 0 0 1px hsl(var(--ring) / 0.1) !important;
+    transition: box-shadow 0.2s ease-in-out;
   }
 
   ::selection {
     background: rgb(var(--cm-accent-rgb) / 0.25);
     color: hsl(var(--foreground));
   }
-
-  :where(a, button, input, textarea, select, [tabindex]):focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-
-  /* Scrollbar (solo alpha; sin nuevos colores) */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: rgb(var(--cm-text-rgb) / 0.35)
-      rgb(var(--cm-border-rgb) / 0.6);
-  }
-
-  .dark * {
-    scrollbar-color: rgb(var(--cm-text-rgb) / 0.35)
-      rgb(var(--cm-border-rgb) / 0.6);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      scroll-behavior: auto !important;
-      transition-duration: 1ms !important;
-      animation-duration: 1ms !important;
-    }
-  }
 }
 
 @layer utilities {
   .font-heading {
-    font-family: var(--font-heading), ui-serif, Georgia, serif;
+    font-family: var(--font-heading), serif;
   }
-
   .font-body {
-    font-family: var(--font-body), system-ui, -apple-system, sans-serif;
-  }
-
-  .font-sans {
-    font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+    font-family: var(--font-body), sans-serif;
   }
 }
