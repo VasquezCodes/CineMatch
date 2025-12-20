@@ -1,7 +1,8 @@
 import * as React from "react";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
+import { STATE_CARD_BASE_CLASSES } from "./state-constants";
 
 export interface ErrorStateProps {
   /**
@@ -44,8 +45,7 @@ export function ErrorState({
   return (
     <Card
       className={cn(
-        "flex flex-col items-center justify-center gap-4 p-8 text-center",
-        "min-h-[280px] sm:min-h-[320px]",
+        STATE_CARD_BASE_CLASSES,
         "border-border",
         className
       )}

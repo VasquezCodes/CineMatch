@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 /* ========================================
    Section
@@ -36,7 +36,7 @@ export interface SectionProps {
  * @example
  * ```tsx
  * <Section title="Mis películas" description="Lista completa">
- *   <SectionCard>Contenido</SectionCard>
+ *   <Card>Contenido</Card>
  * </Section>
  * ```
  */
@@ -76,45 +76,6 @@ export function Section({
   );
 }
 
-/* ========================================
-   SectionCard
-   ======================================== */
-
-export interface SectionCardProps {
-  /**
-   * Contenido de la card
-   */
-  children: React.ReactNode;
-  /**
-   * Clases adicionales
-   */
-  className?: string;
-}
-
-/**
- * SectionCard
- * Wrapper con bg-card, border y shadow para bloques de contenido.
- * Alternativa simple a Card de shadcn cuando no se necesita CardHeader/CardContent.
- *
- * @example
- * ```tsx
- * <SectionCard>
- *   <p>Contenido del bloque</p>
- * </SectionCard>
- * ```
- */
-export function SectionCard({ children, className }: SectionCardProps) {
-  return (
-    <div
-      className={cn(
-        "rounded-xl border border-border bg-card p-6 shadow-sm",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
-}
 
 /* ========================================
    SectionGrid
@@ -143,9 +104,9 @@ export interface SectionGridProps {
  * @example
  * ```tsx
  * <SectionGrid cols={3}>
- *   <SectionCard>Item 1</SectionCard>
- *   <SectionCard>Item 2</SectionCard>
- *   <SectionCard>Item 3</SectionCard>
+ *   <Card>Item 1</Card>
+ *   <Card>Item 2</Card>
+ *   <Card>Item 3</Card>
  * </SectionGrid>
  * ```
  */

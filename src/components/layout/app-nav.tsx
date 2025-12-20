@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { APP_NAV_ITEMS } from '@/config/nav';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 
 /**
  * AppNav

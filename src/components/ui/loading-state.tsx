@@ -1,7 +1,8 @@
 import * as React from "react";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { STATE_CARD_BASE_CLASSES } from "./state-constants";
 
 export interface LoadingStateProps {
   /**
@@ -26,8 +27,7 @@ export function LoadingState({ label, className }: LoadingStateProps) {
   return (
     <Card
       className={cn(
-        "flex flex-col items-center justify-center gap-4 p-8",
-        "min-h-[280px] sm:min-h-[320px]",
+        STATE_CARD_BASE_CLASSES,
         className
       )}
     >

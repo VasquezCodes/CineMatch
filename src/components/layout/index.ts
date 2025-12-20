@@ -7,5 +7,5 @@ export { ThemeToggle } from "./theme-toggle";
 
 // Page layout components
 export { PageHeader } from "./page-header";
-export { Section, SectionCard, SectionGrid } from "./section";
+export { Section, SectionGrid } from "./section";
 

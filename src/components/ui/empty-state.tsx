@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
+import { STATE_CARD_BASE_CLASSES } from "./state-constants";
 
 export interface EmptyStateProps {
   /**
@@ -48,17 +49,13 @@ export function EmptyState({
   return (
     <Card
       className={cn(
-        "flex flex-col items-center justify-center gap-4 p-8 text-center",
-        "min-h-[280px] sm:min-h-[320px]",
+        STATE_CARD_BASE_CLASSES,
         "border-dashed",
         className
       )}
     >
       {icon && (
-        <div
-          className="text-muted-foreground"
-          aria-hidden="true"
-        >
+        <div className="text-muted-foreground" aria-hidden="true">
           {icon}
         </div>
       )}
@@ -74,11 +71,7 @@ export function EmptyState({
         )}
       </div>
 
-      {action && (
-        <div className="mt-2">
-          {action}
-        </div>
-      )}
+      {action && <div className="mt-2">{action}</div>}
     </Card>
   );
 }
