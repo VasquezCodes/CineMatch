@@ -94,7 +94,36 @@ If a request touches out-of-scope areas, explain what is missing and ask for dir
 
 ---
 
-## 3) UI libraries & styling rules
+## 3) Database types (MANDATORY - Source of Truth)
+
+### `src/types/database.types.ts` is the SINGLE SOURCE OF TRUTH for all database-related types.
+- **NEVER** create custom types that duplicate or override database types.
+- **NEVER** use `any`, `unknown`, or loose types for database entities when the correct type exists in `database.types.ts`.
+- **ALWAYS** import and use the provided type helpers: `Tables`, `TablesInsert`, `TablesUpdate`, `Enums`, `CompositeTypes`.
+- **ALWAYS** use the exact field names, types, and nullability as defined in `database.types.ts`.
+- When working with database entities, use the types directly:
+  - For reading data: `Tables<'movies'>`, `Tables<'profiles'>`, etc.
+  - For inserting data: `TablesInsert<'movies'>`, `TablesInsert<'watchlists'>`, etc.
+  - For updating data: `TablesUpdate<'reviews'>`, `TablesUpdate<'watchlists'>`, etc.
+- **NEVER** create aliases or wrapper types that obscure the database schema unless absolutely necessary for UI-specific transformations (and even then, the base type must be preserved).
+- If a component receives or sends data to/from the database, it MUST use the types from `database.types.ts` without modification.
+- Form components that handle database entities MUST validate against the database schema types (use `TablesInsert` or `TablesUpdate` as the base for form schemas).
+- Mock data for testing/demonstration MUST conform to the database types exactly (same structure, required fields, nullability).
+
+**Tables defined in database.types.ts:**
+- `movies`: id, imdb_id, title, year, director, synopsis, genres, poster_url, average_rating, created_at
+- `profiles`: id, username, bio, avatar_url, location_text, location_coords, updated_at
+- `watchlists`: id, user_id, movie_id, status, updated_at
+- `reviews`: id, user_id, movie_id, rating, comment, created_at
+- `qualities`: id, name, category_id
+- `quality_categories`: id, name, description
+- `user_movie_qualities`: id, user_id, movie_id, quality_id, created_at
+
+All components, hooks, and utilities that interact with these entities MUST respect the exact types, field names, and constraints defined in `database.types.ts`.
+
+---
+
+## 4) UI libraries & styling rules
 
 ### shadcn/ui
 - Prefer shadcn components for base primitives (Button, Card, Dialog, Sheet, Tabs, Dropdown, Tooltip, Skeleton).
@@ -131,7 +160,7 @@ If a request touches out-of-scope areas, explain what is missing and ask for dir
 
 ---
 
-## 4) Components & file conventions
+## 5) Components & file conventions
 
 ### Component conventions
 - Prefer small, focused components.
@@ -151,7 +180,7 @@ If a request touches out-of-scope areas, explain what is missing and ask for dir
 
 ---
 
-## 5) Data fetching & state boundaries (frontend-only)
+## 6) Data fetching & state boundaries (frontend-only)
 - If backend is not ready, create **typed placeholders** that return mocked data ONLY when the user requests mock UI.
 - Prefer React Query only if explicitly requested by the user.
 - No complex caching logic unless requested.
@@ -161,7 +190,7 @@ If a request touches out-of-scope areas, explain what is missing and ask for dir
 
 ---
 
-## 6) Error/Loading/Empty states (mandatory)
+## 7) Error/Loading/Empty states (mandatory)
 Every data-driven screen must include:
 - Loading state (prefer Skeleton)
 - Empty state (educational + CTA when applicable)
@@ -170,7 +199,7 @@ Follow consistent patterns across features.
 
 ---
 
-## 7) Testing & quality gates (lightweight)
+## 8) Testing & quality gates (lightweight)
 - Do not add testing frameworks unless asked.
 - When modifying logic, include basic runtime guards and TypeScript safety.
 - Keep lint/build passing.
@@ -178,14 +207,14 @@ Follow consistent patterns across features.
 
 ---
 
-## 8) Security & secrets
+## 9) Security & secrets
 - Never hardcode secrets or tokens.
 - Do not log sensitive data.
 - Use environment variables for keys (only if explicitly needed).
 
 ---
 
-## 9) Communication format (how you respond)
+## 10) Communication format (how you respond)
 When the user requests changes, respond in this structure:
 1) **Assumptions** (only if needed)
 2) **Change Plan** (files + brief)
@@ -197,7 +226,7 @@ Keep answers concise and actionable.
 
 ---
 
-## 10) Stop conditions
+## 11) Stop conditions
 - If requirements are ambiguous, ask 1–3 targeted questions.
 - If you reach a point where backend logic is required, stop and request the missing API/contract.
 - Do not continue implementing beyond what the user asked.
