@@ -1,5 +1,8 @@
+"use client";
+
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { TextRevealGroup } from "@/components/animations/TextRevealGroup";
 
 export interface PageHeaderProps {
   /**
@@ -50,7 +53,7 @@ export function PageHeader({
       {breadcrumb && <div className="mb-2">{breadcrumb}</div>}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2 flex-1">
+        <TextRevealGroup as="div" className="space-y-2 flex-1">
           <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             {title}
           </h1>
@@ -59,7 +62,7 @@ export function PageHeader({
               {description}
             </p>
           )}
-        </div>
+        </TextRevealGroup>
 
         {actions && (
           <div className="flex items-center gap-2 sm:flex-shrink-0">
@@ -70,4 +73,3 @@ export function PageHeader({
     </header>
   );
 }
-

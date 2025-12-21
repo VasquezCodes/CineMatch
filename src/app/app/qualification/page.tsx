@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { TextRevealGroup } from "@/components/animations/TextRevealGroup";
 
 /* ========================================
    DATA MOCK
@@ -48,12 +49,24 @@ const STEPS: Step[] = [
 
 const QUALITIES_BY_STEP: Record<string, Quality[]> = {
   "seen-heard": [
-    { id: "cinematography", label: "Cinematografía", hint: "Composición visual" },
+    {
+      id: "cinematography",
+      label: "Cinematografía",
+      hint: "Composición visual",
+    },
     { id: "lighting", label: "Iluminación", hint: "Uso de luz y sombra" },
-    { id: "sound-design", label: "Diseño de sonido", hint: "Efectos y ambiente" },
+    {
+      id: "sound-design",
+      label: "Diseño de sonido",
+      hint: "Efectos y ambiente",
+    },
     { id: "music", label: "Música", hint: "Banda sonora y score" },
     { id: "editing", label: "Montaje", hint: "Ritmo y transiciones" },
-    { id: "art-direction", label: "Dirección de arte", hint: "Escenografía y vestuario" },
+    {
+      id: "art-direction",
+      label: "Dirección de arte",
+      hint: "Escenografía y vestuario",
+    },
   ],
   felt: [
     { id: "tension", label: "Tensión", hint: "Suspenso y anticipación" },
@@ -64,8 +77,16 @@ const QUALITIES_BY_STEP: Record<string, Quality[]> = {
     { id: "surprise", label: "Sorpresa", hint: "Giros inesperados" },
   ],
   thought: [
-    { id: "philosophy", label: "Filosofía", hint: "Cuestionamientos existenciales" },
-    { id: "social-critique", label: "Crítica social", hint: "Comentario sobre la sociedad" },
+    {
+      id: "philosophy",
+      label: "Filosofía",
+      hint: "Cuestionamientos existenciales",
+    },
+    {
+      id: "social-critique",
+      label: "Crítica social",
+      hint: "Comentario sobre la sociedad",
+    },
     { id: "morality", label: "Moralidad", hint: "Dilemas éticos" },
     { id: "identity", label: "Identidad", hint: "Búsqueda del yo" },
     { id: "time", label: "Tiempo", hint: "Percepción temporal" },
@@ -128,7 +149,8 @@ export default function QualificationPage() {
           {/* Mensaje de onboarding */}
           <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-center">
             <p className="text-sm text-muted-foreground">
-              Seleccioná las cualidades que más valoras del cine. Podrás editar estas preferencias más adelante desde tu perfil.
+              Seleccioná las cualidades que más valoras del cine. Podrás editar
+              estas preferencias más adelante desde tu perfil.
             </p>
           </div>
           {/* Stepper */}
@@ -149,8 +171,12 @@ export default function QualificationPage() {
                         "hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                         isActive &&
                           "border-primary bg-primary/5 text-foreground",
-                        !isActive && isPast && "border-border text-muted-foreground",
-                        !isActive && !isPast && "border-border/50 text-muted-foreground"
+                        !isActive &&
+                          isPast &&
+                          "border-border text-muted-foreground",
+                        !isActive &&
+                          !isPast &&
+                          "border-border/50 text-muted-foreground"
                       )}
                     >
                       <div className="flex items-center gap-2">
@@ -158,8 +184,12 @@ export default function QualificationPage() {
                           className={cn(
                             "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-medium",
                             isActive && "bg-primary text-primary-foreground",
-                            !isActive && isPast && "bg-muted text-muted-foreground",
-                            !isActive && !isPast && "bg-muted/50 text-muted-foreground"
+                            !isActive &&
+                              isPast &&
+                              "bg-muted text-muted-foreground",
+                            !isActive &&
+                              !isPast &&
+                              "bg-muted/50 text-muted-foreground"
                           )}
                         >
                           {index + 1}
@@ -177,7 +207,7 @@ export default function QualificationPage() {
 
           {/* Step Content */}
           <div className="space-y-6">
-            <div className="space-y-2 text-center">
+            <TextRevealGroup as="div" className="space-y-2 text-center">
               <h2 className="text-2xl font-semibold tracking-tight text-foreground">
                 {currentStep.label}
               </h2>
@@ -189,7 +219,7 @@ export default function QualificationPage() {
                   {selectedCount} seleccionada{selectedCount !== 1 ? "s" : ""}
                 </Badge>
               )}
-            </div>
+            </TextRevealGroup>
 
             {/* Qualities Grid */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -282,4 +312,3 @@ export default function QualificationPage() {
     </div>
   );
 }
-

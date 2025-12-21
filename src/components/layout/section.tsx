@@ -1,5 +1,8 @@
+"use client";
+
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { TextRevealGroup } from "@/components/animations/TextRevealGroup";
 
 /* ========================================
    Section
@@ -51,7 +54,7 @@ export function Section({
     <section className={cn("space-y-4", className)}>
       {(title || description || actions) && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1 flex-1">
+          <TextRevealGroup as="div" className="space-y-1 flex-1">
             {title && (
               <h2 className="text-xl font-semibold tracking-tight text-foreground">
                 {title}
@@ -62,7 +65,7 @@ export function Section({
                 {description}
               </p>
             )}
-          </div>
+          </TextRevealGroup>
           {actions && (
             <div className="flex items-center gap-2 sm:flex-shrink-0">
               {actions}
