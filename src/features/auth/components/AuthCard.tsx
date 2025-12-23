@@ -4,6 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, User, ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { login, signup, forgotPassword } from "../actions";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,11 +27,43 @@ export function AuthCard() {
   const [view, setView] = React.useState<AuthView>("login");
   const [isLoading, setIsLoading] = React.useState(false);
 
-  // Simulación de carga para demostración de UI
-  const handleSubmit = (e: React.FormEvent) => {
+  // Manejo del formulario usando Server Actions
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 2000);
+
+    const formData = new FormData(e.currentTarget);
+    let result;
+
+    try {
+      if (view === "login") {
+        result = await login(formData);
+      } else if (view === "register") {
+        // Validación simple de coincidencia de contraseñas
+        const password = formData.get("password") as string;
+        const confirm = formData.get("confirm_password") as string;
+        if (password !== confirm) {
+          toast.error("Las contraseñas no coinciden");
+          setIsLoading(false);
+          return;
+        }
+        result = await signup(formData);
+      } else if (view === "forgot-password") {
+        result = await forgotPassword(formData);
+        if (result?.success) {
+          toast.success(result.success);
+          setView("login");
+        }
+      }
+
+      if (result?.error) {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      toast.error("Ocurrió un error inesperado");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -68,6 +102,7 @@ export function AuthCard() {
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="reset-email"
+                        name="email"
                         placeholder="tu@email.com"
                         type="email"
                         className="border-border bg-input/50 pl-10 text-foreground placeholder:text-muted-foreground focus:ring-ring"
@@ -98,8 +133,8 @@ export function AuthCard() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              <Tabs 
-                defaultValue={view} 
+              <Tabs
+                defaultValue={view}
                 onValueChange={(v) => setView(v as "login" | "register")}
                 className="w-full"
               >
@@ -108,13 +143,13 @@ export function AuthCard() {
                     CineMatch
                   </CardTitle>
                   <TabsList className="grid w-full grid-cols-2 bg-muted/80 h-11 p-1.5 border border-border gap-1">
-                    <TabsTrigger 
-                      value="login" 
+                    <TabsTrigger
+                      value="login"
                       className="h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4"
                     >
                       Iniciar Sesión
                     </TabsTrigger>
-                    <TabsTrigger 
+                    <TabsTrigger
                       value="register"
                       className="h-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4"
                     >
@@ -132,6 +167,7 @@ export function AuthCard() {
                           <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
                             id="login-email"
+                            name="email"
                             placeholder="tu@email.com"
                             type="email"
                             className="border-border bg-input/50 pl-10 text-foreground placeholder:text-muted-foreground focus:ring-ring"
@@ -154,6 +190,7 @@ export function AuthCard() {
                           <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
                             id="login-password"
+                            name="password"
                             type="password"
                             placeholder="••••••••"
                             className="border-border bg-input/50 pl-10 text-foreground placeholder:text-muted-foreground focus:ring-ring"
@@ -177,9 +214,9 @@ export function AuthCard() {
                         Al continuar, aceptas nuestros términos y condiciones.
                       </p>
                       <Link href="/app" className="w-full">
-                        <Button 
+                        <Button
                           type="button"
-                          variant="outline" 
+                          variant="outline"
                           className="w-full text-sm"
                         >
                           Volver al inicio
@@ -198,6 +235,7 @@ export function AuthCard() {
                           <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
                             id="reg-name"
+                            name="full_name"
                             placeholder="Juan Pérez"
                             className="border-border bg-input/50 pl-10 text-foreground placeholder:text-muted-foreground focus:ring-ring"
                             required
@@ -210,6 +248,7 @@ export function AuthCard() {
                           <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
                             id="reg-email"
+                            name="email"
                             placeholder="tu@email.com"
                             type="email"
                             className="border-border bg-input/50 pl-10 text-foreground placeholder:text-muted-foreground focus:ring-ring"
@@ -223,6 +262,7 @@ export function AuthCard() {
                           <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
                             id="reg-password"
+                            name="password"
                             type="password"
                             placeholder="••••••••"
                             className="border-border bg-input/50 pl-10 text-foreground placeholder:text-muted-foreground focus:ring-ring"
@@ -236,6 +276,7 @@ export function AuthCard() {
                           <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
                             id="reg-confirm"
+                            name="confirm_password"
                             type="password"
                             placeholder="••••••••"
                             className="border-border bg-input/50 pl-10 text-foreground placeholder:text-muted-foreground focus:ring-ring"
