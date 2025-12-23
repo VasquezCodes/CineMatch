@@ -32,7 +32,7 @@ export async function signup(formData: FormData) {
     const password = formData.get('password') as string
     const full_name = formData.get('full_name') as string
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -48,8 +48,12 @@ export async function signup(formData: FormData) {
     }
 
     revalidatePath('/', 'layout')
-    // IMPORTANTE: Si "Confirm Email" está activo en Supabase, el usuario no tendrá sesión todavía.
-    // Redirigimos a /app, pero lo ideal sería mostrar una pantalla de "Verifica tu email".
+    // Si el usuario necesita confirmar su email, redirigir a la pantalla de confirmación
+    if (data.user && !data.session) {
+        redirect(`/confirm-email?email=${encodeURIComponent(email)}`)
+    }
+    
+    // Si ya tiene sesión (email confirmado automáticamente), ir a la app
     redirect('/app')
 }
 

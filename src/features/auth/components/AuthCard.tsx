@@ -91,13 +91,16 @@ export function AuthCard() {
                   Recuperar contraseña
                 </CardTitle>
                 <CardDescription className="text-muted-foreground">
-                  Introduce tu email y te enviaremos las instrucciones para restablecer tu cuenta.
+                  Introduce tu email y te enviaremos las instrucciones para
+                  restablecer tu cuenta.
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleSubmit}>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="reset-email" className="text-foreground">Email</Label>
+                    <Label htmlFor="reset-email" className="text-foreground">
+                      Email
+                    </Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -112,7 +115,10 @@ export function AuthCard() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full font-semibold shadow-lg shadow-primary/20" disabled={isLoading}>
+                  <Button
+                    className="w-full font-semibold shadow-lg shadow-primary/20"
+                    disabled={isLoading}
+                  >
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -162,7 +168,12 @@ export function AuthCard() {
                   <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-4 pt-4">
                       <div className="space-y-2">
-                        <Label htmlFor="login-email" className="text-foreground">Email</Label>
+                        <Label
+                          htmlFor="login-email"
+                          className="text-foreground"
+                        >
+                          Email
+                        </Label>
                         <div className="relative">
                           <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -177,7 +188,12 @@ export function AuthCard() {
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <Label htmlFor="login-password" className="text-foreground">Contraseña</Label>
+                          <Label
+                            htmlFor="login-password"
+                            className="text-foreground"
+                          >
+                            Contraseña
+                          </Label>
                           <button
                             type="button"
                             onClick={() => setView("forgot-password")}
@@ -200,7 +216,10 @@ export function AuthCard() {
                       </div>
                     </CardContent>
                     <CardFooter className="flex flex-col gap-4 pt-6">
-                      <Button className="w-full font-semibold shadow-lg shadow-primary/20" disabled={isLoading}>
+                      <Button
+                        className="w-full font-semibold shadow-lg shadow-primary/20"
+                        disabled={isLoading}
+                      >
                         {isLoading ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -213,15 +232,13 @@ export function AuthCard() {
                       <p className="text-center text-xs text-muted-foreground">
                         Al continuar, aceptas nuestros términos y condiciones.
                       </p>
-                      <Link href="/app" className="w-full">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full text-sm"
-                        >
-                          Volver al inicio
-                        </Button>
-                      </Link>
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="w-full text-sm"
+                      >
+                        <Link href="/">Volver al inicio</Link>
+                      </Button>
                     </CardFooter>
                   </form>
                 </TabsContent>
@@ -230,7 +247,9 @@ export function AuthCard() {
                   <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-4 pt-4">
                       <div className="space-y-2">
-                        <Label htmlFor="reg-name" className="text-foreground">Nombre completo</Label>
+                        <Label htmlFor="reg-name" className="text-foreground">
+                          Nombre completo
+                        </Label>
                         <div className="relative">
                           <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -243,7 +262,9 @@ export function AuthCard() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="reg-email" className="text-foreground">Email</Label>
+                        <Label htmlFor="reg-email" className="text-foreground">
+                          Email
+                        </Label>
                         <div className="relative">
                           <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -257,7 +278,12 @@ export function AuthCard() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="reg-password" className="text-foreground">Contraseña</Label>
+                        <Label
+                          htmlFor="reg-password"
+                          className="text-foreground"
+                        >
+                          Contraseña
+                        </Label>
                         <div className="relative">
                           <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -271,7 +297,12 @@ export function AuthCard() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="reg-confirm" className="text-foreground">Confirmar Contraseña</Label>
+                        <Label
+                          htmlFor="reg-confirm"
+                          className="text-foreground"
+                        >
+                          Confirmar Contraseña
+                        </Label>
                         <div className="relative">
                           <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -286,7 +317,10 @@ export function AuthCard() {
                       </div>
                     </CardContent>
                     <CardFooter className="pt-6">
-                      <Button className="w-full font-semibold shadow-lg shadow-primary/20" disabled={isLoading}>
+                      <Button
+                        className="w-full font-semibold shadow-lg shadow-primary/20"
+                        disabled={isLoading}
+                      >
                         {isLoading ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -307,4 +341,3 @@ export function AuthCard() {
     </div>
   );
 }
-
