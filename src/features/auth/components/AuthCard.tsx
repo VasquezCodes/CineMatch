@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, User, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { login, signup, forgotPassword } from "../actions";
+import { login, signup, resetPassword } from "../actions";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -51,7 +51,7 @@ export function AuthCard() {
         }
         result = await signup(formData);
       } else {
-        result = await forgotPassword(formData);
+        result = await resetPassword(formData);
         if (result?.success) {
           toast.success(result.success);
           setView("login");
