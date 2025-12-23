@@ -48,9 +48,8 @@ export async function signup(formData: FormData) {
     }
 
     revalidatePath('/', 'layout')
-    // IMPORTANTE: Si "Confirm Email" está activo en Supabase, el usuario no tendrá sesión todavía.
-    // Redirigimos a /app, pero lo ideal sería mostrar una pantalla de "Verifica tu email".
-    redirect('/app')
+    // redirigimos a una pantalla de "Verifica tu email"
+    redirect(`/auth/confirmation?email=${encodeURIComponent(email)}`)
 }
 
 // Server Action para recuperar contraseña

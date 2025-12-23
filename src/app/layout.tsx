@@ -1,6 +1,6 @@
 import { Fraunces, Inter } from "next/font/google";
 import { Toaster } from "sonner";
-import { ThemeProvider } from "@/lib/providers";
+import { ThemeProvider, AuthProvider } from "@/lib/providers";
 import "@/styles/globals.css";
 
 const fraunces = Fraunces({
@@ -30,8 +30,10 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          {children}
-          <Toaster position="top-center" />
+          <AuthProvider>
+            {children}
+            <Toaster position="top-center" />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

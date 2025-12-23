@@ -1,3 +1,2 @@
-// Providers barrel export
-export { ThemeProvider } from './theme-provider';
-
+export * from './theme-provider';
+export * from './auth-provider';

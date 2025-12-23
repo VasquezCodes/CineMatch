@@ -47,6 +47,13 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url)
     }
 
+    // Si el usuario está logueado y está en la raíz, redirigir a /app
+    if (user && request.nextUrl.pathname === '/') {
+        const url = request.nextUrl.clone()
+        url.pathname = '/app'
+        return NextResponse.redirect(url)
+    }
+
     return supabaseResponse
 }
 
