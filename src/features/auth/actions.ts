@@ -1,30 +1,28 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
-// Server Action para inicio de sesión
 export async function login(formData: FormData) {
-    const supabase = await createClient()
+    const supabase = createClient()
 
-    const data = {
-        email: formData.get('email') as string,
-        password: formData.get('password') as string,
-    }
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
 
-    const { error } = await supabase.auth.signInWithPassword(data)
+    const { error } = await (await supabase).auth.signInWithPassword({
+        email,
+        password,
+    })
 
     if (error) {
-        return { error: error.message }
+        return { error: 'Credenciales inválidas' }
     }
 
     revalidatePath('/', 'layout')
     redirect('/app')
 }
 
-// Server Action para registro de usuario
 export async function signup(formData: FormData) {
     const supabase = await createClient()
 
@@ -32,44 +30,71 @@ export async function signup(formData: FormData) {
     const password = formData.get('password') as string
     const full_name = formData.get('full_name') as string
 
-    const { error } = await supabase.auth.signUp({
+    // Configuramos la URL de redirección para que apunte a nuestro endpoint de intercambio de código
+    const emailRedirectTo = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+
+    const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
             data: {
                 full_name,
             },
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+            emailRedirectTo,
         }
+    })
+
+    if (error) {
+        console.error('Signup error:', error)
+        return { error: error.message }
+    }
+
+    revalidatePath('/', 'layout')
+
+    // Si el usuario necesita confirmar su email, redirigir a la pantalla de confirmación correcta
+    if (data.user && !data.session) {
+        redirect(`/confirm-email?email=${encodeURIComponent(email)}`)
+    }
+
+    // Si ya tiene sesión (email confirmado automáticamente o dev environment), ir a la app
+    redirect('/app')
+}
+
+// Server Action para recuperar contraseña
+export async function resetPassword(formData: FormData) {
+    const supabase = await createClient()
+    const email = formData.get('email') as string
+    const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/auth/update-password`
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+    })
+
+    if (error) {
+        console.error('Reset password error:', error)
+        return { error: error.message }
+    }
+
+    return { success: 'Se ha enviado un enlace de recuperación a tu correo.' }
+}
+
+export async function updatePassword(formData: FormData) {
+    const supabase = await createClient()
+    const password = formData.get('password') as string
+
+    const { error } = await supabase.auth.updateUser({
+        password
     })
 
     if (error) {
         return { error: error.message }
     }
 
-    revalidatePath('/', 'layout')
-    // redirigimos a una pantalla de "Verifica tu email"
-    redirect(`/auth/confirmation?email=${encodeURIComponent(email)}`)
+    redirect('/app')
 }
 
-// Server Action para recuperar contraseña
-export async function forgotPassword(formData: FormData) {
-    const supabase = await createClient()
-    const email = formData.get('email') as string
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email)
-
-    if (error) {
-        return { error: error.message }
-    }
-
-    return { success: 'Check your email for the password reset link.' }
-}
-
-// Server Action para cerrar sesión
 export async function signout() {
     const supabase = await createClient()
     await supabase.auth.signOut()
-    revalidatePath('/', 'layout')
     redirect('/login')
 }
