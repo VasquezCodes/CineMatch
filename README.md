@@ -163,25 +163,7 @@ Este proyecto se encuentra en **desarrollo activo**. Algunas características pu
 
 ---
 
-## 🤝 Contribuciones
-
-Las contribuciones son bienvenidas. Si encuentras un bug o tienes una idea para mejorar el proyecto:
-
-1. Haz fork del repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit tus cambios (`git commit -m 'Agrega nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Abre un Pull Request
-
----
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
-
----
-
-## � Autores
+##  Autores
 
 Desarrollado por:
 
