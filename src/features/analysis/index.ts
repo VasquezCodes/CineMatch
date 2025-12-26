@@ -6,5 +6,5 @@ export { AnalysisStats } from "./components/AnalysisStats";
 export { AnalysisTable } from "./components/AnalysisTable";
 
 // Types
-export type { WatchlistAnalysisItem, AnalysisStats as AnalysisStatsType } from "./types";
+export type { WatchlistAnalysisItem } from "./types";
 

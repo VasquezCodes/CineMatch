@@ -1,52 +1,21 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Film, Star, Calendar, Tag } from "lucide-react";
-import type { WatchlistAnalysisItem } from "../types";
+import { Film, Star, Eye, Tag } from "lucide-react";
+import type { AnalysisData } from "@/features/insights/actions";
 
 interface AnalysisStatsProps {
-  data: WatchlistAnalysisItem[];
+  data: AnalysisData;
 }
 
 export function AnalysisStats({ data }: AnalysisStatsProps) {
-  // Calcular estadísticas
-  const totalMovies = data.length;
+  // Obtener género favorito (el que tiene más películas)
+  const topGenre = Object.entries(data.genreDistribution).sort(
+    (a, b) => b[1] - a[1]
+  )[0];
 
-  const ratingsWithValues = data.filter(
-    (item) => item.watchlist.user_rating !== null
-  );
-  const averageRating =
-    ratingsWithValues.length > 0
-      ? ratingsWithValues.reduce(
-          (sum, item) => sum + (item.watchlist.user_rating || 0),
-          0
-        ) / ratingsWithValues.length
-      : 0;
-
-  // Géneros más comunes
-  const genresCount = new Map<string, number>();
-  data.forEach((item) => {
-    const genres = item.movie.genres as string[] | null;
-    if (genres && Array.isArray(genres)) {
-      genres.forEach((genre) => {
-        genresCount.set(genre, (genresCount.get(genre) || 0) + 1);
-      });
-    }
-  });
-  const topGenres = Array.from(genresCount.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
-
-  // Década más vista
-  const decadesCount = new Map<string, number>();
-  data.forEach((item) => {
-    if (item.movie.year) {
-      const decade = Math.floor(item.movie.year / 10) * 10;
-      const decadeLabel = `${decade}s`;
-      decadesCount.set(decadeLabel, (decadesCount.get(decadeLabel) || 0) + 1);
-    }
-  });
-  const topDecade = Array.from(decadesCount.entries()).sort(
+  // Obtener rating más común
+  const topRating = Object.entries(data.ratingDistribution).sort(
     (a, b) => b[1] - a[1]
   )[0];
 
@@ -54,15 +23,26 @@ export function AnalysisStats({ data }: AnalysisStatsProps) {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Total Películas
-          </CardTitle>
+          <CardTitle className="text-sm font-medium">Total Películas</CardTitle>
           <Film className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{totalMovies}</div>
+          <div className="text-2xl font-bold">{data.totalMovies}</div>
+          <p className="text-xs text-muted-foreground">En tu biblioteca</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Películas Vistas
+          </CardTitle>
+          <Eye className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{data.watchedMovies}</div>
           <p className="text-xs text-muted-foreground">
-            Importadas desde tu CSV
+            {data.planToWatchMovies} pendientes
           </p>
         </CardContent>
       </Card>
@@ -74,12 +54,12 @@ export function AnalysisStats({ data }: AnalysisStatsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {averageRating > 0 ? averageRating.toFixed(1) : "N/A"}
+            {data.averageRating > 0 ? data.averageRating.toFixed(1) : "N/A"}
           </div>
           <p className="text-xs text-muted-foreground">
-            {ratingsWithValues.length > 0
-              ? `Basado en ${ratingsWithValues.length} ratings`
-              : "Sin ratings registrados"}
+            {topRating
+              ? `${topRating[1]} películas con ${topRating[0]}★`
+              : "Basado en tus reviews"}
           </p>
         </CardContent>
       </Card>
@@ -90,28 +70,12 @@ export function AnalysisStats({ data }: AnalysisStatsProps) {
           <Tag className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            {topGenres[0]?.[0] || "N/A"}
-          </div>
+          <div className="text-2xl font-bold">{topGenre?.[0] || "N/A"}</div>
           <p className="text-xs text-muted-foreground">
-            {topGenres[0] ? `${topGenres[0][1]} películas` : "Sin géneros"}
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Década Favorita</CardTitle>
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{topDecade?.[0] || "N/A"}</div>
-          <p className="text-xs text-muted-foreground">
-            {topDecade ? `${topDecade[1]} películas` : "Sin años registrados"}
+            {topGenre ? `${topGenre[1]} películas` : "Sin géneros"}
           </p>
         </CardContent>
       </Card>
     </div>
   );
 }
-

@@ -5,12 +5,29 @@ import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import Link from "next/link";
 import { APP_ROUTES } from "@/config/routes";
+import { getAnalysisData } from "@/features/insights/actions";
 import { getWatchlistAnalysis } from "@/features/analysis/actions";
 import { AnalysisStats } from "@/features/analysis/components/AnalysisStats";
 import { AnalysisTable } from "@/features/analysis/components/AnalysisTable";
 
 export default async function AnalysisPage() {
-  const { data, error } = await getWatchlistAnalysis();
+  let statsData = null;
+  let moviesData = null;
+  let error = null;
+
+  try {
+    // Obtener estadísticas pre-calculadas
+    statsData = await getAnalysisData();
+    
+    // Obtener array completo de películas para la tabla
+    const moviesResult = await getWatchlistAnalysis();
+    moviesData = moviesResult.data;
+    error = moviesResult.error;
+  } catch (err) {
+    error = err instanceof Error ? err.message : "Error al cargar el análisis";
+  }
+
+  const isEmpty = !statsData || statsData.totalMovies === 0;
 
   return (
     <div className="space-y-8">
@@ -32,7 +49,7 @@ export default async function AnalysisPage() {
         </Section>
       )}
 
-      {!error && (!data || data.length === 0) && (
+      {!error && isEmpty && (
         <Section>
           <EmptyState
             icon={Upload}
@@ -47,14 +64,14 @@ export default async function AnalysisPage() {
         </Section>
       )}
 
-      {!error && data && data.length > 0 && (
+      {!error && !isEmpty && statsData && moviesData && (
         <>
           <Section>
-            <AnalysisStats data={data} />
+            <AnalysisStats data={statsData} />
           </Section>
 
           <Section>
-            <AnalysisTable data={data} />
+            <AnalysisTable data={moviesData} />
           </Section>
         </>
       )}
