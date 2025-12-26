@@ -195,7 +195,7 @@ export function UploadWatchlistForm({
         <StepItem
           icon={<BarChart3 />}
           title="Paso 3: Analizar"
-          desc="¡Listo! Revisa tu resumen visual en Insights."
+          desc="¡Listo! Revisa tu análisis visual y estadísticas."
         />
       </div>
 
@@ -245,9 +245,9 @@ export function UploadWatchlistForm({
             >
               <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:justify-center">
                 <AlertDialogAction
-                  onClick={() => (window.location.href = "/app/insights")}
+                  onClick={() => (window.location.href = "/app/analysis")}
                 >
-                  Ver resumen
+                  Ver análisis
                 </AlertDialogAction>
                 <AlertDialogCancel
                   onClick={handleReset}
