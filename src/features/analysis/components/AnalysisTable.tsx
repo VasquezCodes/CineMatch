@@ -93,7 +93,10 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
 
           <div className="flex gap-2 items-center">
             <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+            <Select
+              value={sortBy}
+              onValueChange={(v) => setSortBy(v as SortOption)}
+            >
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Ordenar por" />
               </SelectTrigger>
@@ -124,7 +127,7 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
       {/* Resultados */}
       {filteredAndSortedData.length === 0 ? (
         <EmptyState
-          icon={Search}
+          icon={<Search className="h-12 w-12" />}
           title="No se encontraron películas"
           description={
             searchQuery || filterRating !== "all"
@@ -157,7 +160,7 @@ function MovieCard({ item }: { item: WatchlistAnalysisItem }) {
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
       <div className="flex gap-3 p-4">
         {/* Poster */}
-        <div className="relative w-20 h-28 flex-shrink-0 rounded-md overflow-hidden bg-muted">
+        <div className="relative w-20 h-28 shrink-0 rounded-md overflow-hidden bg-muted">
           {movie.poster_url ? (
             <Image
               src={movie.poster_url}
@@ -225,4 +228,3 @@ function MovieCard({ item }: { item: WatchlistAnalysisItem }) {
     </Card>
   );
 }
-
