@@ -163,7 +163,7 @@ Este proyecto se encuentra en **desarrollo activo**. Algunas características pu
 
 ---
 
-##  Autores
+## 👥 Autores
 
 Desarrollado por:
 
