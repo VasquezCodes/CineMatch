@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { PageHeader, Section } from "@/components/layout";
 import { ErrorState } from "@/components/ui/error-state";
 import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { APP_ROUTES } from "@/config/routes";
 import { getWatchlistAnalysis } from "@/features/analysis/actions";
@@ -56,7 +55,6 @@ export default async function RateMoviesPage() {
         />
         <Section>
           <ErrorState
-            icon={<AlertCircle className="h-12 w-12" />}
             title="Error al cargar las películas"
             description={error}
             action={
