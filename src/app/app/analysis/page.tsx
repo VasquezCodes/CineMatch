@@ -18,7 +18,7 @@ export default async function AnalysisPage() {
   try {
     // Obtener estadísticas pre-calculadas
     statsData = await getAnalysisData();
-    
+
     // Obtener array completo de películas para la tabla
     const moviesResult = await getWatchlistAnalysis();
     moviesData = moviesResult.data;
@@ -40,11 +40,12 @@ export default async function AnalysisPage() {
         <Section>
           <ErrorState
             title="Error al cargar el análisis"
-            message={error}
-            action={{
-              label: "Reintentar",
-              onClick: () => window.location.reload(),
-            }}
+            description={error}
+            action={
+              <Button asChild>
+                <Link href={APP_ROUTES.ANALYSIS}>Reintentar</Link>
+              </Button>
+            }
           />
         </Section>
       )}
@@ -52,7 +53,7 @@ export default async function AnalysisPage() {
       {!error && isEmpty && (
         <Section>
           <EmptyState
-            icon={Upload}
+            icon={<Upload className="h-12 w-12" />}
             title="No hay datos para analizar"
             description="Aún no has importado ningún archivo CSV. Sube tu watchlist para comenzar."
             action={
