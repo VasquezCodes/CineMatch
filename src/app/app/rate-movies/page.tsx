@@ -7,6 +7,7 @@ import { APP_ROUTES } from "@/config/routes";
 import { getWatchlistAnalysis } from "@/features/analysis/actions";
 import { RateMoviesGrid } from "@/features/reviews";
 import type { UnratedMovie } from "@/features/reviews";
+import { BarChart3 } from "lucide-react";
 
 export default async function RateMoviesPage() {
   let unratedMovies: UnratedMovie[] = [];
@@ -76,10 +77,24 @@ export default async function RateMoviesPage() {
         description="Necesitas calificar estas películas antes de ver tu análisis completo. Seleccioná las estrellas para calificar cada película del 1 al 10."
       />
 
+      {/* Botón para ver análisis completo */}
+      <Section>
+        <div className="flex justify-end">
+          <Button variant="outline" asChild>
+            <Link
+              href={APP_ROUTES.ANALYSIS}
+              className="flex items-center gap-2"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Ver análisis completo
+            </Link>
+          </Button>
+        </div>
+      </Section>
+
       <Section>
         <RateMoviesGrid movies={unratedMovies} />
       </Section>
     </div>
   );
 }
-

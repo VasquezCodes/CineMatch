@@ -80,7 +80,7 @@ export function AppHeader() {
                 <DropdownMenuItem asChild>
                   <Link
                     href={APP_ROUTES.PROFILE.replace(":username", user.id)}
-                    className="flex cursor-pointer items-center gap-3 rounded-md p-2 transition-colors hover:bg-accent"
+                    className="flex cursor-pointer items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted"
                   >
                     <div className="flex size-9 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <User className="size-5" />

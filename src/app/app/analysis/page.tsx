@@ -3,7 +3,8 @@ import { PageHeader, Section } from "@/components/layout";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Upload, AlertCircle, Star } from "lucide-react";
 import Link from "next/link";
 import { APP_ROUTES } from "@/config/routes";
 import { getAnalysisData } from "@/features/insights/actions";
@@ -21,17 +22,10 @@ export default async function AnalysisPage() {
   moviesData = moviesResult.data;
   error = moviesResult.error;
 
-  // Verificar si hay películas sin calificar (fuera del try-catch)
-  if (!error && moviesData && moviesData.length > 0) {
-    const unratedMovies = moviesData.filter(
-      (item) => item.watchlist.user_rating === null
-    );
-
-    // Si hay películas sin calificar, redirigir a la página de calificación
-    if (unratedMovies.length > 0) {
-      redirect(APP_ROUTES.RATE_MOVIES);
-    }
-  }
+  // Verificar si hay películas sin calificar
+  const unratedMoviesCount = !error && moviesData && moviesData.length > 0
+    ? moviesData.filter((item) => item.watchlist.user_rating === null).length
+    : 0;
 
   // Obtener estadísticas pre-calculadas (solo si todas están calificadas)
   try {
@@ -40,7 +34,8 @@ export default async function AnalysisPage() {
     error = err instanceof Error ? err.message : "Error al cargar el análisis";
   }
 
-  const isEmpty = !statsData || statsData.totalMovies === 0;
+  const isEmpty = !moviesData || moviesData.length === 0;
+  const hasUnratedMovies = unratedMoviesCount > 0;
 
   return (
     <div className="space-y-8">
@@ -48,6 +43,35 @@ export default async function AnalysisPage() {
         title="Análisis de cinefilia"
         description="Visualiza y explora las películas importadas desde tu CSV."
       />
+
+      {/* Mensaje informativo si hay películas sin calificar */}
+      {hasUnratedMovies && !error && (
+        <Section>
+          <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/20">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+                <div className="flex-1 space-y-2">
+                  <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                    Tienes {unratedMoviesCount} película{unratedMoviesCount > 1 ? "s" : ""} sin calificar
+                  </p>
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    Para obtener un análisis más completo, te recomendamos calificar todas tus películas.
+                  </p>
+                  <div className="pt-2">
+                    <Button variant="outline" size="sm" asChild className="border-amber-300 dark:border-amber-800 hover:[&_svg]:text-accent hover:[&_svg]:fill-[hsl(var(--accent))]">
+                      <Link href={APP_ROUTES.RATE_MOVIES} className="flex items-center gap-2">
+                        <Star className="h-4 w-4" />
+                        Calificar películas
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Section>
+      )}
 
       {error && (
         <Section>
@@ -78,11 +102,13 @@ export default async function AnalysisPage() {
         </Section>
       )}
 
-      {!error && !isEmpty && statsData && moviesData && (
+      {!error && !isEmpty && moviesData && (
         <>
-          <Section>
-            <AnalysisStats data={statsData} />
-          </Section>
+          {statsData && (
+            <Section>
+              <AnalysisStats data={statsData} />
+            </Section>
+          )}
 
           <Section>
             <AnalysisTable data={moviesData} />

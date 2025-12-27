@@ -215,7 +215,7 @@ function MovieCard({ item }: { item: WatchlistAnalysisItem }) {
               {(movie.genres as string[]).slice(0, 2).map((genre) => (
                 <Badge
                   key={genre}
-                  variant="secondary"
+                  variant="accent"
                   className="text-[10px] px-1.5 py-0"
                 >
                   {genre}
