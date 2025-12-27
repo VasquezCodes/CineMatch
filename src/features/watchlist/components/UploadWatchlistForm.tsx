@@ -245,7 +245,7 @@ export function UploadWatchlistForm({
             >
               <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:justify-center">
                 <AlertDialogAction
-                  onClick={() => (window.location.href = "/app/analysis")}
+                  onClick={() => (window.location.href = "/app/rate-movies")}
                 >
                   Ver análisis
                 </AlertDialogAction>

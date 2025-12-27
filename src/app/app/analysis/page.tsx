@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { PageHeader, Section } from "@/components/layout";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -15,14 +16,26 @@ export default async function AnalysisPage() {
   let moviesData = null;
   let error = null;
 
-  try {
-    // Obtener estadísticas pre-calculadas
-    statsData = await getAnalysisData();
+  // Obtener array completo de películas para la tabla
+  const moviesResult = await getWatchlistAnalysis();
+  moviesData = moviesResult.data;
+  error = moviesResult.error;
 
-    // Obtener array completo de películas para la tabla
-    const moviesResult = await getWatchlistAnalysis();
-    moviesData = moviesResult.data;
-    error = moviesResult.error;
+  // Verificar si hay películas sin calificar (fuera del try-catch)
+  if (!error && moviesData && moviesData.length > 0) {
+    const unratedMovies = moviesData.filter(
+      (item) => item.watchlist.user_rating === null
+    );
+
+    // Si hay películas sin calificar, redirigir a la página de calificación
+    if (unratedMovies.length > 0) {
+      redirect(APP_ROUTES.RATE_MOVIES);
+    }
+  }
+
+  // Obtener estadísticas pre-calculadas (solo si todas están calificadas)
+  try {
+    statsData = await getAnalysisData();
   } catch (err) {
     error = err instanceof Error ? err.message : "Error al cargar el análisis";
   }
