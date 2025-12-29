@@ -3,13 +3,10 @@
 import { PageHeader, Section } from "@/components/layout";
 import { UploadWatchlistForm } from "@/features/watchlist";
 import Papa from "papaparse";
-import { toast } from "sonner";
 import { processImport, type CsvMovieImport } from "@/features/import/actions";
-import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function UploadPage() {
-  const router = useRouter();
-
   const handleUpload = async (file: File) => {
     return new Promise<void>((resolve, reject) => {
       Papa.parse(file, {
@@ -17,27 +14,37 @@ export default function UploadPage() {
         skipEmptyLines: true,
         complete: async (results) => {
           try {
-            const movies: CsvMovieImport[] = results.data.map((row: any) => ({
-              imdb_id: row['Const'],
-              title: row['Title'],
-              year: parseInt(row['Year']),
-              position: row['Position'] ? parseInt(row['Position']) : undefined,
-              user_rating: row['Your Rating'] ? parseInt(row['Your Rating']) : undefined,
-              date_rated: row['Date Rated'],
-              genres: row['Genres'],
-              url: row['URL'],
-              imdb_rating: row['IMDb Rating'] ? parseFloat(row['IMDb Rating']) : undefined,
-              runtime_mins: row['Runtime (mins)'] ? parseInt(row['Runtime (mins)']) : undefined,
-              release_date: row['Release Date'],
-              directors: row['Directors'],
-              num_votes: row['Num Votes'] ? parseInt(row['Num Votes']) : undefined,
-            })).filter(m => m.imdb_id); // Filtrar filas sin ID
+            const movies: CsvMovieImport[] = results.data
+              .map((row: any) => ({
+                imdb_id: row["Const"],
+                title: row["Title"],
+                year: parseInt(row["Year"]),
+                position: row["Position"]
+                  ? parseInt(row["Position"])
+                  : undefined,
+                user_rating: row["Your Rating"]
+                  ? parseInt(row["Your Rating"])
+                  : undefined,
+                date_rated: row["Date Rated"],
+                genres: row["Genres"],
+                url: row["URL"],
+                imdb_rating: row["IMDb Rating"]
+                  ? parseFloat(row["IMDb Rating"])
+                  : undefined,
+                runtime_mins: row["Runtime (mins)"]
+                  ? parseInt(row["Runtime (mins)"])
+                  : undefined,
+                release_date: row["Release Date"],
+                directors: row["Directors"],
+                num_votes: row["Num Votes"]
+                  ? parseInt(row["Num Votes"])
+                  : undefined,
+              }))
+              .filter((m) => m.imdb_id); // Filtrar filas sin ID
 
             const result = await processImport(movies);
 
             if (result.success) {
-              toast.success(`Importación completada: ${result.new_movies} nuevas, ${result.updated_movies} actualizadas.`);
-              router.push('/app/library'); // Redirigir a la biblioteca
               resolve();
             } else {
               toast.error("Hubo un error en la importación.");
@@ -53,7 +60,7 @@ export default function UploadPage() {
           console.error(error);
           toast.error("Error leyendo el archivo CSV.");
           reject(error);
-        }
+        },
       });
     });
   };
@@ -66,12 +73,8 @@ export default function UploadPage() {
       />
 
       <Section>
-        <UploadWatchlistForm
-          onUpload={handleUpload}
-          maxSizeMB={10}
-        />
+        <UploadWatchlistForm onUpload={handleUpload} maxSizeMB={10} />
       </Section>
     </div>
   );
 }
-

@@ -44,11 +44,21 @@ export const TypewriterLoader = ({
   }, [duration, onFinished]);
 
   useEffect(() => {
+    setCurrentMessageIndex(0);
     if (messages.length > 1) {
-      const timer = setTimeout(() => setCurrentMessageIndex(1), 1500);
-      return () => clearTimeout(timer);
+      const intervalTime = duration / messages.length;
+      let index = 0;
+      const timer = setInterval(() => {
+        index++;
+        if (index < messages.length) {
+          setCurrentMessageIndex(index);
+        } else {
+          clearInterval(timer);
+        }
+      }, intervalTime);
+      return () => clearInterval(timer);
     }
-  }, [messages.length]);
+  }, [messages.length, duration]);
 
   useEffect(() => {
     let charIndex = 0;

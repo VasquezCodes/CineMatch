@@ -45,6 +45,10 @@ export function UploadWatchlistForm({
   const [isDragging, setIsDragging] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  const handleFinished = React.useCallback(() => {
+    setStatus("success");
+  }, []);
+
   const validateFile = (fileToValidate: File): string | null => {
     const fileName = fileToValidate.name.toLowerCase();
     if (!fileName.endsWith(".csv"))
@@ -83,7 +87,7 @@ export function UploadWatchlistForm({
 
   React.useEffect(() => {
     if (status === "success") {
-      toast.success("Archivo subido con éxito");
+      toast.success("Archivo subido correctamente");
     }
   }, [status]);
 
@@ -140,7 +144,7 @@ export function UploadWatchlistForm({
                       "Generando perfil...",
                     ]}
                     duration={3000}
-                    onFinished={() => setStatus("success")}
+                    onFinished={handleFinished}
                   />
                 </motion.div>
               ) : (
