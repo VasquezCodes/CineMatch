@@ -36,9 +36,6 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      {/* Usamos un contenedor con padding horizontal (px-6) para los márgenes laterales.
-          'max-w-screen-2xl' opcional para evitar que en monitores ultra-wide se separe demasiado.
-      */}
       <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center px-6">
         {/* SECCIÓN IZQUIERDA: Logo */}
         <div className="flex flex-1 items-center justify-start">

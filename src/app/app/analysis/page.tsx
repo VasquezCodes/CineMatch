@@ -1,68 +1,111 @@
-import { redirect } from "next/navigation";
-import { PageHeader, Section } from "@/components/layout";
-import { ErrorState } from "@/components/ui/error-state";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Upload, AlertCircle, Star } from "lucide-react";
 import Link from "next/link";
+import { AlertCircle, Star, Upload } from "lucide-react";
 import { APP_ROUTES } from "@/config/routes";
 import { getAnalysisData } from "@/features/insights/actions";
 import { getWatchlistAnalysis } from "@/features/analysis/actions";
 import { AnalysisStats } from "@/features/analysis/components/AnalysisStats";
 import { AnalysisTable } from "@/features/analysis/components/AnalysisTable";
+import { PageHeader, Section } from "@/components/layout";
+import { ErrorState } from "@/components/ui/error-state";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default async function AnalysisPage() {
-  let statsData = null;
-  let moviesData = null;
-  let error = null;
-
-  // Obtener array completo de películas para la tabla
   const moviesResult = await getWatchlistAnalysis();
-  moviesData = moviesResult.data;
-  error = moviesResult.error;
+  const moviesData = moviesResult.data ?? [];
+  const moviesError = moviesResult.error;
 
-  // Verificar si hay películas sin calificar
-  const unratedMoviesCount = !error && moviesData && moviesData.length > 0
-    ? moviesData.filter((item) => item.watchlist.user_rating === null).length
-    : 0;
+  const unratedMoviesCount = moviesData.filter(
+    (item) => item.watchlist.user_rating === null
+  ).length;
 
-  // Obtener estadísticas pre-calculadas (solo si todas están calificadas)
+  let statsData = null;
+  let statsError = null;
+
   try {
-    statsData = await getAnalysisData();
+    if (moviesData.length > 0) {
+      statsData = await getAnalysisData();
+    }
   } catch (err) {
-    error = err instanceof Error ? err.message : "Error al cargar el análisis";
+    statsError =
+      err instanceof Error ? err.message : "Error al cargar estadísticas";
   }
 
-  const isEmpty = !moviesData || moviesData.length === 0;
+  const globalError = moviesError || statsError;
+  const isEmpty = moviesData.length === 0;
   const hasUnratedMovies = unratedMoviesCount > 0;
 
+  if (globalError) {
+    return (
+      <Section>
+        <ErrorState
+          title="Error al cargar el análisis"
+          description={globalError}
+          action={
+            <Button asChild>
+              <Link href={APP_ROUTES.ANALYSIS}>Reintentar</Link>
+            </Button>
+          }
+        />
+      </Section>
+    );
+  }
+
+  if (isEmpty) {
+    return (
+      <Section>
+        <EmptyState
+          icon={<Upload className="h-12 w-12 text-muted-foreground" />}
+          title="No hay datos para analizar"
+          description="Sube tu archivo CSV para generar un análisis detallado de tu cinefilia."
+          action={
+            <Button asChild>
+              <Link href={APP_ROUTES.UPLOAD}>Subir CSV</Link>
+            </Button>
+          }
+        />
+      </Section>
+    );
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PageHeader
         title="Análisis de cinefilia"
-        description="Visualiza y explora las películas importadas desde tu CSV."
+        description="Visualiza y explora las tendencias de tu colección de cine."
       />
 
-      {/* Mensaje informativo si hay películas sin calificar */}
-      {hasUnratedMovies && !error && (
+      {hasUnratedMovies && (
         <Section>
-          <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/20">
+          <Card className="border-primary/20 bg-primary/5 transition-colors duration-300">
             <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
-                <div className="flex-1 space-y-2">
-                  <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
-                    Tienes {unratedMoviesCount} película{unratedMoviesCount > 1 ? "s" : ""} sin calificar
+              <div className="flex items-start gap-4">
+                <div className="rounded-full bg-primary/10 p-2">
+                  <AlertCircle className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <h4 className="text-sm font-semibold leading-none tracking-tight">
+                    Calificaciones pendientes
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Tienes {unratedMoviesCount} película
+                    {unratedMoviesCount > 1 ? "s" : ""} sin calificar. Completa
+                    tu perfil para obtener estadísticas precisas.
                   </p>
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    Para obtener un análisis más completo, te recomendamos calificar todas tus películas.
-                  </p>
-                  <div className="pt-2">
-                    <Button variant="outline" size="sm" asChild className="border-amber-300 dark:border-amber-800 hover:[&_svg]:text-accent hover:[&_svg]:fill-[hsl(var(--accent))]">
-                      <Link href={APP_ROUTES.RATE_MOVIES} className="flex items-center gap-2">
-                        <Star className="h-4 w-4" />
-                        Calificar películas
+                  <div className="pt-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="h-8 border-primary/30 hover:bg-primary hover:text-primary-foreground"
+                    >
+                      <Link
+                        href={APP_ROUTES.RATE_MOVIES}
+                        className="flex items-center gap-2"
+                      >
+                        <Star className="h-3.5 w-3.5 fill-current" />
+                        <span>Calificar ahora</span>
                       </Link>
                     </Button>
                   </div>
@@ -73,49 +116,15 @@ export default async function AnalysisPage() {
         </Section>
       )}
 
-      {error && (
+      {statsData && (
         <Section>
-          <ErrorState
-            title="Error al cargar el análisis"
-            description={error}
-            action={
-              <Button asChild>
-                <Link href={APP_ROUTES.ANALYSIS}>Reintentar</Link>
-              </Button>
-            }
-          />
+          <AnalysisStats data={statsData} />
         </Section>
       )}
 
-      {!error && isEmpty && (
-        <Section>
-          <EmptyState
-            icon={<Upload className="h-12 w-12" />}
-            title="No hay datos para analizar"
-            description="Aún no has importado ningún archivo CSV. Sube tu watchlist para comenzar."
-            action={
-              <Button asChild>
-                <Link href={APP_ROUTES.UPLOAD}>Subir CSV</Link>
-              </Button>
-            }
-          />
-        </Section>
-      )}
-
-      {!error && !isEmpty && moviesData && (
-        <>
-          {statsData && (
-            <Section>
-              <AnalysisStats data={statsData} />
-            </Section>
-          )}
-
-          <Section>
-            <AnalysisTable data={moviesData} />
-          </Section>
-        </>
-      )}
+      <Section>
+        <AnalysisTable data={moviesData} />
+      </Section>
     </div>
   );
 }
-
