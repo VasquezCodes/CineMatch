@@ -240,7 +240,7 @@ export type Database = {
         Row: {
           id: string;
           movie_id: string;
-          status: string | null;
+
           updated_at: string | null;
           user_id: string;
           position: number | null;
@@ -251,7 +251,7 @@ export type Database = {
         Insert: {
           id?: string;
           movie_id: string;
-          status?: string | null;
+
           updated_at?: string | null;
           user_id: string;
           position?: number | null;
@@ -262,7 +262,7 @@ export type Database = {
         Update: {
           id?: string;
           movie_id?: string;
-          status?: string | null;
+
           updated_at?: string | null;
           user_id?: string;
           position?: number | null;

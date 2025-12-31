@@ -12,6 +12,7 @@ import { BarChart3 } from "lucide-react";
 export default async function RateMoviesPage() {
   let unratedMovies: UnratedMovie[] = [];
   let error: string | null = null;
+  let shouldRedirect = false;
 
   try {
     // Obtener todas las películas del watchlist
@@ -27,23 +28,27 @@ export default async function RateMoviesPage() {
 
       // Si todas están calificadas, redirigir directamente al análisis
       if (unrated.length === 0) {
-        redirect(APP_ROUTES.ANALYSIS);
+        shouldRedirect = true;
+      } else {
+        // Mapear a formato UnratedMovie
+        unratedMovies = unrated.map((item) => ({
+          watchlistId: item.watchlist.id,
+          movieId: item.movie.id,
+          imdbId: item.movie.imdb_id,
+          title: item.movie.title || "Título desconocido",
+          year: item.movie.year,
+          posterUrl: item.movie.poster_url,
+          currentRating: item.watchlist.user_rating,
+        }));
       }
-
-      // Mapear a formato UnratedMovie
-      unratedMovies = unrated.map((item) => ({
-        watchlistId: item.watchlist.id,
-        movieId: item.movie.id,
-        imdbId: item.movie.imdb_id,
-        title: item.movie.title || "Título desconocido",
-        year: item.movie.year,
-        posterUrl: item.movie.poster_url,
-        currentRating: item.watchlist.user_rating,
-      }));
     }
   } catch (err) {
     console.error("Error loading unrated movies:", err);
     error = "Error al cargar las películas";
+  }
+
+  if (shouldRedirect) {
+    redirect(APP_ROUTES.ANALYSIS);
   }
 
   // Estado de error

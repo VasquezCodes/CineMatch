@@ -4,8 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 
 export type AnalysisData = {
     totalMovies: number
-    watchedMovies: number
-    planToWatchMovies: number
     averageRating: number
     genreDistribution: Record<string, number>
     ratingDistribution: Record<number, number>
@@ -23,7 +21,7 @@ export async function getAnalysisData(): Promise<AnalysisData> {
     const { data: library, error: libraryError } = await supabase
         .from('watchlists')
         .select(`
-            status,
+
             movies (
                 genres,
                 extended_data
@@ -36,42 +34,23 @@ export async function getAnalysisData(): Promise<AnalysisData> {
         throw new Error('Error al obtener datos de la biblioteca')
     }
 
-    // 2. Obtener Reseñas para los Ratings
-    const { data: reviews, error: reviewsError } = await supabase
-        .from('reviews')
-        .select('rating')
-        .eq('user_id', user.id)
-        .not('rating', 'is', null)
-
-    if (reviewsError) {
-        console.error('Error obteniendo reseñas:', reviewsError)
-        throw new Error('Error al obtener datos de reseñas')
-    }
-
-    // --- Cálculos ---
-
-    // Contadores
+    // --- Cálculos Básicos (No dependen de reviews) ---
     const totalMovies = library?.length || 0
-    const watchedMovies = library?.filter(item => item.status === 'watched').length || 0
-    const planToWatchMovies = library?.filter(item => item.status === 'plan_to_watch').length || 0
 
     // Distribución por Géneros
     const genreDistribution: Record<string, number> = {}
 
     library?.forEach(item => {
         const movieData = item.movies
-        // El join de Supabase puede devolver un array o un objeto único según la inferencia de relaciones
         const movie = Array.isArray(movieData) ? movieData[0] : movieData
 
         if (!movie) return
 
         let genres: string[] = []
 
-        // Intentar obtener géneros de la columna principal primero (array de strings o JSON)
         if (movie.genres && Array.isArray(movie.genres)) {
             genres = movie.genres.map((g: any) => typeof g === 'string' ? g : '').filter(Boolean)
         }
-        // Fallback a extended_data si es necesario (dependiendo de cómo lo guardó el import)
         else if (movie.extended_data && (movie.extended_data as any).technical?.genres) {
             genres = ((movie.extended_data as any).technical.genres as string[]) || []
         }
@@ -81,6 +60,37 @@ export async function getAnalysisData(): Promise<AnalysisData> {
         })
     })
 
+    // 2. Obtener Reseñas para los Ratings (Robustez ante errores)
+    let reviews = null;
+    try {
+        const { data, error: reviewsError } = await supabase
+            .from('reviews')
+            .select('rating')
+            .eq('user_id', user.id)
+            .not('rating', 'is', null)
+
+        if (reviewsError) {
+            console.error('Error obteniendo reseñas:', reviewsError)
+            // Retornamos datos parciales si fallan las reviews
+            return {
+                totalMovies,
+                averageRating: 0,
+                genreDistribution,
+                ratingDistribution: {}
+            }
+        }
+        reviews = data;
+    } catch (e) {
+        console.error("Unexpected error fetching reviews", e);
+        // Retorno seguro en caso de error inesperado
+        return {
+            totalMovies,
+            averageRating: 0,
+            genreDistribution,
+            ratingDistribution: {}
+        }
+    }
+
     // Distribución de Ratings y Promedio
     const ratingDistribution: Record<number, number> = {}
     let totalRatingSum = 0
@@ -89,7 +99,6 @@ export async function getAnalysisData(): Promise<AnalysisData> {
     reviews?.forEach(review => {
         const rating = review.rating
         if (typeof rating === 'number') {
-            // Redondear al entero más cercano para el bucket de distribución
             const bucket = Math.round(rating)
             ratingDistribution[bucket] = (ratingDistribution[bucket] || 0) + 1
             totalRatingSum += rating
@@ -102,8 +111,6 @@ export async function getAnalysisData(): Promise<AnalysisData> {
 
     return {
         totalMovies,
-        watchedMovies,
-        planToWatchMovies,
         averageRating,
         genreDistribution,
         ratingDistribution

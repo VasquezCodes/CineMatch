@@ -119,7 +119,7 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
                         user_id: user.id,
                         movie_id: savedMovie.id,
                         position: movie.position,
-                        status: movie.user_rating ? 'watched' : 'plan_to_watch', // Inferir estado
+
                         updated_at: new Date().toISOString(),
                         user_name: userName,
                         movie_title: movie.title,
