@@ -25,7 +25,7 @@ export function RankingCard({
   const hasMore = item.movies.length > moviesToShow.length;
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/30 p-4 transition-all hover:bg-card/50 hover:shadow-sm">
+    <div className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/30 p-4 transition-[background-color,box-shadow] duration-200 hover:bg-card/50 hover:shadow-sm" data-theme-transition>
       {/* Background decoration for the rank - optional but adds to Vercel/Linear aesthetic */}
       <div className="absolute -right-4 -top-8 text-8xl font-black text-foreground/3 select-none pointer-events-none">
         {index + 1}
@@ -55,7 +55,7 @@ export function RankingCard({
               {item.is_saga && (
                 <Badge
                   variant="outline"
-                  className="h-4 text-[8px] px-1 bg-blue-500/5 text-blue-500/60 border-blue-500/20 uppercase tracking-tighter"
+                  className="h-4 text-[8px] px-1 bg-primary/5 text-primary/60 border-primary/20 uppercase tracking-tighter"
                 >
                   Saga
                 </Badge>
@@ -82,7 +82,7 @@ export function RankingCard({
             className="group/movie flex w-[84px] md:w-[96px] flex-col gap-1.5 cursor-pointer"
           >
             {/* Poster Sub-card */}
-            <div className="relative aspect-2/3 w-full overflow-hidden rounded-lg bg-muted shadow-sm transition-all duration-300 group-hover/movie:scale-[1.03] group-hover/movie:ring-2 group-hover/movie:ring-blue-500/40">
+            <div className="relative aspect-2/3 w-full overflow-hidden rounded-lg bg-muted shadow-sm transition-[transform,box-shadow] duration-300 group-hover/movie:scale-[1.03] group-hover/movie:ring-2 group-hover/movie:ring-primary/40">
               {movie.poster_url ? (
                 <Image
                   src={movie.poster_url}
@@ -99,7 +99,7 @@ export function RankingCard({
 
               {/* Rating overlay minimalista */}
               {movie.user_rating && (
-                <div className="absolute bottom-1 right-1 flex h-5 w-5 items-center justify-center rounded-md bg-background/80 backdrop-blur-sm text-[10px] font-bold text-amber-500 shadow-sm border border-amber-500/20">
+                <div className="absolute bottom-1 right-1 flex h-5 w-5 items-center justify-center rounded-md bg-background/80 backdrop-blur-sm text-[10px] font-bold text-primary shadow-sm border border-primary/20">
                   {movie.user_rating}
                 </div>
               )}
@@ -108,7 +108,7 @@ export function RankingCard({
             {/* Movie Info */}
             <div className="space-y-0.5 px-0.5">
               <p
-                className="text-[10px] md:text-[11px] font-medium leading-tight line-clamp-1 group-hover/movie:text-primary transition-colors"
+                className="text-[10px] md:text-[11px] font-medium leading-tight line-clamp-1 group-hover/movie:text-primary transition-colors duration-200"
                 title={movie.title}
               >
                 {movie.title}
@@ -124,7 +124,7 @@ export function RankingCard({
         {hasMore && onViewMore && (
           <button
             onClick={onViewMore}
-            className="flex w-[84px] md:w-[96px] aspect-2/3 flex-col items-center justify-center rounded-lg border border-dashed border-border/60 bg-muted/20 text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground group/more"
+            className="flex w-[84px] md:w-[96px] aspect-2/3 flex-col items-center justify-center rounded-lg border border-dashed border-border/60 bg-muted/20 text-muted-foreground transition-colors duration-200 hover:bg-muted/40 hover:text-foreground group/more"
           >
             <ArrowRight className="h-5 w-5 mb-1 transition-transform group-hover/more:translate-x-1" />
             <span className="text-[10px] font-medium">

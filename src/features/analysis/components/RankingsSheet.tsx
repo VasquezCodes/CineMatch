@@ -5,16 +5,14 @@ import Image from "next/image";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
-  SheetHeader,
   SheetTitle,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getRanking, type RankingType } from "@/features/rankings/actions";
 import { ErrorState } from "@/components/ui/error-state";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, X, Star } from "lucide-react";
 
 interface RankingsSheetProps {
   open: boolean;
@@ -45,7 +43,7 @@ export function RankingsSheet({
       try {
         const result = await getRanking(userId, rankingType, {
           minRating: 1,
-          limit: 10,
+          limit: 20, // Aumentamos el límite para el drawer
         });
         setData(result);
       } catch (err) {
@@ -59,106 +57,165 @@ export function RankingsSheet({
     loadFullRanking();
   }, [open, userId, rankingType]);
 
+  // Cálculos para Quick Stats
+  const allMovies = React.useMemo(() => {
+    const movies = data.flatMap((item) => item.movies || []);
+    // Eliminar duplicados por ID
+    return Array.from(new Map(movies.map((m) => [m.id, m])).values());
+  }, [data]);
+
+  const totalMovies = allMovies.length;
+  const avgRating =
+    totalMovies > 0
+      ? allMovies.reduce((acc, m) => acc + (m.user_rating || 0), 0) / totalMovies
+      : 0;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Top 10: {rankingLabel}</SheetTitle>
-          <SheetDescription>
-            Ranking completo basado en tus calificaciones
-          </SheetDescription>
-        </SheetHeader>
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-xl bg-background border-l border-border p-0 flex flex-col h-full gap-0"
+      >
+        {/* Título oculto para accesibilidad */}
+        <SheetTitle className="sr-only">
+          Ranking completo: {rankingLabel}
+        </SheetTitle>
+        
+        {/* Header Fijo */}
+        <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border p-6 pb-4" data-theme-transition>
+          <div className="flex items-start justify-between mb-6">
+            <div className="space-y-1">
+              <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-foreground leading-none">
+                {rankingLabel}
+              </h2>
+              <p className="text-muted-foreground text-sm font-medium">
+                Top del ranking basado en tus calificaciones
+              </p>
+            </div>
+            <SheetClose className="rounded-full h-8 w-8 flex items-center justify-center bg-muted/50 border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus:outline-none">
+              <X className="h-4 w-4" />
+            </SheetClose>
+          </div>
 
-        <div className="mt-6 space-y-4">
+          {/* Quick Stats (Bento Style) */}
+          <div className="grid grid-cols-2 gap-px bg-border border border-border rounded-xl overflow-hidden shadow-2xl" data-theme-transition>
+            <div className="bg-card/40 p-4 flex flex-col items-center justify-center group transition-colors hover:bg-card/60" data-theme-transition>
+              <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-1">
+                Total Películas
+              </span>
+              <span className="text-2xl font-black text-foreground group-hover:scale-110 transition-transform">
+                {loading ? "..." : totalMovies}
+              </span>
+            </div>
+            <div className="bg-card/40 p-4 flex flex-col items-center justify-center group transition-colors hover:bg-card/60" data-theme-transition>
+              <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-1">
+                Promedio Rating
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-black text-primary group-hover:scale-110 transition-transform">
+                  {loading ? "..." : avgRating.toFixed(1)}
+                </span>
+                <Star className="h-4 w-4 fill-primary text-primary" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Contenido con Scroll */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-10 custom-scrollbar">
           {loading ? (
             <SheetSkeleton />
           ) : error ? (
-            <ErrorState title="Error" description={error} />
+            <div className="py-12">
+              <ErrorState title="Error" description={error} />
+            </div>
           ) : data.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <TrendingUp className="h-12 w-12 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">
-                No hay datos disponibles
+            <div className="flex flex-col items-center justify-center py-20 text-center opacity-50">
+              <TrendingUp className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-sm font-medium text-muted-foreground">
+                No hay datos disponibles en este ranking
               </p>
             </div>
           ) : (
             data.map((item, index) => (
-              <Card key={item.name} className="overflow-hidden">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        #{index + 1}
-                      </span>
-                      <h3 className="font-bold text-lg mt-1">{item.name}</h3>
-                    </div>
-                    <Badge variant="secondary" className="ml-2 shrink-0">
-                      {item.count} {item.count === 1 ? "película" : "películas"}
-                    </Badge>
-                  </div>
-
-                  {/* Metadatos de actores */}
-                  {item.roles && item.roles.length > 0 && (
-                    <div className="text-xs text-muted-foreground mt-2">
-                      <span className="font-medium">Roles:</span>{" "}
-                      {item.roles.join(", ")}
-                      {item.is_saga && (
-                        <Badge
-                          variant="outline"
-                          className="ml-2 text-[10px] px-1.5 py-0.5"
-                        >
-                          Saga / Recurrente
-                        </Badge>
+              <div key={item.name} className="space-y-4">
+                {/* Item Header */}
+                <div className="flex items-end justify-between border-b border-border pb-2" data-theme-transition>
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl font-black text-foreground/10 select-none">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <div>
+                      <h3 className="text-lg font-bold text-foreground leading-tight">
+                        {item.name}
+                      </h3>
+                      {item.roles && item.roles.length > 0 && (
+                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                          {item.roles.join(" • ")}
+                        </p>
                       )}
                     </div>
-                  )}
-                </CardHeader>
+                  </div>
+                  <Badge className="bg-muted/50 hover:bg-muted text-muted-foreground border-border text-[10px] px-2 py-0" data-theme-transition>
+                    {item.count} títulos
+                  </Badge>
+                </div>
 
-                <CardContent className="pt-0">
-                  {/* Grid de películas */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {item.movies.map((movie: any) => (
-                      <div
-                        key={movie.id}
-                        className="text-center group cursor-pointer"
-                      >
-                        <div className="relative w-full aspect-[2/3] rounded-md overflow-hidden bg-muted mb-2 group-hover:ring-2 group-hover:ring-primary transition-all">
-                          {movie.poster_url ? (
-                            <Image
-                              src={movie.poster_url}
-                              alt={movie.title}
-                              fill
-                              className="object-cover"
-                              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                              <span className="text-xs">Sin poster</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div
-                          className="text-xs font-medium line-clamp-2 mb-1"
-                          title={movie.title}
-                        >
-                          {movie.title}
-                        </div>
-
-                        <div className="text-xs text-muted-foreground">
-                          {movie.year}
-                        </div>
-
-                        {movie.user_rating && (
-                          <div className="text-xs font-bold text-amber-500 mt-1">
-                            ★ {movie.user_rating}
+                {/* Movie List (Vertical Compact) */}
+                <div className="space-y-2">
+                  {item.movies.map((movie: any) => (
+                    <div
+                      key={movie.id}
+                      className="group/movie flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50 transition-all cursor-pointer border border-transparent hover:border-border"
+                      data-theme-transition
+                    >
+                      {/* Thumbnail 2:3 */}
+                      <div className="relative aspect-[2/3] w-12 flex-shrink-0 overflow-hidden rounded-md bg-muted border border-border group-hover/movie:border-primary/50 transition-colors" data-theme-transition>
+                        {movie.poster_url ? (
+                          <Image
+                            src={movie.poster_url}
+                            alt={movie.title}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover/movie:scale-110"
+                            sizes="48px"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[8px] text-muted-foreground uppercase font-bold">
+                            N/A
                           </div>
                         )}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-bold text-foreground group-hover/movie:text-primary transition-colors truncate">
+                          {movie.title}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] text-muted-foreground font-medium">
+                            {movie.year}
+                          </span>
+                          {movie.is_saga && (
+                            <span className="text-[8px] px-1 bg-primary/10 text-primary border border-primary/20 rounded-sm uppercase font-bold tracking-tighter">
+                              Saga
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Rating */}
+                      {movie.user_rating && (
+                        <div className="flex items-center gap-1 shrink-0 bg-primary/5 px-2 py-1 rounded border border-primary/10" data-theme-transition>
+                          <span className="text-xs font-black text-primary">
+                            {movie.user_rating}
+                          </span>
+                          <Star className="h-2.5 w-2.5 fill-primary text-primary" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             ))
           )}
         </div>
@@ -169,30 +226,32 @@ export function RankingsSheet({
 
 function SheetSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-10">
       {Array.from({ length: 3 }).map((_, i) => (
-        <Card key={i}>
-          <CardHeader className="pb-3">
-            <div className="flex justify-between items-center">
-              <div className="flex-1">
-                <Skeleton className="h-4 w-8 mb-2" />
-                <Skeleton className="h-6 w-48" />
+        <div key={i} className="space-y-4">
+          <div className="flex items-end justify-between border-b border-border pb-2">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-8 w-12" />
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-3 w-24" />
               </div>
-              <Skeleton className="h-6 w-24" />
             </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="grid grid-cols-4 gap-3">
-              {Array.from({ length: 4 }).map((_, j) => (
-                <div key={j}>
-                  <Skeleton className="w-full aspect-[2/3] rounded-md mb-2" />
-                  <Skeleton className="h-3 w-full mb-1" />
-                  <Skeleton className="h-3 w-12 mx-auto" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, j) => (
+              <div key={j} className="flex items-center gap-4 p-2">
+                <Skeleton className="aspect-[2/3] w-12 rounded-md" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-full max-w-[200px]" />
+                  <Skeleton className="h-3 w-16" />
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <Skeleton className="h-6 w-10" />
+              </div>
+            ))}
+          </div>
+        </div>
       ))}
     </div>
   );

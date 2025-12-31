@@ -158,7 +158,7 @@ export default async function DevRankingsPage() {
                               {m.year}
                             </div>
                             {m.user_rating && (
-                              <div className="font-bold text-amber-500">
+                              <div className="font-bold text-primary">
                                 ★ {m.user_rating}
                               </div>
                             )}

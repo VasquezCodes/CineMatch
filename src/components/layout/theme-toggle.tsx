@@ -48,6 +48,7 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       aria-label="Cambiar tema"
       className="size-9 relative overflow-hidden"
+      data-no-theme-transition
     >
       <AnimatePresence mode="wait" initial={false}>
         {isDark ? (
@@ -57,9 +58,10 @@ export function ThemeToggle() {
             animate={{ rotate: 0, scale: 1, opacity: 1 }}
             exit={{ rotate: 90, scale: 0, opacity: 0 }}
             transition={{
-              duration: 0.5,
+              duration: 0.3,
               ease: [0.16, 1, 0.3, 1],
             }}
+            data-no-theme-transition
           >
             <Moon className="size-4" />
           </motion.div>
@@ -70,9 +72,10 @@ export function ThemeToggle() {
             animate={{ rotate: 0, scale: 1, opacity: 1 }}
             exit={{ rotate: -90, scale: 0, opacity: 0 }}
             transition={{
-              duration: 0.5,
+              duration: 0.3,
               ease: [0.16, 1, 0.3, 1],
             }}
+            data-no-theme-transition
           >
             <Sun className="size-4" />
           </motion.div>
