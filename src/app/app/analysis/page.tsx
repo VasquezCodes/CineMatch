@@ -5,6 +5,7 @@ import { getAnalysisData } from "@/features/insights/actions";
 import { getWatchlistAnalysis } from "@/features/analysis/actions";
 import { AnalysisStats } from "@/features/analysis/components/AnalysisStats";
 import { AnalysisTable } from "@/features/analysis/components/AnalysisTable";
+import { RankingsSection } from "@/features/analysis/components/RankingsSection";
 import { PageHeader, Section } from "@/components/layout";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -12,6 +13,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default async function AnalysisPage() {
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const moviesResult = await getWatchlistAnalysis();
   const moviesData = moviesResult.data ?? [];
   const moviesError = moviesResult.error;
@@ -119,6 +126,12 @@ export default async function AnalysisPage() {
       {statsData && (
         <Section>
           <AnalysisStats data={statsData} />
+        </Section>
+      )}
+
+      {user && (
+        <Section>
+          <RankingsSection userId={user.id} />
         </Section>
       )}
 

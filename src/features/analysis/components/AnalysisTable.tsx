@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { Search, SlidersHorizontal, Star } from "lucide-react";
+import { ChevronDown, ChevronUp, Search, SlidersHorizontal, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { cn } from "@/lib/utils";
 import type { WatchlistAnalysisItem } from "../types";
 
 interface AnalysisTableProps {
@@ -24,6 +25,7 @@ interface AnalysisTableProps {
 type SortOption = "title" | "year" | "rating" | "recent";
 
 export function AnalysisTable({ data }: AnalysisTableProps) {
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [sortBy, setSortBy] = React.useState<SortOption>("recent");
   const [filterRating, setFilterRating] = React.useState<string>("all");
@@ -78,77 +80,113 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
 
   return (
     <div className="space-y-4">
-      {/* Filtros */}
-      <Card className="p-4">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por título, director o año..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-
-          <div className="flex gap-2 items-center">
-            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-            <Select
-              value={sortBy}
-              onValueChange={(v) => setSortBy(v as SortOption)}
-            >
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Ordenar por" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="recent">Más reciente</SelectItem>
-                <SelectItem value="title">Título A-Z</SelectItem>
-                <SelectItem value="year">Año (desc)</SelectItem>
-                <SelectItem value="rating">Rating (desc)</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filterRating} onValueChange={setFilterRating}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Rating mín." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="8">8+ ⭐</SelectItem>
-                <SelectItem value="7">7+ ⭐</SelectItem>
-                <SelectItem value="6">6+ ⭐</SelectItem>
-                <SelectItem value="5">5+ ⭐</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Header con toggle de colapsar */}
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <h2 className="text-2xl font-bold tracking-tight">Biblioteca de películas</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {data.length} {data.length === 1 ? "película" : "películas"} en tu colección
+          </p>
         </div>
-      </Card>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="gap-2"
+        >
+          {isCollapsed ? (
+            <>
+              Expandir
+              <ChevronDown className="h-4 w-4" />
+            </>
+          ) : (
+            <>
+              Colapsar
+              <ChevronUp className="h-4 w-4" />
+            </>
+          )}
+        </Button>
+      </div>
 
-      {/* Resultados */}
-      {filteredAndSortedData.length === 0 ? (
-        <EmptyState
-          icon={<Search className="h-12 w-12" />}
-          title="No se encontraron películas"
-          description={
-            searchQuery || filterRating !== "all"
-              ? "Intenta ajustar los filtros de búsqueda"
-              : "Aún no has importado películas"
-          }
-        />
-      ) : (
-        <>
-          <div className="text-sm text-muted-foreground">
-            Mostrando {filteredAndSortedData.length} de {data.length} películas
-          </div>
+      {/* Contenido colapsable */}
+      <div
+        className={cn(
+          "overflow-hidden transition-all duration-300 ease-in-out space-y-4",
+          isCollapsed ? "max-h-0 opacity-0" : "max-h-[10000px] opacity-100"
+        )}
+      >
+        {/* Filtros */}
+        <Card className="p-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por título, director o año..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
 
-          {/* Grid de películas */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredAndSortedData.map((item) => (
-              <MovieCard key={item.watchlist.id} item={item} />
-            ))}
+            <div className="flex gap-2 items-center">
+              <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+              <Select
+                value={sortBy}
+                onValueChange={(v) => setSortBy(v as SortOption)}
+              >
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Ordenar por" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recent">Más reciente</SelectItem>
+                  <SelectItem value="title">Título A-Z</SelectItem>
+                  <SelectItem value="year">Año (desc)</SelectItem>
+                  <SelectItem value="rating">Rating (desc)</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={filterRating} onValueChange={setFilterRating}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Rating mín." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="8">8+ ⭐</SelectItem>
+                  <SelectItem value="7">7+ ⭐</SelectItem>
+                  <SelectItem value="6">6+ ⭐</SelectItem>
+                  <SelectItem value="5">5+ ⭐</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </>
-      )}
+        </Card>
+
+        {/* Resultados */}
+        {filteredAndSortedData.length === 0 ? (
+          <EmptyState
+            icon={<Search className="h-12 w-12" />}
+            title="No se encontraron películas"
+            description={
+              searchQuery || filterRating !== "all"
+                ? "Intenta ajustar los filtros de búsqueda"
+                : "Aún no has importado películas"
+            }
+          />
+        ) : (
+          <>
+            <div className="text-sm text-muted-foreground">
+              Mostrando {filteredAndSortedData.length} de {data.length} películas
+            </div>
+
+            {/* Grid de películas */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredAndSortedData.map((item) => (
+                <MovieCard key={item.watchlist.id} item={item} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
