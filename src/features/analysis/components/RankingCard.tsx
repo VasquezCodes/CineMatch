@@ -25,7 +25,10 @@ export function RankingCard({
   const hasMore = item.movies.length > moviesToShow.length;
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/30 p-4 transition-[background-color,box-shadow] duration-200 hover:bg-card/50 hover:shadow-sm" data-theme-transition>
+    <div
+      className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/30 p-4 transition-[background-color,box-shadow] duration-200 hover:bg-card/50 hover:shadow-sm"
+      data-theme-transition
+    >
       {/* Background decoration for the rank - optional but adds to Vercel/Linear aesthetic */}
       <div className="absolute -right-4 -top-8 text-8xl font-black text-foreground/3 select-none pointer-events-none">
         {index + 1}
