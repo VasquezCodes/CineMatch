@@ -173,6 +173,14 @@ async function enrichMovieData(movieId: string, imdbId: string) {
                     photography: details.credits.crew.find(c => c.job === 'Director of Photography')?.name,
                     music: details.credits.crew.find(c => c.job === 'Original Music Composer')?.name
                 },
+                // Nuevo: Guardamos detalles completos del equipo (incluyendo fotos) para los rankings
+                crew_details: details.credits.crew
+                    .filter(c => ['Director', 'Screenplay', 'Writer', 'Director of Photography', 'Original Music Composer'].includes(c.job))
+                    .map(c => ({
+                        name: c.name,
+                        job: c.job,
+                        photo: TmdbClient.getImageUrl(c.profile_path, 'w185')
+                    })),
                 technical: {
                     runtime: details.runtime,
                     budget: details.budget,

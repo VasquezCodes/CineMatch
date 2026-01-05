@@ -21,6 +21,7 @@ export type RankingItem = {
         poster_url: string | null;
         user_rating?: number;
     }[];
+    image_url?: string; // Nuevo: Foto del director/actor/etc
     // Metadatos específicos para actores
     roles?: string[]; // Roles distintos interpretados
     is_saga?: boolean; // Si roles.length < movies.length
@@ -82,6 +83,19 @@ export async function getRanking(
 
         const keys: string[] = [];
         const extraData: Record<string, any> = {};
+        const keyImages: Record<string, string> = {}; // Nuevo: Mapa de imágenes para los keys
+
+        // Helper para buscar imagen en crew_details o cast
+        const findImage = (name: string) => {
+            const ext = m.extended_data as any;
+            // 1. Buscar en crew_details (nuevo campo)
+            const crew = ext?.crew_details?.find((c: any) => c.name === name);
+            if (crew?.photo) return crew.photo;
+            // 2. Buscar en cast (fallback, muchos directores son actores)
+            const cast = ext?.cast?.find((c: any) => c.name === name);
+            if (cast?.photo) return cast.photo;
+            return undefined;
+        };
 
         // Extraer claves basadas en el Tipo
         switch (type) {
@@ -89,7 +103,13 @@ export async function getRanking(
                 // Usar columna director top-level o extended_data
                 if (m.director) {
                     // Separar directores por coma
-                    m.director.split(',').forEach((d: string) => keys.push(d.trim()));
+                    m.director.split(',').forEach((d: string) => {
+                        const name = d.trim();
+                        keys.push(name);
+                        // Intentar obtener foto
+                        const img = findImage(name);
+                        if (img) keyImages[name] = img;
+                    });
                 }
                 break;
             case 'genre':
@@ -105,13 +125,28 @@ export async function getRanking(
                 if (m.year) keys.push(String(m.year));
                 break;
             case 'screenplay':
-                if (m.extended_data?.crew?.screenplay) keys.push(m.extended_data.crew.screenplay);
+                if (m.extended_data?.crew?.screenplay) {
+                    const name = m.extended_data.crew.screenplay;
+                    keys.push(name);
+                    const img = findImage(name);
+                    if (img) keyImages[name] = img;
+                }
                 break;
             case 'photography':
-                if (m.extended_data?.crew?.photography) keys.push(m.extended_data.crew.photography);
+                if (m.extended_data?.crew?.photography) {
+                    const name = m.extended_data.crew.photography;
+                    keys.push(name);
+                    const img = findImage(name);
+                    if (img) keyImages[name] = img;
+                }
                 break;
             case 'music':
-                if (m.extended_data?.crew?.music) keys.push(m.extended_data.crew.music);
+                if (m.extended_data?.crew?.music) {
+                    const name = m.extended_data.crew.music;
+                    keys.push(name);
+                    const img = findImage(name);
+                    if (img) keyImages[name] = img;
+                }
                 break;
             case 'actor':
                 if (Array.isArray(m.extended_data?.cast)) {
@@ -122,6 +157,8 @@ export async function getRanking(
                             // Guardar rol para este actor
                             if (!extraData[c.name]) extraData[c.name] = [];
                             extraData[c.name].push(c.role);
+                            // Guardar foto del actor si existe
+                            if (c.photo) keyImages[c.name] = c.photo;
                         }
                     });
                 }
@@ -140,11 +177,17 @@ export async function getRanking(
                     name: key,
                     count: 0,
                     movies: [],
-                    roles: []
+                    roles: [],
+                    image_url: undefined // Inicializar
                 };
             }
             groups[key].count++;
             groups[key].movies.push(movieSimple);
+
+            // Asignar imagen si no tiene una y encontramos una nueva
+            if (!groups[key].image_url && keyImages[key]) {
+                groups[key].image_url = keyImages[key];
+            }
 
             if (type === 'actor' && extraData[key]) {
                 // Aplanar roles

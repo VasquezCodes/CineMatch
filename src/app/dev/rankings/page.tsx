@@ -113,9 +113,18 @@ export default async function DevRankingsPage() {
                     <li key={i} className="border-b pb-2 last:border-0">
                       {/* Cabecera del Item: Nombre y Cantidad Total */}
                       <div className="flex justify-between items-center mb-2">
-                        <span className="font-bold text-lg">
-                          #{i + 1} {item.name}
-                        </span>
+                        <div className="flex items-center gap-3">
+                          {item.image_url && (
+                            <img
+                              src={item.image_url}
+                              alt={item.name}
+                              className="w-12 h-12 rounded-full object-cover border"
+                            />
+                          )}
+                          <span className="font-bold text-lg">
+                            #{i + 1} {item.name}
+                          </span>
+                        </div>
                         <Badge variant="secondary">
                           {item.count} películas
                         </Badge>
