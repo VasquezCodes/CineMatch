@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
             .select('*')
             .eq('status', 'pending')
             .order('created_at', { ascending: true })
-            .limit(5);
+            .order('created_at', { ascending: true })
+            .limit(20);
 
         if (queueError) throw new Error(`Error al obtener cola: ${queueError.message}`);
 
@@ -97,23 +98,26 @@ export async function POST(request: NextRequest) {
         const failCount = results.filter(r => r.status === 'rejected').length;
 
         // Trigger recursivo si procesamos un lote completo (significa que puede haber más)
-        if (queueItems.length >= 5) {
+        if (queueItems.length >= 20) {
             const workerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/workers/process-import`;
             console.log('Triggering next batch recursively:', workerUrl);
-            fetch(workerUrl, {
-                method: 'POST',
-                headers: { 'x-cron-secret': process.env.CRON_SECRET || '' },
-                signal: AbortSignal.timeout(100) // Fire and forget
-            }).catch(err => {
-                if (err.name !== 'TimeoutError') console.error('Error triggering recursive worker:', err);
-            });
+            try {
+                // IMPORTANTE: Await para prevenir que Vercel mate el proceso antes de enviar la solicitud
+                console.log(`Recursively triggering: ${workerUrl}`);
+                await fetch(workerUrl, {
+                    method: 'POST',
+                    headers: { 'x-cron-secret': process.env.CRON_SECRET || '' },
+                });
+            } catch (err) {
+                console.error('Error triggering recursive worker:', err);
+            }
         }
 
         return NextResponse.json({
             processed: queueItems.length,
             success: successCount,
             failed: failCount,
-            recursive: queueItems.length >= 5
+            recursive: queueItems.length >= 20
         });
 
     } catch (error: any) {
@@ -153,7 +157,7 @@ async function processQueueItem(supabase: any, userId: string, movie: any) {
     }
 
     // 3. Watchlist
-    // 3. Watchlist (Position & Rating)
+    // 3. Watchlist (Posición y Calificación)
     if (movie.position || movie.user_rating) {
         const watchlistData: any = {
             user_id: userId,
@@ -167,9 +171,19 @@ async function processQueueItem(supabase: any, userId: string, movie: any) {
     }
 
     // 4. ENRIQUECIMIENTO (La parte pesada)
-    // Verificar si ya tiene data completa para no gastar API calls de TMDB innecesariamente,
-    // A MENOS que queramos forzar update. En import queue asumimos que queremos asegurar la data.
-    await enrichMovieData(supabase, savedMovie.id, movie.imdb_id);
+    // Verificar si ya tiene data completa para no gastar API calls de TMDB innecesariamente
+    // Optimización: Si ya tenemos extended_data y runtime, asumimos que está enriquecido.
+    const hasExtendedData = savedMovie.extended_data &&
+        savedMovie.extended_data.technical &&
+        savedMovie.extended_data.technical.runtime &&
+        savedMovie.poster_url;
+
+    if (!hasExtendedData) {
+        console.log(`Enriching missing data for: ${movie.imdb_id}`);
+        await enrichMovieData(supabase, savedMovie.id, movie.imdb_id);
+    } else {
+        // console.log(`Skipping enrichment (already exists): ${movie.imdb_id}`);
+    }
 }
 
 // Misma lógica de enriquecimiento que ya teníamos, adaptada

@@ -1,186 +1,120 @@
-import { getRanking, RankingType } from "@/features/rankings/actions";
-import { PageHeader, Section } from "@/components/layout";
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { getRanking, RankingType } from "@/features/rankings/actions";
 
-/**
- * ============================================================================
- * GUÍA DE USO PARA EL  FRONTEND: SISTEMA DE RANKINGS
- * ============================================================================
- *
- * Esta página sirve como demostración y documentación de cómo obtener y mostrar
- * los rankings generados a partir de los datos del usuario.
- *
- * 1. FUNCIÓN PRINCIPAL: getRanking
- * ----------------------------------------------------------------------------
- * Importar desde: @/features/rankings/actions
- * Firma: getRanking(userId: string, type: RankingType, options?: RankingOptions)
- * Retorna: Promise<RankingItem[]>
- *
- * 2. TIPOS DE RANKING DISPONIBLES (RankingType)
- * ----------------------------------------------------------------------------
- * - 'director'     : Ranking por director
- * - 'actor'        : Ranking por actor (incluye lógica de roles/saga)
- * - 'genre'        : Ranking por género
- * - 'year'         : Ranking por año de lanzamiento
- * - 'screenplay'   : Ranking por guionista
- * - 'photography'  : Ranking por director de fotografía
- * - 'music'        : Ranking por compositor
- *
- * 3. OPCIONES (RankingOptions)
- * ----------------------------------------------------------------------------
- * - minRating: (number) Calificación mínima para incluir una película (defecto: 10)
- * - limit:     (number) Cantidad máxima de items a devolver (defecto: 10)
- *
- * 4. ESTRUCTURA DE DATOS (RankingItem)
- * ----------------------------------------------------------------------------
- * Cada elemento del array retornado tiene esta forma:
- * {
- *   name: string;        // Nombre del criterio (ej. "Christopher Nolan" o "Action")
- *   count: number;       // Cantidad de películas que cumplen el criterio
- *   movies: Array<{      // Lista de películas asociadas
- *     id: string;
- *     title: string;
- *     year: number;
- *     poster_url: string | null;
- *     user_rating?: number;
- *   }>;
- *   // Solo para tipo 'actor':
- *   roles?: string[];    // Roles interpretados
- *   is_saga?: boolean;   // true si el actor repite roles (menos roles únicos que películas)
- * }
- *
- * ============================================================================
- */
+const RANKING_TYPES: RankingType[] = [
+  "director",
+  "actor",
+  "genre",
+  "year",
+  "screenplay",
+  "photography",
+  "music",
+];
 
-export const dynamic = "force-dynamic";
+export default function RankingsDebugPage() {
+  const [selectedType, setSelectedType] = useState<RankingType>("director");
+  const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState("");
 
-export default async function DevRankingsPage() {
-  const { createClient } = await import("@/lib/supabase/server");
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Se requiere un ID de usuario real para probar. En desarrollo, podemos ingresarlo o intentar obtener "me".
+  // Pero getRanking espera userId como primer argumento.
+  // Podemos intentar obtener el ID del usuario actual si estamos logueados, o permitir entrada manual.
 
-  if (!user) {
-    return <div>Por favor inicia sesión primero</div>;
-  }
+  const { createClient } = require("@/lib/supabase/client");
 
-  const types: RankingType[] = [
-    "director",
-    "actor",
-    "genre",
-    "year",
-    "screenplay",
-    "photography",
-    "music",
-  ];
+  useState(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }: { data: { user: any } }) => {
+      if (data?.user) setUserId(data.user.id);
+    });
+  });
 
-  // Ejemplo de obtención de datos para cada tipo de ranking
-  // En una implementación real, probablemente solo llamarás a uno a la vez según lo que el usuario quiera ver.
-  const results = await Promise.all(
-    types.map(async (type) => {
-      // Aquí pedimos: minRating 7 (buenas películas) y Top 5 resultados
-      const data = await getRanking(user.id, type, { minRating: 7, limit: 5 });
-      return { type, data };
-    })
-  );
+  const handleTest = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      // Si no hay ID ingresado manualmente, asumimos que la server action podría manejarlo si lo modificamos a "me" o similar.
+      // Pero getRanking actualmente REQUIERE una cadena userId.
+      // Vamos a usar un ID conocido o obtener 'me' en el cliente?
+      // De hecho, más fácil: usar el ID de los logs si está disponible, o simplemente obtener la sesión actual.
+      // Pero por ahora, permitamos entrada manual o simplemente disparar.
+
+      const res = await getRanking(userId, selectedType, { limit: 10, minRating: 1 });
+      setResult(res);
+    } catch (e: any) {
+      setError(e.message || JSON.stringify(e));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="space-y-8 p-8">
-      <PageHeader
-        title="Depurador del Sistema de Rankings"
-        description="Verificando lógica de rankings y visualización de datos"
-      />
+    <div className="p-8 space-y-6">
+      <h1 className="text-2xl font-bold">Rankings Debugger</h1>
 
-      {/* Renderizado de ejemplo para cada tipo */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {results.map(({ type, data }) => (
-          <Card key={type}>
-            <CardHeader>
-              <CardTitle className="capitalize">
-                {type} Ranking (Min 7, Top 5)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {data.length === 0 ? (
-                <p className="text-muted-foreground">
-                  No se encontraron datos.
-                </p>
-              ) : (
-                <ul className="space-y-4">
-                  {data.map((item, i) => (
-                    <li key={i} className="border-b pb-2 last:border-0">
-                      {/* Cabecera del Item: Nombre y Cantidad Total */}
-                      <div className="flex justify-between items-center mb-2">
-                        <div className="flex items-center gap-3">
-                          {item.image_url && (
-                            <img
-                              src={item.image_url}
-                              alt={item.name}
-                              className="w-12 h-12 rounded-full object-cover border"
-                            />
-                          )}
-                          <span className="font-bold text-lg">
-                            #{i + 1} {item.name}
-                          </span>
-                        </div>
-                        <Badge variant="secondary">
-                          {item.count} películas
-                        </Badge>
-                      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Test Params</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">User ID (UUID)</label>
+            <input
+              className="border p-2 rounded w-full font-mono text-sm"
+              value={userId}
+              onChange={e => setUserId(e.target.value)}
+              placeholder="e.g. invalid-uuid-will-fail"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Check Supabase or console for your User ID.
+            </p>
+          </div>
 
-                      {/* Datos específicos de Actores: Roles y Sagas */}
-                      {item.roles && (
-                        <div className="text-xs text-muted-foreground mb-2">
-                          Roles: {item.roles.join(", ")}{" "}
-                          {item.is_saga && (
-                            <Badge
-                              variant="outline"
-                              className="ml-2 text-[10px]"
-                            >
-                              Saga / Recurrente
-                            </Badge>
-                          )}
-                        </div>
-                      )}
+          <div>
+            <label className="block text-sm font-medium mb-1">Ranking Type</label>
+            <div className="flex gap-2 flex-wrap">
+              {RANKING_TYPES.map(t => (
+                <Button
+                  key={t}
+                  variant={selectedType === t ? "default" : "outline"}
+                  onClick={() => setSelectedType(t)}
+                  size="sm"
+                >
+                  {t}
+                </Button>
+              ))}
+            </div>
+          </div>
 
-                      {/* Lista horizontal de películas asociadas al item */}
-                      <div className="flex gap-2 overflow-x-auto pb-2">
-                        {item.movies.map((m) => (
-                          // Nota valida para frontend: Usar m.id como key siempre
-                          <div
-                            key={m.id}
-                            className="w-16 shrink-0 text-xs text-center"
-                          >
-                            {m.poster_url && (
-                              <img
-                                src={m.poster_url}
-                                alt={m.title}
-                                className="w-16 h-24 object-cover rounded mb-1"
-                              />
-                            )}
-                            <div className="truncate" title={m.title}>
-                              {m.title}
-                            </div>
-                            <div className="text-muted-foreground">
-                              {m.year}
-                            </div>
-                            {m.user_rating && (
-                              <div className="font-bold text-primary">
-                                ★ {m.user_rating}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+          <Button onClick={handleTest} disabled={loading || !userId}>
+            {loading ? "Fetching..." : "Run Test"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Result</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {error && (
+              <div className="p-4 bg-red-100 text-red-800 rounded mb-4">
+                Error: {error}
+              </div>
+            )}
+            <pre className="bg-slate-950 text-slate-50 p-4 rounded overflow-auto max-h-[500px] text-xs">
+              {result ? JSON.stringify(result, null, 2) : "No result"}
+            </pre>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

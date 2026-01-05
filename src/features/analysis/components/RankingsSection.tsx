@@ -30,18 +30,18 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
   const [activeTab, setActiveTab] = React.useState<RankingType>("director");
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [sheetRankingType, setSheetRankingType] = React.useState<RankingType>("director");
-  
-  const [data, setData] = React.useState<Record<RankingType, any[]>>({
-    director: [],
-    actor: [],
-    genre: [],
-    year: [],
-    screenplay: [],
-    photography: [],
-    music: [],
+
+  const [data, setData] = React.useState<Record<RankingType, any[] | undefined>>({
+    director: undefined,
+    actor: undefined,
+    genre: undefined,
+    year: undefined,
+    screenplay: undefined,
+    photography: undefined,
+    music: undefined,
   });
   const [loading, setLoading] = React.useState<Record<RankingType, boolean>>({
-    director: true,
+    director: false, // Cambiado a false, la lógica manejará la carga inicial
     actor: false,
     genre: false,
     year: false,
@@ -56,8 +56,8 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
     if (isCollapsed) return; // No cargar si está colapsado
 
     const loadRankingData = async () => {
-      // Si ya hay datos, no recargar
-      if (data[activeTab].length > 0) return;
+      // Si ya hay datos o estamos cargando, no recargar
+      if (data[activeTab] !== undefined || loading[activeTab]) return;
 
       setLoading((prev) => ({ ...prev, [activeTab]: true }));
       setError(null);
@@ -77,9 +77,9 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
     };
 
     loadRankingData();
-  }, [activeTab, userId, data, isCollapsed]);
+  }, [activeTab, userId, data, isCollapsed, loading]);
 
-  const currentData = data[activeTab];
+  const currentData = data[activeTab] || [];
   const isLoading = loading[activeTab];
   const currentLabel = RANKING_TYPES.find((t) => t.value === activeTab)?.label || "";
 

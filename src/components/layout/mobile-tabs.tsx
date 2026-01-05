@@ -37,7 +37,7 @@ export function MobileTabs() {
               )}
               aria-current={isActive ? 'page' : undefined}
             >
-              <Icon className="size-5 shrink-0" aria-hidden="true" />
+              <Icon className="size-5 shrink-0" aria-hidden="true" suppressHydrationWarning />
               <span className="truncate text-xs font-medium w-full text-center">
                 {item.mobileLabel || item.label}
               </span>

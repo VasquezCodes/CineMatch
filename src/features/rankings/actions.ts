@@ -40,12 +40,12 @@ export async function getRanking(
     const supabase = await createClient();
     const { minRating = 10, limit = 10 } = options;
 
-    // 1. Obtener reseñas relevantes con datos de películas
-    // Obtenemos "extended_data" para info de crew/cast.
-    const { data: reviews, error } = await supabase
-        .from('reviews')
+    // 1. Obtener items del watchlist con rating
+    // Cambiamos de 'reviews' a 'watchlists' ya que parece ser la fuente de verdad actualizada
+    const { data: watchlistItems, error } = await supabase
+        .from('watchlists')
         .select(`
-            rating,
+            user_rating,
             movies (
                 id,
                 title,
@@ -57,7 +57,18 @@ export async function getRanking(
             )
         `)
         .eq('user_id', userId)
-        .gte('rating', minRating);
+        .gte('user_rating', minRating);
+
+    if (error || !watchlistItems) {
+        console.error('Error obteniendo datos para el ranking:', error);
+        throw new Error('Fallo al obtener métricas de ranking');
+    }
+
+    // Adaptamos la lógica de mapeo
+    const reviews = watchlistItems.map(item => ({
+        rating: item.user_rating,
+        movies: item.movies
+    }));
 
     if (error || !reviews) {
         console.error('Error obteniendo datos para el ranking:', error);
@@ -223,4 +234,145 @@ export async function getRanking(
     });
 
     return sorted;
+}
+
+export async function getDashboardRankings(userId: string, options: RankingOptions = {}) {
+    const supabase = await createClient();
+    const { minRating = 8, limit = 5 } = options;
+
+    // 1. Consulta única y eficiente para TODOS los elementos del watchlist con alta calificación
+    const { data: watchlistItems, error } = await supabase
+        .from('watchlists')
+        .select(`
+            user_rating,
+            movies (
+                id,
+                title,
+                year,
+                poster_url,
+                director, 
+                genres,
+                extended_data
+            )
+        `)
+        .eq('user_id', userId)
+        .gte('user_rating', minRating);
+
+    if (error || !watchlistItems) {
+        console.error('Error fetching dashboard rankings:', error);
+        return {};
+    }
+
+    const reviews = watchlistItems.map(item => ({
+        rating: item.user_rating,
+        movies: item.movies
+    }));
+
+    if (error || !reviews) {
+        console.error('Error fetching dashboard rankings:', error);
+        return {};
+    }
+
+    // 2. Procesar en memoria reutilizando el conjunto de datos único
+    // Helper para reutilizar la lógica de getRanking pero algo duplicada por velocidad (o refactorizar)
+    // Para verificar la corrección sin refactorizar todo, podríamos simplemente llamar a la lógica para cada tipo
+    // pasando el array "reviews" si refactorizamos getRanking para aceptar datos.
+    // En su lugar, permitiré que getRanking acepte 'preFetchedReviews' opcionales.
+
+    // En realidad, separar la lógica es más seguro por ahora.
+    // Vamos a implementar una versión más ligera que agregue todo a la vez.
+
+    const aggregates: Record<string, Record<string, RankingItem>> = {
+        director: {},
+        actor: {},
+        genre: {},
+        year: {},
+        screenplay: {},
+        photography: {},
+        music: {}
+    };
+
+    reviews.forEach((review) => {
+        const movie = review.movies;
+        // @ts-ignore
+        const m = Array.isArray(movie) ? movie[0] : movie;
+        if (!m) return;
+
+        const movieSimple = {
+            id: m.id,
+            title: m.title || 'Desconocido',
+            year: m.year || 0,
+            poster_url: m.poster_url,
+            user_rating: review.rating || undefined
+        };
+
+        const ext = m.extended_data as any;
+
+        // Helper para agregar item
+        const addItem = (type: string, key: string, role?: string, photo?: string) => {
+            if (!key) return;
+            if (!aggregates[type][key]) {
+                aggregates[type][key] = { name: key, count: 0, movies: [], roles: [], image_url: photo };
+            }
+            aggregates[type][key].count++;
+            aggregates[type][key].movies.push(movieSimple);
+            if (role) aggregates[type][key].roles?.push(role);
+            if (!aggregates[type][key].image_url && photo) aggregates[type][key].image_url = photo;
+        };
+
+        const findImage = (name: string) => {
+            const crew = ext?.crew_details?.find((c: any) => c.name === name);
+            if (crew?.photo) return crew.photo;
+            const cast = ext?.cast?.find((c: any) => c.name === name);
+            if (cast?.photo) return cast.photo;
+            return undefined;
+        };
+
+        // Directores
+        if (m.director) m.director.split(',').forEach((d: string) => addItem('director', d.trim(), undefined, findImage(d.trim())));
+
+        // Géneros
+        if (Array.isArray(m.genres)) m.genres.forEach((g: any) => addItem('genre', String(g)));
+        else if (ext?.technical?.genres) ext.technical.genres.forEach((g: any) => addItem('genre', g));
+
+        // Año
+        if (m.year) addItem('year', String(m.year));
+
+        // Crew
+        if (ext?.crew?.screenplay) addItem('screenplay', ext.crew.screenplay, undefined, findImage(ext.crew.screenplay));
+        if (ext?.crew?.photography) addItem('photography', ext.crew.photography, undefined, findImage(ext.crew.photography));
+        if (ext?.crew?.music) addItem('music', ext.crew.music, undefined, findImage(ext.crew.music));
+
+        // Actores
+        if (Array.isArray(ext?.cast)) {
+            // Deduplicar actores por película
+            const seenActors = new Set<string>();
+            ext.cast.forEach((c: any) => {
+                if (c.name && !seenActors.has(c.name)) {
+                    addItem('actor', c.name, c.role, c.photo);
+                    seenActors.add(c.name);
+                }
+            });
+        }
+    });
+
+    // 3. Ordenar y Limitar todo
+    const results: Record<string, RankingItem[]> = {};
+    for (const type of Object.keys(aggregates)) {
+        let sorted = Object.values(aggregates[type]).sort((a, b) => b.count - a.count);
+        if (limit > 0) sorted = sorted.slice(0, limit);
+
+        // Post-proceso (ordenar películas dentro, lógica para actores)
+        sorted.forEach(item => {
+            item.movies.sort((a, b) => a.year - b.year);
+            if (type === 'actor' && item.roles) {
+                const uniqueRoles = Array.from(new Set(item.roles));
+                item.is_saga = uniqueRoles.length < item.movies.length;
+                item.roles = uniqueRoles;
+            }
+        });
+        results[type] = sorted;
+    }
+
+    return results;
 }

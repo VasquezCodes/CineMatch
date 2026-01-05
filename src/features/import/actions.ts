@@ -8,16 +8,16 @@ export type CsvMovieImport = {
     imdb_id: string; // Const
     title: string;
     year: number;
-    user_rating?: number; // Your Rating
-    date_rated?: string; // Date Rated
+    user_rating?: number; // Tu Calificación
+    date_rated?: string; // Fecha de Calificación
     genres?: string;
     url?: string;
-    imdb_rating?: number; // IMDb Rating
-    runtime_mins?: number; // Runtime (mins)
-    release_date?: string; // Release Date
-    directors?: string; // Directors
-    num_votes?: number; // Num Votes
-    position?: number; // Order in list
+    imdb_rating?: number; // Calificación IMDb
+    runtime_mins?: number; // Duración (mins)
+    release_date?: string; // Fecha de Lanzamiento
+    directors?: string; // Directores
+    num_votes?: number; // Núm Votos
+    position?: number; // Orden en lista
 };
 
 type ImportResult = {
@@ -42,8 +42,45 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
     // Procesamiento por lotes para insertar en la cola
     const BATCH_SIZE = 100; // Tamaño del lote para inserción en DB
 
-    for (let i = 0; i < movies.length; i += BATCH_SIZE) {
-        const batch = movies.slice(i, i + BATCH_SIZE);
+    // Obtener items ya en cola para este usuario (pending o processing)
+    // para evitar duplicados si el usuario sube el mismo archivo varias veces o spamea el botón.
+    const uniqueImdbIds = [...new Set(movies.map(m => m.imdb_id))];
+
+    // Consulta optimizada para verificar existencia
+    const { data: existingItems } = await (await supabase)
+        .from('import_queue')
+        .select('payload')
+        .eq('user_id', user.id)
+        .in('status', ['pending', 'processing']); // Solo nos importa si ya se está procesando o va a ser procesado
+
+    // Extraer IDs existentes de forma segura (payload es jsonb, en TS puede ser any)
+    const existingImdbIds = new Set<string>();
+    if (existingItems) {
+        existingItems.forEach((item: any) => {
+            if (item.payload && item.payload.imdb_id) {
+                existingImdbIds.add(item.payload.imdb_id);
+            }
+        });
+    }
+
+    // Filtrar películas que NO están en la cola
+    const moviesToInsert = movies.filter(m => !existingImdbIds.has(m.imdb_id));
+    const duplicateCount = movies.length - moviesToInsert.length;
+
+    console.log(`Import: ${movies.length} total, ${duplicateCount} duplicados ignorados, ${moviesToInsert.length} a insertar.`);
+
+    if (moviesToInsert.length === 0) {
+        return {
+            success: true,
+            total: movies.length,
+            new_movies: 0,
+            updated_movies: 0,
+            errors: 0
+        };
+    }
+
+    for (let i = 0; i < moviesToInsert.length; i += BATCH_SIZE) {
+        const batch = moviesToInsert.slice(i, i + BATCH_SIZE);
 
         const queueItems = batch.map(movie => ({
             user_id: user.id,
@@ -63,7 +100,7 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
         }
     }
 
-    // Disparar el Worker Asíncronamente (Fire and Forget)
+    // Disparar el Worker Asíncronamente (Disparar y Olvidar)
     // No esperamos la respuesta completa (o usamos un timeout muy corto).
     // Esto evita bloquear la UI mientras se inicia el proceso.
 
@@ -109,4 +146,4 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
         errors: errorCount
     };
 }
-// Old enrichMovieData removed as it is now in the worker
+// El antiguo enrichMovieData fue eliminado ya que ahora está en el worker

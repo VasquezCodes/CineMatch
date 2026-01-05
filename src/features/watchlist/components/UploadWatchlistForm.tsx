@@ -59,6 +59,8 @@ export function UploadWatchlistForm({
   };
 
   const handleFileSelect = async (selectedFile: File) => {
+    if (status === 'uploading') return; // Prevent duplicate submissions
+
     const validationError = validateFile(selectedFile);
     if (validationError) {
       setError(validationError);

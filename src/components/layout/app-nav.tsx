@@ -32,7 +32,7 @@ export function AppNav() {
             )}
             aria-current={isActive ? 'page' : undefined}
           >
-            <Icon className="size-4" aria-hidden="true" />
+            <Icon className="size-4" aria-hidden="true" suppressHydrationWarning />
             <span>{item.label}</span>
           </Link>
         );
