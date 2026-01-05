@@ -100,16 +100,29 @@ export async function POST(request: NextRequest) {
         // Trigger recursivo si procesamos un lote completo (significa que puede haber más)
         if (queueItems.length >= 20) {
             const workerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/workers/process-import`;
-            console.log('Triggering next batch recursively:', workerUrl);
+            console.log('Triggering next batch recursively (Fire & Forget):', workerUrl);
+
+            // Fire & Forget: Usamos un timeout corto para abortar la espera de la respuesta.
+            // La petición se envía, pero no esperamos a que el worker termine (lo que causaría timeouts en cadena).
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 200); // 200ms timeout
+
             try {
-                // IMPORTANTE: Await para prevenir que Vercel mate el proceso antes de enviar la solicitud
-                console.log(`Recursively triggering: ${workerUrl}`);
+                // No usamos await aquí para no bloquear, o usamos await con un catch inmediato del abort
                 await fetch(workerUrl, {
                     method: 'POST',
                     headers: { 'x-cron-secret': process.env.CRON_SECRET || '' },
+                    signal: controller.signal
                 });
-            } catch (err) {
-                console.error('Error triggering recursive worker:', err);
+            } catch (err: any) {
+                // Si es AbortError, es esperado y bueno (significa que el request salió pero no esperamos la respuesta)
+                if (err.name === 'AbortError') {
+                    console.log('Recursive trigger dispatched (aborted wait as planned)');
+                } else {
+                    console.error('Error triggering recursive worker:', err);
+                }
+            } finally {
+                clearTimeout(timeoutId);
             }
         }
 
