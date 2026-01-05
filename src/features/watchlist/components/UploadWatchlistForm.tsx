@@ -238,7 +238,7 @@ export function UploadWatchlistForm({
                   ¡Análisis completado!
                 </AlertDialogTitle>
                 <AlertDialogDescription className="text-center">
-                  Tu resumen ya está disponible.
+                  Tu archivo ha sido puesto en cola. Las películas aparecerán progresivamente en tu biblioteca.
                 </AlertDialogDescription>
               </motion.div>
             </AlertDialogHeader>
