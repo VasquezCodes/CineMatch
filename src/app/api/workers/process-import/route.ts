@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
             .eq('status', 'pending')
             .order('created_at', { ascending: true })
             .order('created_at', { ascending: true })
-            .limit(20);
+            .limit(10);
 
         if (queueError) throw new Error(`Error al obtener cola: ${queueError.message}`);
 
@@ -98,14 +98,13 @@ export async function POST(request: NextRequest) {
         const failCount = results.filter(r => r.status === 'rejected').length;
 
         // Trigger recursivo si procesamos un lote completo (significa que puede haber más)
-        if (queueItems.length >= 20) {
+        if (queueItems.length >= 10) {
             const workerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/workers/process-import`;
             console.log('Triggering next batch recursively (Fire & Forget):', workerUrl);
 
-            // Fire & Forget: Usamos un timeout corto para abortar la espera de la respuesta.
-            // La petición se envía, pero no esperamos a que el worker termine (lo que causaría timeouts en cadena).
+            // Fire & Forget: Usamos un timeout razonable (1s) para asegurar que la petición salga.
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 200); // 200ms timeout
+            const timeoutId = setTimeout(() => controller.abort(), 1000); // 1000ms timeout
 
             try {
                 // No usamos await aquí para no bloquear, o usamos await con un catch inmediato del abort
