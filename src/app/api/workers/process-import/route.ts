@@ -7,13 +7,14 @@ import { NextRequest, NextResponse } from 'next/server';
 // Tiempo máximo de ejecución por lote (Vercel serverless tiene límites, seremos conservadores)
 // Idealmente usaríamos Edge Runtime pero TMDB client usa fetch node-style a veces,
 // mantenemos nodejs runtime por compatibilidad con la base de código existente.
-export const maxDuration = 60; // 60 segundos (Vercel Pro default)
+// Tiempo máximo de ejecución por lote (Vercel serverless tiene límites)
+export const maxDuration = 60; // 60 segundos
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
+    const startTime = Date.now();
     try {
-        // 1. Verificar seguridad (Shared Secret)
-        // Esto evita que cualquiera llame a este endpoint públicamente
+        // 1. Verificar seguridad
         const authHeader = request.headers.get('x-cron-secret');
         if (authHeader !== process.env.CRON_SECRET) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -23,7 +24,6 @@ export async function POST(request: NextRequest) {
         const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
         if (!supabaseServiceKey) {
-            console.error("Missing SUPABASE_SERVICE_ROLE_KEY");
             return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
         }
 
@@ -34,106 +34,111 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        // 2. Obtener items pendientes (Batch Processing)
-        // Tomamos 5 a la vez para segurar que terminamos antes del timeout
-        const { data: queueItems, error: queueError } = await supabase
-            .from('import_queue')
-            .select('*')
-            .eq('status', 'pending')
-            .order('created_at', { ascending: true })
-            .order('created_at', { ascending: true })
-            .limit(10);
+        let keepProcessing = true;
+        let totalProcessed = 0;
+        let totalSuccess = 0;
+        let totalFailed = 0;
 
-        if (queueError) throw new Error(`Error al obtener cola: ${queueError.message}`);
+        // Loop de procesamiento: Se mantiene vivo mientras tenga tiempo (< 50s)
+        while (keepProcessing) {
+            const elapsedTime = Date.now() - startTime;
+            // Si pasaron más de 50 segundos, paramos para permitir el trigger recursivo seguro
+            if (elapsedTime > 50000) {
+                console.log(`Time limit reached (${elapsedTime}ms). Stopping loop.`);
+                break;
+            }
 
-        if (!queueItems || queueItems.length === 0) {
-            return NextResponse.json({ message: 'No pending items' });
+            // 2. Obtener items pendientes
+            const { data: queueItems, error: queueError } = await supabase
+                .from('import_queue')
+                .select('*')
+                .eq('status', 'pending')
+                .order('created_at', { ascending: true })
+                .limit(10); // Lotes de 10 para feedback rápido
+
+            if (queueError) throw new Error(`Error getting queue: ${queueError.message}`);
+
+            if (!queueItems || queueItems.length === 0) {
+                keepProcessing = false;
+                break;
+            }
+
+            console.log(`Processing batch of ${queueItems.length} items... (Elapsed: ${elapsedTime}ms)`);
+
+            // 3. Procesar items
+            const results = await Promise.allSettled(queueItems.map(async (item) => {
+                const payload = item.payload;
+                await supabase.from('import_queue')
+                    .update({ status: 'processing', updated_at: new Date().toISOString() })
+                    .eq('id', item.id);
+
+                try {
+                    await processQueueItem(supabase, item.user_id, payload);
+                    await supabase.from('import_queue').delete().eq('id', item.id);
+                    return item.id;
+                } catch (err: any) {
+                    console.error(`Item failed ${item.id}:`, err);
+                    await supabase.from('import_queue')
+                        .update({ status: 'failed', error_message: err.message || 'Error', updated_at: new Date().toISOString() })
+                        .eq('id', item.id);
+                    throw err;
+                }
+            }));
+
+            const successCount = results.filter(r => r.status === 'fulfilled').length;
+            const failCount = results.filter(r => r.status === 'rejected').length;
+
+            totalProcessed += queueItems.length;
+            totalSuccess += successCount;
+            totalFailed += failCount;
+
+            // Si trajimos menos del límite (10), es que ya no hay más pendientes
+            if (queueItems.length < 10) {
+                keepProcessing = false;
+            }
         }
 
-        console.log(`Procesando ${queueItems.length} items de la cola...`);
+        // 4. Trigger recursivo?
+        // Verificamos si TODAVÍA quedan items pendientes (por si salimos por timeout)
+        const { count } = await supabase
+            .from('import_queue')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'pending');
 
-        // 3. Procesar cada item
-        const results = await Promise.allSettled(queueItems.map(async (item) => {
-            const payload = item.payload; // Type: CsvMovieImport
+        const hasMore = count && count > 0;
 
-            // Marcar como procesando
-            await supabase
-                .from('import_queue')
-                .update({ status: 'processing', updated_at: new Date().toISOString() })
-                .eq('id', item.id);
-
-            try {
-                // Lógica de enriquecimiento (extraída de lo que antes estaba en actions.ts)
-                await processQueueItem(supabase, item.user_id, payload);
-
-                // Marcar como completado (Eliminar de la cola para limpieza)
-                await supabase
-                    .from('import_queue')
-                    .delete()
-                    .eq('id', item.id);
-
-                return item.id;
-            } catch (err: any) {
-                console.error(`Item fallido ${item.id}:`, err);
-                // Marcar como fallido
-                await supabase
-                    .from('import_queue')
-                    .update({
-                        status: 'failed',
-                        error_message: err.message || 'Error Desconocido',
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', item.id);
-                throw err;
-            }
-        }));
-
-        // 4. Trigger recursivo si hay más items?
-        // Por simplicidad en este MVP, asumimos que el cliente o un cron llama al worker repetidamente,
-        // o que el script cliente dispara una ráfaga.
-        // Opcional: Si encontramos items, podemos llamarnos a nosotros mismos (fetch) para continuar procesando.
-        // Veremos si es necesario.
-
-        const successCount = results.filter(r => r.status === 'fulfilled').length;
-        const failCount = results.filter(r => r.status === 'rejected').length;
-
-        // Trigger recursivo si procesamos un lote completo (significa que puede haber más)
-        if (queueItems.length >= 10) {
+        if (hasMore) {
             const workerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/workers/process-import`;
-            console.log('Triggering next batch recursively (Fire & Forget):', workerUrl);
+            console.log(`Triggering recursion. items remaining: ${count}`);
 
-            // Fire & Forget: Usamos un timeout razonable (1s) para asegurar que la petición salga.
+            // Fire & Forget con AbortController
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 1000); // 1000ms timeout
+            const timeoutId = setTimeout(() => controller.abort(), 1000);
 
             try {
-                // No usamos await aquí para no bloquear, o usamos await con un catch inmediato del abort
                 await fetch(workerUrl, {
                     method: 'POST',
                     headers: { 'x-cron-secret': process.env.CRON_SECRET || '' },
                     signal: controller.signal
                 });
             } catch (err: any) {
-                // Si es AbortError, es esperado y bueno (significa que el request salió pero no esperamos la respuesta)
-                if (err.name === 'AbortError') {
-                    console.log('Recursive trigger dispatched (aborted wait as planned)');
-                } else {
-                    console.error('Error triggering recursive worker:', err);
-                }
+                if (err.name === 'AbortError') console.log('Recursive trigger sent.');
+                else console.error('Error triggering recursion:', err);
             } finally {
                 clearTimeout(timeoutId);
             }
         }
 
         return NextResponse.json({
-            processed: queueItems.length,
-            success: successCount,
-            failed: failCount,
-            recursive: queueItems.length >= 20
+            processed: totalProcessed,
+            success: totalSuccess,
+            failed: totalFailed,
+            recursive: !!hasMore,
+            remaining: count
         });
 
     } catch (error: any) {
-        console.error("Error Global del Worker:", error);
+        console.error("Worker Global Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
