@@ -89,7 +89,10 @@ export function UploadWatchlistForm({
 
   React.useEffect(() => {
     if (status === "success") {
-      toast.success("Archivo subido correctamente");
+      toast.success("Carga exitosa. Tus películas se procesarán en segundo plano", {
+        description: "Verás el progreso en la esquina inferior derecha",
+        duration: 5000,
+      });
     }
   }, [status]);
 

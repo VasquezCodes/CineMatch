@@ -1,87 +1,65 @@
-'use client';
+"use client";
 
-import { Moon, Sun } from 'lucide-react';
-import { useTheme } from 'next-themes';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import { AnimatePresence, motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
-/**
- * ThemeToggle
- * Toggle funcional para cambiar entre light/dark mode con animaciones suaves
- * Usa next-themes para persistir la preferencia del usuario
- * Usa Framer Motion para transiciones fluidas
- */
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Evitar hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+  const isDark = resolvedTheme === "dark";
+
+  const handleToggleClick = () => {
+    const nextTheme = isDark ? "light" : "dark";
+    setTheme(nextTheme);
   };
 
-  // Mostrar un placeholder mientras se monta para evitar flash
   if (!mounted) {
     return (
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Cambiar tema"
-        className="size-9"
-      >
-        <Sun className="size-4" />
+      <Button variant="ghost" size="icon" className="size-9">
+        <div className="size-4 animate-pulse rounded-full bg-muted" />
       </Button>
     );
   }
-
-  const isDark = theme === 'dark';
 
   return (
     <Button
       variant="ghost"
       size="icon"
-      onClick={toggleTheme}
-      aria-label="Cambiar tema"
-      className="size-9 relative overflow-hidden"
-      data-no-theme-transition
+      onClick={handleToggleClick}
+      aria-label="Toggle theme"
+      className="relative z-[10001] size-9 no-theme-transition"
     >
       <AnimatePresence mode="wait" initial={false}>
         {isDark ? (
           <motion.div
             key="moon"
-            initial={{ rotate: -90, scale: 0, opacity: 0 }}
-            animate={{ rotate: 0, scale: 1, opacity: 1 }}
-            exit={{ rotate: 90, scale: 0, opacity: 0 }}
-            transition={{
-              duration: 0.3,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            data-no-theme-transition
+            initial={{ scale: 0.5, opacity: 0, rotate: -45 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            exit={{ scale: 0.5, opacity: 0, rotate: 45 }}
+            transition={{ duration: 0.2, ease: "circOut" }}
           >
-            <Moon className="size-4" />
+            <Moon className="size-4 text-foreground" />
           </motion.div>
         ) : (
           <motion.div
             key="sun"
-            initial={{ rotate: 90, scale: 0, opacity: 0 }}
-            animate={{ rotate: 0, scale: 1, opacity: 1 }}
-            exit={{ rotate: -90, scale: 0, opacity: 0 }}
-            transition={{
-              duration: 0.3,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            data-no-theme-transition
+            initial={{ scale: 0.5, opacity: 0, rotate: 90 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            exit={{ scale: 0.5, opacity: 0, rotate: -90 }}
+            transition={{ duration: 0.2, ease: "circOut" }}
           >
-            <Sun className="size-4" />
+            <Sun className="size-4 text-foreground" />
           </motion.div>
         )}
       </AnimatePresence>
     </Button>
   );
 }
-
