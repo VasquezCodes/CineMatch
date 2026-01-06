@@ -26,6 +26,38 @@ export default function AppPage() {
 
       <Section>
         <SectionGrid cols={2}>
+          {/* Upload Watchlist */}
+          <Card>
+            <CardHeader>
+              <Upload className="h-8 w-8 text-primary" aria-hidden="true" />
+              <CardTitle>Subir Watchlist</CardTitle>
+              <CardDescription>
+                Importá tu lista desde IMDb o TMDB
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <Link href={APP_ROUTES.UPLOAD}>Importar lista</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Análisis */}
+          <Card>
+            <CardHeader>
+              <BarChart3 className="h-8 w-8 text-primary" aria-hidden="true" />
+              <CardTitle>Análisis</CardTitle>
+              <CardDescription>
+                Elabora rankings con tus gustos
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" asChild className="w-full">
+                <Link href={APP_ROUTES.ANALYSIS}>Ver análisis</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Perfil cinéfilo */}
           <Card>
             <CardHeader>
@@ -51,40 +83,8 @@ export default function AppPage() {
                 className="w-full"
               >
                 <Link href={SECONDARY_ROUTES.QUALIFICATION}>
-                  {isQualified ? "Editar cualificación" : "Comenzar"}
+                  Cualificar
                 </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Upload Watchlist */}
-          <Card>
-            <CardHeader>
-              <Upload className="h-8 w-8 text-primary" aria-hidden="true" />
-              <CardTitle>Subir Watchlist</CardTitle>
-              <CardDescription>
-                Importá tu lista desde Letterboxd, IMDb o ingresá títulos manualmente
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full">
-                <Link href={APP_ROUTES.UPLOAD}>Importar lista</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Análisis */}
-          <Card>
-            <CardHeader>
-              <BarChart3 className="h-8 w-8 text-primary" aria-hidden="true" />
-              <CardTitle>Análisis</CardTitle>
-              <CardDescription>
-                Descubrí patrones en tus preferencias y explorá tu historial
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" asChild className="w-full">
-                <Link href={APP_ROUTES.ANALYSIS}>Ver análisis</Link>
               </Button>
             </CardContent>
           </Card>
