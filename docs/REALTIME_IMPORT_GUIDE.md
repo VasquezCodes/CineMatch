@@ -1,32 +1,35 @@
-# Guía de Implementación: Feedback de Importación en Tiempo Real
+# Guía de Implementación del Frontend: Importación y Worker
 
-Esta guía detalla cómo implementar un indicador visual de progreso para la importación de películas utilizando Supabase Realtime.
+Esta guía detalla cómo se integra el Frontend con el nuevo sistema de importación optimizado (Background Worker).
 
-## Objetivo
-Mostrar al usuario cuántas películas quedan por procesar en la cola de importación en tiempo real, sin necesidad de recargar la página.
+## Resumen del Flujo
+1.  **Frontend**: El usuario sube el CSV.
+2.  **Server Action**: `processImport` valida el archivo, inserta los items en `import_queue` y **dispara automáticamente** el worker (Fire-and-Forget).
+3.  **Worker (Backend)**: Procesa los items en bucle continuo hasta terminar o casi alcanzar el timeout (50s), auto-invocándose si es necesario.
+4.  **Frontend (Feedback)**: El usuario ve el progreso mediante suscripción a Supabase Realtime (tabla `import_queue`).
 
-## Requisitos Previos
-1. El backend ya tiene habilitado Realtime en la tabla `import_queue`.
-2. El cliente de Supabase (`createClient`) debe estar disponible en el frontend.
+## 1. Integración de la Carga (Upload)
 
-## Implementación en el Frontend
+La función `processImport` en `src/features/import/actions.ts` ya maneja todo. El frontend solo necesita llamarla.
 
-Recomendamos crear un componente global (ej. `ImportStatusToast.tsx` o dentro de `MainLayout`) que se monte una sola vez.
+**No es necesario llamar al worker manualmente desde el cliente.**
 
-### Lógica del Componente
+```typescript
+// Ejemplo de uso en componente (ya implementado):
+await processImport(movies);
+```
 
-El componente debe hacer tres cosas:
-1. **Obtener el estado inicial**: Consultar cuántos items pendientes tiene el usuario al cargar.
-2. **Escuchar cambios**: Suscribirse a los eventos `INSERT` y `DELETE` de la tabla `import_queue`.
-3. **Actualizar estado**: Incrementar o decrementar el contador en vivo.
+## 2. Visualización de Progreso (Recomendado)
 
-### Código de Ejemplo (React/Next.js)
+Para mostrar una barra de progreso o un "toast" flotante, utiliza Supabase Realtime escuchando la tabla `import_queue`.
+
+### Ejemplo de Componente (`ImportStatusToast.tsx`)
 
 ```tsx
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/utils/supabase/client'; // Ajustar ruta a tu cliente supabase
+import { createClient } from '@/utils/supabase/client';
 
 export function ImportStatus() {
   const [pendingCount, setPendingCount] = useState(0);
@@ -36,68 +39,59 @@ export function ImportStatus() {
     let channel: any;
 
     const setupRealtime = async () => {
-      // 1. Obtener usuario actual 
+      // 1. Obtener usuario actual
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       // 2. Obtener conteo inicial
-      const { count, error } = await supabase
+      const { count } = await supabase
         .from('import_queue')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending'); 
+        .eq('status', 'pending');
 
-      if (!error && count !== null) {
-        setPendingCount(count);
-      }
+      if (count !== null) setPendingCount(count);
 
-      // 3. Suscribirse a cambios
+      // 3. Suscribirse a DELETE (cuando el worker termina un item)
       channel = supabase
         .channel('import-progress')
         .on(
           'postgres_changes',
-          {
-            event: '*', // Escuchar INSERT, UPDATE, DELETE
-            schema: 'public',
-            table: 'import_queue',
-            filter: `user_id=eq.${user.id}`, // Filtramos por usuario
-          },
+          { event: '*', schema: 'public', table: 'import_queue', filter: `user_id=eq.${user.id}` },
           (payload) => {
-            if (payload.eventType === 'INSERT') {
-              // Nueva película agregada -> Incrementar
-              setPendingCount((prev) => prev + 1);
-            } else if (payload.eventType === 'DELETE') {
-              // Película procesada (borrada) -> Decrementar
-              setPendingCount((prev) => Math.max(0, prev - 1));
-            }
+             // Si el evento es INSERT (usuario subió más), sube el contador
+             if (payload.eventType === 'INSERT') setPendingCount(p => p + 1);
+             // Si el evento es DELETE (item procesado/limpiado), baja el contador
+             if (payload.eventType === 'DELETE') setPendingCount(p => Math.max(0, p - 1));
           }
         )
         .subscribe();
     };
 
     setupRealtime();
-
-    // Cleanup
-    return () => {
-      if (channel) supabase.removeChannel(channel);
-    };
+    return () => { if (channel) supabase.removeChannel(channel); };
   }, [supabase]);
 
-  // Renderizar solo si hay items procesando
   if (pendingCount === 0) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50">
-      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+    <div className="fixed bottom-4 right-4 bg-primary text-primary-foreground px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5">
+      <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
       <div className="flex flex-col">
-        <span className="font-semibold text-sm">Procesando importación...</span>
-        <span className="text-xs opacity-90">{pendingCount} películas restantes</span>
+        <span className="font-semibold text-sm">Procesando películas...</span>
+        <span className="text-xs opacity-90">Faltan {pendingCount} por importar</span>
       </div>
     </div>
   );
 }
 ```
 
-### Consideraciones
-*   **Filtrado por Usuario**: Es crucial incluir `filter: user_id=eq.${user.id}` en la suscripción del canal. Aunque RLS protege los datos en `SELECT`, Realtime a veces puede emitir eventos globales si no se configura explícitamente el filtro en el cliente.
-*   **Persistencia**: Coloca este componente en un Layout principal para que persista durante la navegación.
-*   **Señal de Progreso**: El worker **borra** los items al completarlos, por lo que el evento `DELETE` reduce el contador.
+## 3. Debugging y Emergencias
+
+Si la cola parece atascada (aunque el nuevo worker previene esto), los desarrolladores pueden usar:
+
+*   **Página de Debug**: Visitar `/dev/worker` para ver el estado y botón de disparo manual.
+*   **API Directa**: POST a `/api/dev/trigger-worker` (si se requiere disparar desde una herramienta externa).
+
+## Notas Técnicas para el Equipo Frontend
+*   El worker corre en lotes continuos de hasta 50-60 segundos. No se alarmen si la petición de red inicial (upload) termina rápido pero el contador baja progresivamente durante el siguiente minuto.
+*   La tabla `import_queue` se limpia automáticamente (DELETE) a medida que se procesan los items.
