@@ -28,9 +28,15 @@ export async function getWatchlistAnalysis(): Promise<{
     }
 
     // Consultar watchlists con JOIN a movies
+    // Usamos el alias 'movie' para la relación con la tabla movies
     const { data: watchlists, error: watchlistsError } = await supabase
       .from("watchlists")
-      .select("*")
+      .select(
+        `
+        *,
+        movie:movies (*)
+      `
+      )
       .eq("user_id", user.id)
       .order("updated_at", { ascending: false });
 
@@ -49,35 +55,18 @@ export async function getWatchlistAnalysis(): Promise<{
       };
     }
 
-    // Obtener movie_ids únicos
-    const movieIds = [...new Set(watchlists.map((w) => w.movie_id))];
-
-    // Consultar movies
-    const { data: movies, error: moviesError } = await supabase
-      .from("movies")
-      .select("*")
-      .in("id", movieIds);
-
-    if (moviesError) {
-      console.error("Error fetching movies:", moviesError);
-      return {
-        data: null,
-        error: "Error al obtener información de películas",
-      };
-    }
-
-    // Crear mapa de películas para fácil lookup
-    const moviesMap = new Map(movies?.map((m) => [m.id, m]) || []);
-
-    // Combinar watchlists con movies
+    // Transformar los datos para cumplir con el tipo WatchlistAnalysisItem
     const analysisData: WatchlistAnalysisItem[] = watchlists
-      .map((watchlist) => {
-        const movie = moviesMap.get(watchlist.movie_id);
+      .map((item) => {
+        // Extraemos la película y dejamos el resto como watchlist
+        const { movie, ...watchlistData } = item;
+
+        // Verificación de seguridad por si la relación no trae datos (integridad referencial rota)
         if (!movie) return null;
 
         return {
-          watchlist,
-          movie,
+          watchlist: watchlistData as unknown as WatchlistAnalysisItem["watchlist"],
+          movie: movie as unknown as WatchlistAnalysisItem["movie"],
         };
       })
       .filter((item): item is WatchlistAnalysisItem => item !== null);

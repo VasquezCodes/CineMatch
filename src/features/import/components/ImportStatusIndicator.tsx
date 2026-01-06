@@ -80,15 +80,15 @@ export function ImportStatusIndicator() {
         .channel(`import-progress-${user.id}`)
         .on(
           'postgres_changes',
-          { 
-            event: '*', 
-            schema: 'public', 
-            table: 'import_queue', 
-            filter: `user_id=eq.${user.id}` 
+          {
+            event: '*',
+            schema: 'public',
+            table: 'import_queue',
+            filter: `user_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('[ImportStatus] Realtime event:', payload.eventType);
-            
+            console.log('[ImportStatus] Realtime event:', payload.eventType, payload);
+
             // Si el evento es INSERT (usuario subió más), incrementar contador
             if (payload.eventType === 'INSERT') {
               setPendingCount(prev => {
@@ -101,16 +101,17 @@ export function ImportStatusIndicator() {
                 return newCount;
               });
             }
-            
+
             // Si el evento es DELETE (item procesado/limpiado), decrementar contador
             if (payload.eventType === 'DELETE') {
               setPendingCount(prev => {
                 const newCount = Math.max(0, prev - 1);
-                console.log('[ImportStatus] Pending count:', newCount);
-                
+
                 if (newCount === 0) {
                   // Procesamiento completado
                   setImportState('completed');
+                  // Auto-refrescar los datos de la página
+                  router.refresh();
                 }
                 return newCount;
               });
@@ -127,6 +128,9 @@ export function ImportStatusIndicator() {
         )
         .subscribe((status) => {
           console.log('[ImportStatus] Subscription status:', status);
+          if (status === 'CHANNEL_ERROR') {
+            console.error('[ImportStatus] Realtime connection error');
+          }
         });
     };
 
@@ -138,7 +142,7 @@ export function ImportStatusIndicator() {
         supabase.removeChannel(channel);
       }
     };
-  }, []);
+  }, [router]);
 
   // No renderizar si no está visible
   if (!isVisible) return null;
@@ -146,16 +150,16 @@ export function ImportStatusIndicator() {
   // Estado de procesamiento
   if (importState === 'processing') {
     const progress = totalCount > 0 ? Math.round(((totalCount - pendingCount) / totalCount) * 100) : 0;
-    
+
     return (
-      <div 
+      <div
         className="fixed bottom-4 right-4 bg-card border border-border px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5"
         role="status"
         aria-live="polite"
       >
         {/* Spinner animado */}
         <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
-        
+
         {/* Contenido */}
         <div className="flex flex-col min-w-[180px]">
           <span className="font-semibold text-sm text-foreground">Procesando películas...</span>
@@ -164,7 +168,7 @@ export function ImportStatusIndicator() {
           </span>
           {/* Barra de progreso */}
           <div className="w-full h-1 bg-muted rounded-full mt-2 overflow-hidden">
-            <div 
+            <div
               className="h-full bg-primary transition-all duration-300 ease-out"
               style={{ width: `${progress}%` }}
             />
@@ -177,7 +181,7 @@ export function ImportStatusIndicator() {
   // Estado completado
   if (importState === 'completed') {
     return (
-      <div 
+      <div
         className="fixed bottom-4 right-4 bg-card border border-primary/30 px-4 py-4 rounded-lg shadow-lg z-50 animate-in slide-in-from-bottom-5"
         role="status"
         aria-live="polite"
@@ -187,7 +191,7 @@ export function ImportStatusIndicator() {
           <div className="rounded-full bg-primary/10 p-1.5">
             <CheckCircle2 className="h-5 w-5 text-primary" />
           </div>
-          
+
           {/* Contenido */}
           <div className="flex flex-col gap-2">
             <div>
@@ -198,7 +202,7 @@ export function ImportStatusIndicator() {
                 {totalCount} película{totalCount !== 1 ? 's' : ''} procesada{totalCount !== 1 ? 's' : ''}
               </span>
             </div>
-            
+
             {/* Acciones */}
             <div className="flex gap-2 mt-1">
               <Button
@@ -221,7 +225,7 @@ export function ImportStatusIndicator() {
               </Button>
             </div>
           </div>
-          
+
           {/* Botón cerrar */}
           <button
             onClick={() => setIsVisible(false)}
@@ -238,7 +242,7 @@ export function ImportStatusIndicator() {
   // Estado de error
   if (importState === 'error') {
     return (
-      <div 
+      <div
         className="fixed bottom-4 right-4 bg-destructive/10 border border-destructive/30 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5"
         role="alert"
       >
