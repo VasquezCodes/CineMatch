@@ -23,7 +23,7 @@ export type RankingItem = {
     }[];
     image_url?: string; // Nuevo: Foto del director/actor/etc
     // Metadatos específicos para actores
-    roles?: string[]; // Roles distintos interpretados
+    roles?: { role: string; movies: string[] }[]; // Roles agrupados por nombre
     is_saga?: boolean; // Si roles.length < movies.length
     score?: number; // Puntuación calculada para ordenamiento
 };
@@ -94,7 +94,7 @@ export async function getRanking(
         };
 
         const keys: string[] = [];
-        const extraData: Record<string, any> = {};
+        const extraData: Record<string, { name: string; movieTitle: string }[]> = {};
         const keyImages: Record<string, string> = {}; // Nuevo: Mapa de imágenes para los keys
 
         // Helper para buscar imagen en crew_details o cast
@@ -168,7 +168,8 @@ export async function getRanking(
                             keys.push(c.name);
                             // Guardar rol para este actor
                             if (!extraData[c.name]) extraData[c.name] = [];
-                            extraData[c.name].push(c.role);
+                            // @ts-ignore - Estructura temporal, transformada en el post-proceso
+                            extraData[c.name].push({ name: c.role, movieTitle: m.title || 'Desconocido' });
                             // Guardar foto del actor si existe
                             if (c.photo) keyImages[c.name] = c.photo;
                         }
@@ -203,6 +204,7 @@ export async function getRanking(
 
             if (type === 'actor' && extraData[key]) {
                 // Aplanar roles
+                // @ts-ignore
                 groups[key].roles?.push(...extraData[key]);
             }
         });
@@ -212,18 +214,38 @@ export async function getRanking(
     // Para actores, calculamos un score especial
     let sorted = Object.values(groups).map(item => {
         if (type === 'actor') {
-            const uniqueRoles = Array.from(new Set(item.roles || []));
+            const allRoles = item.roles || [];
+            // Agrupar roles por nombre
+            const roleMap = new Map<string, string[]>();
+            allRoles.forEach((r: any) => {
+                // @ts-ignore manejando estado intermedio donde r es { name, movieTitle }
+                const roleName = r.name;
+                // @ts-ignore
+                const movieTitle = r.movieTitle;
+
+                if (!roleMap.has(roleName)) roleMap.set(roleName, []);
+                roleMap.get(roleName)?.push(movieTitle);
+            });
+
+            // Convertir mapa a array de objetos
+            const groupedRoles = Array.from(roleMap.entries()).map(([role, movies]) => ({
+                role,
+                movies
+            }));
+
+            // La lógica de cálculo de puntaje permanece basada en roles ÚNICOS
+            const uniqueRoleNames = Array.from(roleMap.keys());
             const totalMovies = item.movies.length;
-            // Formula: 10 pts por rol único + 2 pts por cada repetición (saga)
-            const baseScore = uniqueRoles.length * 10;
-            const sagaBonus = (totalMovies - uniqueRoles.length) * 2;
+
+            const baseScore = uniqueRoleNames.length * 10;
+            const sagaBonus = (totalMovies - uniqueRoleNames.length) * 2;
             const score = baseScore + sagaBonus;
 
             return {
                 ...item,
-                roles: uniqueRoles,
-                is_saga: uniqueRoles.length < totalMovies,
-                score // Guardamos score para ordenar
+                roles: groupedRoles,
+                is_saga: uniqueRoleNames.length < totalMovies,
+                score
             };
         }
         return { ...item, score: item.count }; // Default score = count
@@ -325,7 +347,8 @@ export async function getDashboardRankings(userId: string, options: RankingOptio
             }
             aggregates[type][key].count++;
             aggregates[type][key].movies.push(movieSimple);
-            if (role) aggregates[type][key].roles?.push(role);
+            // @ts-ignore - Temporary structure, transformed in post-process
+            if (role) aggregates[type][key].roles?.push({ name: role, movieTitle: movieSimple.title });
             if (!aggregates[type][key].image_url && photo) aggregates[type][key].image_url = photo;
         };
 
@@ -373,14 +396,31 @@ export async function getDashboardRankings(userId: string, options: RankingOptio
         // Calcular scores
         const scored = sorted.map(item => {
             if (type === 'actor') {
-                const uniqueRoles = Array.from(new Set(item.roles || []));
+                const allRoles = item.roles || [];
+                // Agrupar roles por nombre
+                const roleMap = new Map<string, string[]>();
+                allRoles.forEach((r: any) => {
+                    const roleName = r.name;
+                    const movieTitle = r.movieTitle;
+                    if (!roleMap.has(roleName)) roleMap.set(roleName, []);
+                    roleMap.get(roleName)?.push(movieTitle);
+                });
+
+                const groupedRoles = Array.from(roleMap.entries()).map(([role, movies]) => ({
+                    role,
+                    movies
+                }));
+
+                const uniqueRoleNames = Array.from(roleMap.keys());
                 const totalMovies = item.movies.length;
-                const baseScore = uniqueRoles.length * 10;
-                const sagaBonus = (totalMovies - uniqueRoles.length) * 2;
+
+                const baseScore = uniqueRoleNames.length * 10;
+                const sagaBonus = (totalMovies - uniqueRoleNames.length) * 2;
+
                 return {
                     ...item,
-                    roles: uniqueRoles,
-                    is_saga: uniqueRoles.length < totalMovies,
+                    roles: groupedRoles,
+                    is_saga: uniqueRoleNames.length < totalMovies,
                     score: baseScore + sagaBonus
                 };
             }

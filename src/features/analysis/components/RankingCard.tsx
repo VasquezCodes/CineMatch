@@ -52,7 +52,7 @@ export function RankingCard({
           {item.roles && item.roles.length > 0 && (
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[10px] text-muted-foreground line-clamp-1">
-                {item.roles.slice(0, 2).join(", ")}
+                {item.roles.slice(0, 2).map((r) => `${r.role} (${r.movies.join(', ')})`).join(", ")}
                 {item.roles.length > 2 && ` +${item.roles.length - 2}`}
               </span>
               {item.is_saga && (

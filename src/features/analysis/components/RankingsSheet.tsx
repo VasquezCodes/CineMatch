@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getRanking, type RankingType } from "@/features/rankings/actions";
+import { getRanking, type RankingType, type RankingItem } from "@/features/rankings/actions";
 import { ErrorState } from "@/components/ui/error-state";
 import { TrendingUp, X, Star } from "lucide-react";
 
@@ -29,7 +29,7 @@ export function RankingsSheet({
   rankingType,
   rankingLabel,
 }: RankingsSheetProps) {
-  const [data, setData] = React.useState<any[]>([]);
+  const [data, setData] = React.useState<RankingItem[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -80,7 +80,7 @@ export function RankingsSheet({
         <SheetTitle className="sr-only">
           Ranking completo: {rankingLabel}
         </SheetTitle>
-        
+
         {/* Header Fijo */}
         <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border p-6 pb-4" data-theme-transition>
           <div className="flex items-start justify-between mb-6">
@@ -151,7 +151,7 @@ export function RankingsSheet({
                       </h3>
                       {item.roles && item.roles.length > 0 && (
                         <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                          {item.roles.join(" • ")}
+                          {item.roles.map((r) => `${r.role} (${r.movies.join(' • ')})`).join(" • ")}
                         </p>
                       )}
                     </div>
