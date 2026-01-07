@@ -25,6 +25,7 @@ export type RankingItem = {
     // Metadatos específicos para actores
     roles?: string[]; // Roles distintos interpretados
     is_saga?: boolean; // Si roles.length < movies.length
+    score?: number; // Puntuación calculada para ordenamiento
 };
 
 type RankingOptions = {
@@ -208,27 +209,35 @@ export async function getRanking(
     });
 
     // 3. Post-proceso (Ordenar y Limitar)
-    let sorted = Object.values(groups).sort((a, b) => b.count - a.count);
+    // Para actores, calculamos un score especial
+    let sorted = Object.values(groups).map(item => {
+        if (type === 'actor') {
+            const uniqueRoles = Array.from(new Set(item.roles || []));
+            const totalMovies = item.movies.length;
+            // Formula: 10 pts por rol único + 2 pts por cada repetición (saga)
+            const baseScore = uniqueRoles.length * 10;
+            const sagaBonus = (totalMovies - uniqueRoles.length) * 2;
+            const score = baseScore + sagaBonus;
+
+            return {
+                ...item,
+                roles: uniqueRoles,
+                is_saga: uniqueRoles.length < totalMovies,
+                score // Guardamos score para ordenar
+            };
+        }
+        return { ...item, score: item.count }; // Default score = count
+    });
+
+    // Ordenar por score (descendente)
+    sorted.sort((a, b) => (b.score || 0) - (a.score || 0));
 
     // Limitar
     if (limit > 0) {
         sorted = sorted.slice(0, limit);
     }
 
-    // Matiz Adicional para Actores
-    if (type === 'actor') {
-        sorted.forEach(item => {
-            if (item.roles) {
-                // Roles únicos
-                const uniqueRoles = Array.from(new Set(item.roles));
-                item.is_saga = uniqueRoles.length < item.movies.length; // Más películas que roles únicos = reuso (saga)
-                item.roles = uniqueRoles;
-            }
-        });
-    }
-
-    // Ordenar películas dentro de cada grupo por año? O rating?
-    // "Luego por orden ascendente de año de realización"
+    // Ordenar películas dentro de cada grupo por año
     sorted.forEach(item => {
         item.movies.sort((a, b) => a.year - b.year);
     });
@@ -359,19 +368,39 @@ export async function getDashboardRankings(userId: string, options: RankingOptio
     // 3. Ordenar y Limitar todo
     const results: Record<string, RankingItem[]> = {};
     for (const type of Object.keys(aggregates)) {
-        let sorted = Object.values(aggregates[type]).sort((a, b) => b.count - a.count);
-        if (limit > 0) sorted = sorted.slice(0, limit);
+        let sorted = Object.values(aggregates[type]);
 
-        // Post-proceso (ordenar películas dentro, lógica para actores)
-        sorted.forEach(item => {
-            item.movies.sort((a, b) => a.year - b.year);
-            if (type === 'actor' && item.roles) {
-                const uniqueRoles = Array.from(new Set(item.roles));
-                item.is_saga = uniqueRoles.length < item.movies.length;
-                item.roles = uniqueRoles;
+        // Calcular scores
+        const scored = sorted.map(item => {
+            if (type === 'actor') {
+                const uniqueRoles = Array.from(new Set(item.roles || []));
+                const totalMovies = item.movies.length;
+                const baseScore = uniqueRoles.length * 10;
+                const sagaBonus = (totalMovies - uniqueRoles.length) * 2;
+                return {
+                    ...item,
+                    roles: uniqueRoles,
+                    is_saga: uniqueRoles.length < totalMovies,
+                    score: baseScore + sagaBonus
+                };
             }
+            return { ...item, score: item.count };
         });
-        results[type] = sorted;
+
+        // Ordenar por score
+        scored.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+        // Limitar
+        if (limit > 0) {
+            results[type] = scored.slice(0, limit);
+        } else {
+            results[type] = scored;
+        }
+
+        // Ordenar películas internas
+        results[type].forEach(item => {
+            item.movies.sort((a, b) => a.year - b.year);
+        });
     }
 
     return results;
