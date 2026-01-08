@@ -68,6 +68,18 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
             const tmdbMovie = await tmdb.getMovieDetails(parseInt(id));
 
             if (tmdbMovie) {
+                // ESTRATEGIA ON-DEMAND: Si no vienen recomendaciones (fallo de API o worker rápido), las pedimos aquí.
+                // Esto permite que el worker sea rápido (paralelo) y la carga pesada sea lazy.
+                let validRecommendations = tmdbMovie.recommendations?.results || [];
+                if (validRecommendations.length === 0) {
+                    try {
+                        console.log(`[Action] Fetching missing recommendations on-demand for ${tmdbMovie.title}`);
+                        validRecommendations = await tmdb.getRecommendations(tmdbMovie.id);
+                    } catch (e) {
+                        console.error('Error fetching on-demand recommendations:', e);
+                    }
+                }
+
                 // Intentar buscar en DB local por IMDB ID
                 const { data: existing } = await supabase
                     .from('movies')
@@ -99,7 +111,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                             job: c.job,
                             photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
                         })),
-                        recommendations: tmdbMovie.recommendations?.results?.slice(0, 12).map((r: any) => ({
+                        recommendations: validRecommendations.slice(0, 12).map((r: any) => ({
                             id: r.id, // TMDB ID
                             tmdb_id: r.id,
                             title: r.title,

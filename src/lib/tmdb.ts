@@ -188,6 +188,13 @@ export class TmdbClient {
     async getPersonDetails(personId: number): Promise<any | null> {
         return this.fetch<any>(`/person/${personId}`);
     }
+    /**
+     * Obtener recomendaciones (fallback si falla append_to_response)
+     */
+    async getRecommendations(tmdbId: number): Promise<any[]> {
+        const res = await this.fetch<{ results: any[] }>(`/movie/${tmdbId}/recommendations`);
+        return res?.results || [];
+    }
 }
 
 export const tmdb = new TmdbClient();

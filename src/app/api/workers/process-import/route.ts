@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
                     .eq('id', item.id);
 
                 try {
-                    await processQueueItem(supabase, item.user_id, payload);
+                    await processQueueItem(supabase, item.user_id, item.payload);
                     await supabase.from('import_queue').delete().eq('id', item.id);
                     return item.id;
                 } catch (err: any) {
@@ -187,8 +187,7 @@ async function processQueueItem(supabase: any, userId: string, movie: any) {
         savedMovie.extended_data.technical.runtime &&
         savedMovie.extended_data.technical.runtime &&
         savedMovie.extended_data.crew_details &&
-        savedMovie.poster_url &&
-        savedMovie.extended_data.recommendations;
+        savedMovie.poster_url;
 
     if (!hasExtendedData) {
         console.log(`Enriching missing data for: ${movie.imdb_id}`);
@@ -238,13 +237,9 @@ async function enrichMovieData(supabase: any, movieId: string, imdbId: string) {
                 trailer_key: trailer,
                 tagline: details.tagline
             },
-            recommendations: details.recommendations?.results?.slice(0, 12).map((r: any) => ({
-                id: r.id, // TMDB ID
-                tmdb_id: r.id,
-                title: r.title,
-                year: r.release_date ? parseInt(r.release_date.split('-')[0]) : 0,
-                poster: TmdbClient.getImageUrl(r.poster_path, 'w342')
-            }))
+            // ESTRATEGIA: Worker NO procesa recomendaciones para maximizar velocidad.
+            // Se cargarán "on-demand" vía getMovie la primera vez que se visite la película.
+            recommendations: []
         };
 
         await supabase.from('movies').update({

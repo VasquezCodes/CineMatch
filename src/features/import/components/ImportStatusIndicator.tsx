@@ -104,17 +104,7 @@ export function ImportStatusIndicator() {
 
             // Si el evento es DELETE (item procesado/limpiado), decrementar contador
             if (payload.eventType === 'DELETE') {
-              setPendingCount(prev => {
-                const newCount = Math.max(0, prev - 1);
-
-                if (newCount === 0) {
-                  // Procesamiento completado
-                  setImportState('completed');
-                  // Auto-refrescar los datos de la página
-                  router.refresh();
-                }
-                return newCount;
-              });
+              setPendingCount(prev => Math.max(0, prev - 1));
             }
 
             // Si hay un error
@@ -143,6 +133,14 @@ export function ImportStatusIndicator() {
       }
     };
   }, [router]);
+
+  // Efecto para detectar finalización
+  useEffect(() => {
+    if (importState === 'processing' && pendingCount === 0) {
+      setImportState('completed');
+      router.refresh();
+    }
+  }, [importState, pendingCount, router]);
 
   // No renderizar si no está visible
   if (!isVisible) return null;
