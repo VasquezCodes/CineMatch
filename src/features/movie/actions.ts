@@ -48,15 +48,87 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
     // Obtener usuario actual para buscar sus interacciones
     const { data: { user } } = await supabase.auth.getUser();
 
+    // 0. DETECCIÓN INTELIGENTE DE ID
+    // Si el ID es numérico, asumimos que es un TMDB ID y necesitamos buscarlo o importarlo.
+    const isTmdbId = /^\d+$/.test(id);
+    let movieId = id;
+
+    if (isTmdbId) {
+        // A. Buscar si ya existe en nuestra DB por alguna concordancia (usaremos IMDB ID idealmente)
+        // Para eso, primero necesitamos detalles mínimos de TMDB para saber su IMDB ID
+        try {
+            const { tmdb } = await import('@/lib/tmdb');
+            const tmdbMovie = await tmdb.getMovieDetails(parseInt(id));
+
+            if (tmdbMovie) {
+                // Intentar buscar en DB local por IMDB ID
+                const { data: existing } = await supabase
+                    .from('movies')
+                    .select('id')
+                    .eq('imdb_id', tmdbMovie.imdb_id)
+                    .maybeSingle();
+
+                if (existing) {
+                    movieId = existing.id;
+                } else {
+                    // B. NO EXISTE LOCALMENTE -> IMPORTACIÓN ON-DEMAND "JUST IN TIME"
+                    // Si el usuario navegó a una peli que no teníamos (ej. desde filmografía completa),
+                    // la guardamos ahora mismo para que la página funcione.
+
+                    // Mapear datos para inserción (reutilizando lógica similar a workers/actions)
+                    const payload = {
+                        title: tmdbMovie.title,
+                        year: tmdbMovie.release_date ? parseInt(tmdbMovie.release_date.split('-')[0]) : null,
+                        imdb_id: tmdbMovie.imdb_id,
+                        poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
+                        director: tmdbMovie.credits?.crew?.find((c: any) => c.job === 'Director')?.name || null,
+                        synopsis: tmdbMovie.overview,
+                        genres: tmdbMovie.genres?.map((g: any) => g.name) || [],
+                        extended_data: {
+                            technical: {
+                                runtime: tmdbMovie.runtime,
+                                tagline: tmdbMovie.tagline,
+                            },
+                            cast: tmdbMovie.credits?.cast?.slice(0, 10).map((c: any) => ({
+                                name: c.name,
+                                role: c.character,
+                                photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
+                            })),
+                            crew_details: tmdbMovie.credits?.crew?.slice(0, 5).map((c: any) => ({
+                                name: c.name,
+                                job: c.job,
+                                photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
+                            }))
+                        }
+                    };
+
+                    // Insertar usando Service Role para ignorar RLS en escritura servidor
+                    const { data: newEntry, error: insertError } = await supabase
+                        .from('movies')
+                        .insert(payload)
+                        .select('id')
+                        .single();
+
+                    if (!insertError && newEntry) {
+                        movieId = newEntry.id;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error in on-demand import:', e);
+            // Si falla importación, dejamos que falle la búsqueda normal de UUID
+        }
+    }
+
     // 1. Obtener datos básicos de la película
     const { data: movie, error } = await supabase
         .from('movies')
         .select('*')
-        .eq('id', id)
+        .eq('id', movieId) // Usamos el ID resuelto (ya sea UUID original o el encontrado/creado)
         .single();
 
     if (error || !movie) {
-        console.error('Error fetching movie:', error);
+        console.error('Error fetching movie:', error, 'ID tried:', movieId);
         return null;
     }
 

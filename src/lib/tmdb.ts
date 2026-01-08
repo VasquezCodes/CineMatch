@@ -150,6 +150,31 @@ export class TmdbClient {
             append_to_response: 'credits,videos,release_dates,images,keywords,recommendations'
         });
     }
+
+    /**
+     * Busca una persona (director, actor, etc.) por nombre.
+     */
+    async searchPerson(query: string): Promise<any[]> {
+        const res = await this.fetch<{ results: any[] }>('/search/person', {
+            query: query,
+            page: '1'
+        });
+        return res?.results || [];
+    }
+
+    /**
+     * Obtiene los créditos de películas de una persona.
+     */
+    async getPersonMovieCredits(personId: number): Promise<any | null> {
+        return this.fetch<any>(`/person/${personId}/movie_credits`);
+    }
+
+    /**
+     * Obtener detalles de una persona (biografía, fecha namicmiento, etc).
+     */
+    async getPersonDetails(personId: number): Promise<any | null> {
+        return this.fetch<any>(`/person/${personId}`);
+    }
 }
 
 export const tmdb = new TmdbClient();
