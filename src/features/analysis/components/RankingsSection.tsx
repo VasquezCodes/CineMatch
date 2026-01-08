@@ -165,6 +165,7 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
                           key={item.name}
                           item={item}
                           index={index}
+                          type={type.value}
                           onViewMore={() => handleViewMore(type.value)}
                           compact
                         />

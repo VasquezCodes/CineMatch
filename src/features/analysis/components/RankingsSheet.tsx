@@ -8,6 +8,7 @@ import {
   SheetTitle,
   SheetClose,
 } from "@/components/ui/sheet";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getRanking, type RankingType, type RankingItem } from "@/features/rankings/actions";
@@ -32,6 +33,26 @@ export function RankingsSheet({
   const [data, setData] = React.useState<RankingItem[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+
+  // Solo mostrar avatar para directores y actores
+  const showAvatar = rankingType === "director" || rankingType === "actor";
+
+  // Helper para obtener iniciales del nombre
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .filter((word) => word.length > 0)
+      .slice(0, 2)
+      .map((word) => word[0].toUpperCase())
+      .join("");
+  };
+
+  // Helper para formatear URL de imagen de TMDb
+  const getImageUrl = (path: string | undefined) => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+    return `https://image.tmdb.org/t/p/w185${path}`;
+  };
 
   React.useEffect(() => {
     if (!open) return;
@@ -142,6 +163,20 @@ export function RankingsSheet({
                 {/* Item Header */}
                 <div className="flex items-end justify-between border-b border-border pb-2" data-theme-transition>
                   <div className="flex items-center gap-3">
+                    {/* Avatar del director/actor - Solo para directores y actores */}
+                    {showAvatar && (
+                      <Avatar className="h-10 w-10 ring-2 ring-border/40">
+                        {item.image_url && getImageUrl(item.image_url) ? (
+                          <AvatarImage
+                            src={getImageUrl(item.image_url)!}
+                            alt={item.name}
+                          />
+                        ) : null}
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                          {getInitials(item.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
                     <span className="text-4xl font-black text-foreground/10 select-none">
                       {String(index + 1).padStart(2, "0")}
                     </span>

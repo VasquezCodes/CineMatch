@@ -1,15 +1,18 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
-import type { RankingItem } from "@/features/rankings/actions";
+import type { RankingItem, RankingType } from "@/features/rankings/actions";
 
 interface RankingCardProps {
   item: RankingItem;
   index: number;
+  type?: RankingType;
   onViewMore?: () => void;
   compact?: boolean;
 }
@@ -17,12 +20,48 @@ interface RankingCardProps {
 export function RankingCard({
   item,
   index,
+  type,
   onViewMore,
   compact = false,
 }: RankingCardProps) {
+  const router = useRouter();
+
+  const handleMovieClick = (movie: (typeof item.movies)[0]) => {
+    // Construir URL con query params para pasar datos temporalmente
+    const params = new URLSearchParams({
+      title: movie.title,
+      year: movie.year.toString(),
+      ...(movie.poster_url && { poster: encodeURIComponent(movie.poster_url) }),
+      ...(movie.user_rating && { rating: movie.user_rating.toString() }),
+    });
+
+    router.push(`/app/movies/${movie.id}?${params.toString()}`);
+  };
   // En modo compacto mostramos menos películas
   const moviesToShow = compact ? item.movies.slice(0, 3) : item.movies;
   const hasMore = item.movies.length > moviesToShow.length;
+
+  // Solo mostrar avatar para directores y actores
+  const showAvatar = type === "director" || type === "actor";
+
+  // Helper para obtener iniciales del nombre
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .filter((word) => word.length > 0)
+      .slice(0, 2)
+      .map((word) => word[0].toUpperCase())
+      .join("");
+  };
+
+  // Helper para formatear URL de imagen de TMDb
+  const getImageUrl = (path: string | undefined) => {
+    if (!path) return null;
+    // Si ya tiene el dominio completo, devolverla tal cual
+    if (path.startsWith("http")) return path;
+    // Si es una ruta relativa, construir la URL completa
+    return `https://image.tmdb.org/t/p/w185${path}`;
+  };
 
   return (
     <div
@@ -37,6 +76,21 @@ export function RankingCard({
       <div className="relative mb-4 flex items-center justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
+            {/* Avatar del director/actor - Solo para directores y actores */}
+            {showAvatar && (
+              <Avatar className="h-6 w-6 ring-1 ring-border/40 transition-transform duration-200 group-hover:scale-105">
+                {item.image_url && getImageUrl(item.image_url) ? (
+                  <AvatarImage
+                    src={getImageUrl(item.image_url)!}
+                    alt={item.name}
+                  />
+                ) : null}
+                <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-semibold">
+                  {getInitials(item.name)}
+                </AvatarFallback>
+              </Avatar>
+            )}
+
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
               {index + 1}
             </span>
@@ -52,7 +106,10 @@ export function RankingCard({
           {item.roles && item.roles.length > 0 && (
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[10px] text-muted-foreground line-clamp-1">
-                {item.roles.slice(0, 2).map((r) => `${r.role} (${r.movies.join(', ')})`).join(", ")}
+                {item.roles
+                  .slice(0, 2)
+                  .map((r) => `${r.role} (${r.movies.join(", ")})`)
+                  .join(", ")}
                 {item.roles.length > 2 && ` +${item.roles.length - 2}`}
               </span>
               {item.is_saga && (
@@ -83,6 +140,7 @@ export function RankingCard({
           <div
             key={movie.id}
             className="group/movie flex w-[84px] md:w-[96px] flex-col gap-1.5 cursor-pointer"
+            onClick={() => handleMovieClick(movie)}
           >
             {/* Poster Sub-card */}
             <div className="relative aspect-2/3 w-full overflow-hidden rounded-lg bg-muted shadow-sm transition-[transform,box-shadow] duration-300 group-hover/movie:scale-[1.03] group-hover/movie:ring-2 group-hover/movie:ring-primary/40">
