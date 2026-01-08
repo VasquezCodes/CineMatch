@@ -4,11 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 
 
-// Tiempo máximo de ejecución por lote (Vercel serverless tiene límites, seremos conservadores)
-// Idealmente usaríamos Edge Runtime pero TMDB client usa fetch node-style a veces,
-// mantenemos nodejs runtime por compatibilidad con la base de código existente.
-// Tiempo máximo de ejecución por lote (Vercel serverless tiene límites)
-export const maxDuration = 60; // 60 segundos
+// Tiempo máximo de ejecución por lote (limitado por Vercel)
+export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
@@ -48,13 +45,13 @@ export async function POST(request: NextRequest) {
                 break;
             }
 
-            // 2. Obtener items pendientes
+            // 2. Obtener items pendientes (lotes pequeños para feedback rápido)
             const { data: queueItems, error: queueError } = await supabase
                 .from('import_queue')
                 .select('*')
                 .eq('status', 'pending')
                 .order('created_at', { ascending: true })
-                .limit(10); // Lotes de 10 para feedback rápido
+                .limit(10);
 
             if (queueError) throw new Error(`Error getting queue: ${queueError.message}`);
 
@@ -92,14 +89,13 @@ export async function POST(request: NextRequest) {
             totalSuccess += successCount;
             totalFailed += failCount;
 
-            // Si trajimos menos del límite (10), es que ya no hay más pendientes
+            // Si trajimos menos del límite, es que ya no hay más pendientes
             if (queueItems.length < 10) {
                 keepProcessing = false;
             }
         }
 
-        // 4. Trigger recursivo?
-        // Verificamos si TODAVÍA quedan items pendientes (por si salimos por timeout)
+        // 4. Trigger recursivo: verificamos si quedan items pendientes
         const { count } = await supabase
             .from('import_queue')
             .select('*', { count: 'exact', head: true })
@@ -111,7 +107,7 @@ export async function POST(request: NextRequest) {
             const workerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/workers/process-import`;
             console.log(`Triggering recursion. items remaining: ${count}`);
 
-            // Fire & Forget con AbortController
+            // Disparo "Fire & Forget" con AbortController para no esperar respuesta
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 1000);
 
@@ -143,7 +139,6 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// Lógica de Negocio (Movida aquí para ejecutarse en background)
 async function processQueueItem(supabase: any, userId: string, movie: any) {
     // 1. Insertar/Actualizar Película Básica
     const { data: savedMovie, error: movieError } = await supabase.from('movies').upsert({
@@ -169,11 +164,9 @@ async function processQueueItem(supabase: any, userId: string, movie: any) {
             movie_id: savedMovie.id,
             rating: movie.user_rating,
             created_at: movie.date_rated ? new Date(movie.date_rated).toISOString() : new Date().toISOString(),
-            // movie_name y user_name se omiten por brevedad, idealmente triggers DB los manejan
         }, { onConflict: 'user_id, movie_id' });
     }
 
-    // 3. Watchlist
     // 3. Watchlist (Posición y Calificación)
     if (movie.position || movie.user_rating) {
         const watchlistData: any = {
@@ -187,12 +180,12 @@ async function processQueueItem(supabase: any, userId: string, movie: any) {
         await supabase.from('watchlists').upsert(watchlistData, { onConflict: 'user_id, movie_id' });
     }
 
-    // 4. ENRIQUECIMIENTO (La parte pesada)
-    // Verificar si ya tiene data completa para no gastar API calls de TMDB innecesariamente
-    // Optimización: Si ya tenemos extended_data y runtime, asumimos que está enriquecido.
+    // 4. Enriquecimiento de datos
+    // Optimización: Si ya tenemos extended_data, runtime y fotos del crew, evitamos llamar a TMDB.
     const hasExtendedData = savedMovie.extended_data &&
         savedMovie.extended_data.technical &&
         savedMovie.extended_data.technical.runtime &&
+        savedMovie.extended_data.crew_details &&
         savedMovie.poster_url;
 
     if (!hasExtendedData) {
@@ -203,9 +196,8 @@ async function processQueueItem(supabase: any, userId: string, movie: any) {
     }
 }
 
-// Misma lógica de enriquecimiento que ya teníamos, adaptada
+// Obtiene detalles adicionales de TMDB (créditos, videos, etc.)
 async function enrichMovieData(supabase: any, movieId: string, imdbId: string) {
-    // console.log(`Enriching ${imdbId}...`);
     const details = await tmdb.findByImdbId(imdbId);
 
     if (details) {
@@ -224,7 +216,7 @@ async function enrichMovieData(supabase: any, movieId: string, imdbId: string) {
                 photography: details.credits.crew.find((c: any) => c.job === 'Director of Photography')?.name,
                 music: details.credits.crew.find((c: any) => c.job === 'Original Music Composer')?.name
             },
-            // IMPORTANTE: Incluimos lo nuevo que implementamos (fotos crew)
+            // IMPORTANTE: Incluimos detalles del crew (con fotos) para los rankings
             crew_details: details.credits.crew
                 .filter((c: any) => ['Director', 'Screenplay', 'Writer', 'Director of Photography', 'Original Music Composer'].includes(c.job))
                 .map((c: any) => ({
