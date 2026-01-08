@@ -71,7 +71,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                 // Intentar buscar en DB local por IMDB ID
                 const { data: existing } = await supabase
                     .from('movies')
-                    .select('id')
+                    .select('id, extended_data')
                     .eq('imdb_id', tmdbMovie.imdb_id)
                     .maybeSingle();
 
@@ -111,11 +111,20 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
 
                 if (existing) {
                     movieId = existing.id;
-                    // ACTUALIZAR SIEMPRE para rellenar datos faltantes (como requests del usuario)
-                    await supabase
-                        .from('movies')
-                        .update(payload)
-                        .eq('id', movieId);
+
+                    // OPTIMIZACIÓN: Solo actualizar si faltan datos clave (extended_data vacío o sin recomendaciones)
+                    // Esto evita escrituras innecesarias cada vez que alguien entra a la película
+                    const hasRecommendations = existing.extended_data &&
+                        (existing.extended_data as any).recommendations &&
+                        (existing.extended_data as any).recommendations.length > 0;
+
+                    if (!hasRecommendations) {
+                        // console.log(`Updating missing data for ${tmdbMovie.title}`);
+                        await supabase
+                            .from('movies')
+                            .update(payload)
+                            .eq('id', movieId);
+                    }
                 } else {
                     // INSERTAR NUEVO
                     const { data: newEntry, error: insertError } = await supabase

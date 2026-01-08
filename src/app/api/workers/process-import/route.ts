@@ -185,8 +185,10 @@ async function processQueueItem(supabase: any, userId: string, movie: any) {
     const hasExtendedData = savedMovie.extended_data &&
         savedMovie.extended_data.technical &&
         savedMovie.extended_data.technical.runtime &&
+        savedMovie.extended_data.technical.runtime &&
         savedMovie.extended_data.crew_details &&
-        savedMovie.poster_url;
+        savedMovie.poster_url &&
+        savedMovie.extended_data.recommendations;
 
     if (!hasExtendedData) {
         console.log(`Enriching missing data for: ${movie.imdb_id}`);
@@ -235,7 +237,14 @@ async function enrichMovieData(supabase: any, movieId: string, imdbId: string) {
                 certification: certification,
                 trailer_key: trailer,
                 tagline: details.tagline
-            }
+            },
+            recommendations: details.recommendations?.results?.slice(0, 12).map((r: any) => ({
+                id: r.id, // TMDB ID
+                tmdb_id: r.id,
+                title: r.title,
+                year: r.release_date ? parseInt(r.release_date.split('-')[0]) : 0,
+                poster: TmdbClient.getImageUrl(r.poster_path, 'w342')
+            }))
         };
 
         await supabase.from('movies').update({
