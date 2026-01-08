@@ -41,8 +41,13 @@ export function RankingCard({
   const moviesToShow = compact ? item.movies.slice(0, 3) : item.movies;
   const hasMore = item.movies.length > moviesToShow.length;
 
-  // Solo mostrar avatar para directores y actores
-  const showAvatar = type === "director" || type === "actor";
+  // Mostrar avatar para personas (director, actor, guionista, fotografía, música)
+  const showAvatar =
+    type === "director" ||
+    type === "actor" ||
+    type === "screenplay" ||
+    type === "photography" ||
+    type === "music";
 
   // Helper para obtener iniciales del nombre
   const getInitials = (name: string) => {
