@@ -39,6 +39,13 @@ export type MovieDetail = {
             job: string;
             photo?: string;
         }>;
+        recommendations?: Array<{
+            id: number;
+            title: string;
+            year: number;
+            poster: string | null;
+            tmdb_id: number;
+        }>;
     };
 };
 
@@ -68,41 +75,49 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                     .eq('imdb_id', tmdbMovie.imdb_id)
                     .maybeSingle();
 
+                // Mapear datos para inserción/actualización (SIEMPRE actualizamos para asegurar datos completos)
+                const payload = {
+                    title: tmdbMovie.title,
+                    year: tmdbMovie.release_date ? parseInt(tmdbMovie.release_date.split('-')[0]) : null,
+                    imdb_id: tmdbMovie.imdb_id,
+                    poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
+                    director: tmdbMovie.credits?.crew?.find((c: any) => c.job === 'Director')?.name || null,
+                    synopsis: tmdbMovie.overview,
+                    genres: tmdbMovie.genres?.map((g: any) => g.name) || [],
+                    extended_data: {
+                        technical: {
+                            runtime: tmdbMovie.runtime,
+                            tagline: tmdbMovie.tagline,
+                        },
+                        cast: tmdbMovie.credits?.cast?.slice(0, 10).map((c: any) => ({
+                            name: c.name,
+                            role: c.character,
+                            photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
+                        })),
+                        crew_details: tmdbMovie.credits?.crew?.slice(0, 5).map((c: any) => ({
+                            name: c.name,
+                            job: c.job,
+                            photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
+                        })),
+                        recommendations: tmdbMovie.recommendations?.results?.slice(0, 12).map((r: any) => ({
+                            id: r.id, // TMDB ID
+                            tmdb_id: r.id,
+                            title: r.title,
+                            year: r.release_date ? parseInt(r.release_date.split('-')[0]) : 0,
+                            poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : null
+                        }))
+                    }
+                };
+
                 if (existing) {
                     movieId = existing.id;
+                    // ACTUALIZAR SIEMPRE para rellenar datos faltantes (como requests del usuario)
+                    await supabase
+                        .from('movies')
+                        .update(payload)
+                        .eq('id', movieId);
                 } else {
-                    // B. NO EXISTE LOCALMENTE -> IMPORTACIÓN ON-DEMAND "JUST IN TIME"
-                    // Si el usuario navegó a una peli que no teníamos (ej. desde filmografía completa),
-                    // la guardamos ahora mismo para que la página funcione.
-
-                    // Mapear datos para inserción (reutilizando lógica similar a workers/actions)
-                    const payload = {
-                        title: tmdbMovie.title,
-                        year: tmdbMovie.release_date ? parseInt(tmdbMovie.release_date.split('-')[0]) : null,
-                        imdb_id: tmdbMovie.imdb_id,
-                        poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
-                        director: tmdbMovie.credits?.crew?.find((c: any) => c.job === 'Director')?.name || null,
-                        synopsis: tmdbMovie.overview,
-                        genres: tmdbMovie.genres?.map((g: any) => g.name) || [],
-                        extended_data: {
-                            technical: {
-                                runtime: tmdbMovie.runtime,
-                                tagline: tmdbMovie.tagline,
-                            },
-                            cast: tmdbMovie.credits?.cast?.slice(0, 10).map((c: any) => ({
-                                name: c.name,
-                                role: c.character,
-                                photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
-                            })),
-                            crew_details: tmdbMovie.credits?.crew?.slice(0, 5).map((c: any) => ({
-                                name: c.name,
-                                job: c.job,
-                                photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
-                            }))
-                        }
-                    };
-
-                    // Insertar usando Service Role para ignorar RLS en escritura servidor
+                    // INSERTAR NUEVO
                     const { data: newEntry, error: insertError } = await supabase
                         .from('movies')
                         .insert(payload)

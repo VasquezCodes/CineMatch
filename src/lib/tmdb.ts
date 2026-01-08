@@ -67,6 +67,19 @@ export type TmdbMovieDetails = {
         posters: Array<{ file_path: string; iso_639_1: string | null; aspect_ratio: number; width: number; height: number }>;
         backdrops: Array<{ file_path: string; iso_639_1: string | null; aspect_ratio: number; width: number; height: number }>;
     };
+    recommendations?: {
+        page: number;
+        results: Array<{
+            id: number;
+            title: string;
+            poster_path: string | null;
+            backdrop_path: string | null;
+            release_date: string;
+            vote_average: number;
+        }>;
+        total_pages: number;
+        total_results: number;
+    };
 };
 
 export class TmdbClient {

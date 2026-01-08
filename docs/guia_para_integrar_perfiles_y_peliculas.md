@@ -178,6 +178,12 @@ El objeto `extended_data` es vital para mostrar fichas técnicas ricas.
     };
     cast: { name: string, role: string, photo: string }[];
     crew_details: { name: string, job: string, photo: string }[];
+    recommendations?: {  // Nuevas recomendaciones
+        id: number;      // TMDB ID
+        title: string;
+        year: number;
+        poster: string;
+    }[];
   }
 }
 ```
@@ -238,6 +244,25 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
           ))}
         </div>
       </div>
+
+      {/* Recomendaciones */}
+      {movie.extended_data.recommendations && movie.extended_data.recommendations.length > 0 && (
+        <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6">Películas Similares</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {movie.extended_data.recommendations.map((rec) => (
+                <Link href={`/movie/${rec.id}`} key={rec.id}> 
+                {/* Nota: rec.id es TMDB ID, nuestro getMovie lo maneja perfecto */}
+                    <div className="bg-gray-900 rounded-lg p-3 hover:bg-gray-800 transition-colors">
+                        <img src={rec.poster || '/placeholder.png'} className="w-full h-40 object-cover rounded mb-2"/>
+                        <p className="font-bold truncate text-sm">{rec.title}</p>
+                        <p className="text-xs text-gray-500">{rec.year}</p>
+                    </div>
+                </Link>
+            ))}
+            </div>
+        </div>
+      )}
     </div>
   );
 }
