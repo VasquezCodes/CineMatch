@@ -60,7 +60,7 @@ export function PersonFilmography({ profile }: PersonFilmographyProps) {
     );
   }
 
-  const [activeTab, setActiveTab] = useState(categories[0].key);
+  const [activeTab, setActiveTab] = useState<string>(categories[0].key);
 
   return (
     <div className="space-y-6">
