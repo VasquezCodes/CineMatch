@@ -91,9 +91,20 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
             }
         };
 
+        // Helper to find photo in crew_details
+        const getPhoto = (name: string, job?: string) => {
+            if (!ext?.crew_details || !Array.isArray(ext.crew_details)) return undefined;
+            const person = ext.crew_details.find((c: any) => c.name === name && (!job || c.job === job));
+            return person?.photo;
+        };
+
         // Directors
         if (m.director) {
-            m.director.split(',').forEach((d: string) => processPerson('director', d));
+            m.director.split(',').forEach((d: string) => {
+                const cleanName = d.trim();
+                const photo = getPhoto(cleanName, 'Director');
+                processPerson('director', cleanName, undefined, photo);
+            });
         }
 
         // Genres
@@ -116,9 +127,20 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
         }
 
         // Crew
-        processPerson('screenplay', ext?.crew?.screenplay);
-        processPerson('photography', ext?.crew?.photography);
-        processPerson('music', ext?.crew?.music);
+        // Screenplay/Writer
+        if (ext?.crew?.screenplay) {
+            processPerson('screenplay', ext.crew.screenplay, undefined, getPhoto(ext.crew.screenplay));
+        }
+
+        // Photography
+        if (ext?.crew?.photography) {
+            processPerson('photography', ext.crew.photography, undefined, getPhoto(ext.crew.photography, 'Director of Photography'));
+        }
+
+        // Music
+        if (ext?.crew?.music) {
+            processPerson('music', ext.crew.music, undefined, getPhoto(ext.crew.music, 'Original Music Composer'));
+        }
 
         // Actors
         if (Array.isArray(ext?.cast)) {
