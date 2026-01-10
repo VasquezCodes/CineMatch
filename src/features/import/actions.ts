@@ -69,7 +69,16 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
 
     console.log(`Import: ${movies.length} total, ${duplicateCount} duplicados ignorados, ${moviesToInsert.length} a insertar.`);
 
+    // Si no hay nuevas películas para insertar, verificamos si hay pendientes en cola.
+    // Si hay pendientes, debemos asegurar que el worker esté corriendo (retry mechanism).
+    const hasPendingItems = existingItems && existingItems.length > 0;
+
     if (moviesToInsert.length === 0) {
+        if (hasPendingItems) {
+            console.log("No new movies, but pending items found. Retrying worker trigger...");
+            triggerWorker(user.id);
+        }
+
         return {
             success: true,
             total: movies.length,
@@ -100,41 +109,10 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
         }
     }
 
-    // Disparar el Worker Asíncronamente (Disparar y Olvidar)
-    // No esperamos la respuesta completa (o usamos un timeout muy corto).
-    // Esto evita bloquear la UI mientras se inicia el proceso.
 
-    // En Vercel serverless, es mejor 'disparar' y no esperar respuesta si queremos retornar rápido,
-    // pero Vercel podría matar el request si la función retorna.
-    // Sin embargo, como estamos llamando a una URL externa (nosotros mismos), el request de red sale.
-    // Usamos un timeout corto para evitar bloquear la UI.
 
-    // URL absoluta para el worker
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const workerUrl = `${appUrl}/api/workers/process-import`;
-
-    try {
-        console.log("Activando worker:", workerUrl);
-        fetch(workerUrl, {
-            method: 'POST',
-            headers: {
-                'x-cron-secret': process.env.CRON_SECRET || '',
-                'Content-Type': 'application/json'
-            },
-            // Usamos AbortSignal para salir rápido, no nos importa la respuesta aquí,
-            // solo queremos despertar al worker.
-            signal: AbortSignal.timeout(200) // 200ms timeout
-        }).catch(err => {
-            // Ignorar errores de timeout, es esperado/deseable
-            if (err.name === 'TimeoutError') {
-                console.log("Worker activado (timeout esperado)");
-            } else {
-                console.error("Fallo al activar worker:", err);
-            }
-        });
-    } catch (e) {
-        // Catch silencioso
-    }
+    // Disparar worker tras insertar
+    triggerWorker(user.id);
 
     revalidatePath('/app/library');
 
@@ -146,4 +124,30 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
         errors: errorCount
     };
 }
-// El antiguo enrichMovieData fue eliminado ya que ahora está en el worker
+// Helper para disparar workers
+function triggerWorker(userId: string) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const workerUrl = `${appUrl}/api/workers/process-import`;
+    const statsUrl = `${appUrl}/api/workers/recalc-stats?userId=${userId}`;
+
+    try {
+        console.log("Activando worker:", workerUrl);
+        fetch(workerUrl, {
+            method: 'POST',
+            headers: {
+                'x-cron-secret': process.env.CRON_SECRET || '',
+                'Content-Type': 'application/json'
+            },
+            signal: AbortSignal.timeout(500) // Increased to 500ms for reliability
+        }).catch(err => {
+            if (err.name === 'TimeoutError') console.log("Worker activado (timeout esperado)");
+            else console.error("Fallo al activar worker:", err);
+        });
+
+        // Trigger Stats Recalc Async
+        fetch(statsUrl, { method: 'GET', signal: AbortSignal.timeout(500) }).catch(() => { });
+
+    } catch (e) {
+        // Catch silencioso
+    }
+}

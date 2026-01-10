@@ -50,7 +50,15 @@ export async function updateMovieRating(
 
     // Revalidar páginas relacionadas
     revalidatePath("/app/rate-movies");
+    revalidatePath("/app/rate-movies");
     revalidatePath("/app/analysis");
+
+    // Trigger Async Update for Stats
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    fetch(`${appUrl}/api/workers/recalc-stats?userId=${user.id}`, {
+      method: "GET",
+      signal: AbortSignal.timeout(200)
+    }).catch(() => { });
 
     return { success: true };
   } catch (error) {
