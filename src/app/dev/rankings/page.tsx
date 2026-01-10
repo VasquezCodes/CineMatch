@@ -106,11 +106,11 @@ export default function RankingsDebugPage() {
           </CardHeader>
           <CardContent>
             {error && (
-              <div className="p-4 bg-red-100 text-red-800 rounded mb-4">
+              <div className="p-4 bg-destructive/10 text-destructive rounded mb-4">
                 Error: {error}
               </div>
             )}
-            <pre className="bg-slate-950 text-slate-50 p-4 rounded overflow-auto max-h-[500px] text-xs">
+            <pre className="bg-muted text-foreground p-4 rounded overflow-auto max-h-[500px] text-xs">
               {result ? JSON.stringify(result, null, 2) : "No result"}
             </pre>
           </CardContent>

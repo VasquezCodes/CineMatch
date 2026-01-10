@@ -32,27 +32,27 @@ export default function WorkerDebugPage() {
         <div className="p-8 max-w-2xl mx-auto">
             <h1 className="text-2xl font-bold mb-4">Import Worker Debugger</h1>
 
-            <div className="mb-6 p-4 bg-gray-100 rounded">
+            <div className="mb-6 p-4 bg-muted rounded">
                 <p className="mb-2">Status: <strong>{loading ? 'Running...' : 'Idle'}</strong></p>
                 <button
                     onClick={triggerWorker}
                     disabled={loading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-accent text-accent-foreground rounded hover:bg-accent/90 disabled:opacity-50"
                 >
                     Trigger Worker Process
                 </button>
             </div>
 
             {error && (
-                <div className="p-4 bg-red-100 text-red-700 rounded mb-4">
+                <div className="p-4 bg-destructive/10 text-destructive rounded mb-4">
                     <strong>Error:</strong> {error}
                 </div>
             )}
 
             {result && (
-                <div className="p-4 bg-green-50 rounded border border-green-200">
+                <div className="p-4 bg-muted rounded border border-border">
                     <h2 className="font-semibold mb-2">Result:</h2>
-                    <pre className="text-xs bg-white p-2 rounded overflow-auto max-h-96">
+                    <pre className="text-xs bg-background p-2 rounded overflow-auto max-h-96">
                         {JSON.stringify(result, null, 2)}
                     </pre>
                 </div>

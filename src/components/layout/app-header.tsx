@@ -62,7 +62,7 @@ export function AppHeader() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative size-9 rounded-full border border-border/40 bg-background shadow-sm hover:bg-accent"
+                  className="relative size-9 rounded-full border border-border/40 bg-background shadow-sm"
                 >
                   <User className="size-4" />
                   <span className="sr-only">Menú de usuario</span>
