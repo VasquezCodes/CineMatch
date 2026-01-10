@@ -18,9 +18,9 @@ export function PersonCreditsGrid({ movies }: PersonCreditsGridProps) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-      {movies.map((movie) => (
+      {movies.map((movie, index) => (
         <Link
-          key={`${movie.id}-${movie.title}`}
+          key={`${movie.id}-${movie.title}-${index}`}
           href={`/app/movies/${movie.id}`}
           className="group flex flex-col"
         >

@@ -119,7 +119,7 @@ export function ImportStatusIndicator() {
         .subscribe((status) => {
           console.log('[ImportStatus] Subscription status:', status);
           if (status === 'CHANNEL_ERROR') {
-            console.error('[ImportStatus] Realtime connection error');
+            console.warn('[ImportStatus] Realtime connection error (transient)');
           }
         });
     };

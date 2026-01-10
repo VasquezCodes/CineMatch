@@ -185,8 +185,10 @@ export class TmdbClient {
     /**
      * Obtener detalles de una persona (biografía, fecha namicmiento, etc).
      */
-    async getPersonDetails(personId: number): Promise<any | null> {
-        return this.fetch<any>(`/person/${personId}`);
+    async getPersonDetails(personId: number, language?: string): Promise<any | null> {
+        const params: Record<string, string> = {};
+        if (language) params.language = language;
+        return this.fetch<any>(`/person/${personId}`, params);
     }
     /**
      * Obtener recomendaciones (fallback si falla append_to_response)

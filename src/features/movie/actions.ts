@@ -52,8 +52,8 @@ export type MovieDetail = {
 export async function getMovie(id: string): Promise<MovieDetail | null> {
     const supabase = await createClient();
 
-    // Obtener usuario actual para buscar sus interacciones
-    const { data: { user } } = await supabase.auth.getUser();
+    // Obtener usuario actual en paralelo (no bloquea el resto de la lógica inicial)
+    const userPromise = supabase.auth.getUser();
 
     // 0. DETECCIÓN INTELIGENTE DE ID
     // Si el ID es numérico, asumimos que es un TMDB ID y necesitamos buscarlo o importarlo.
@@ -73,7 +73,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                 let validRecommendations = tmdbMovie.recommendations?.results || [];
                 if (validRecommendations.length === 0) {
                     try {
-                        console.log(`[Action] Fetching missing recommendations on-demand for ${tmdbMovie.title}`);
+                        // console.log(`[Action] Fetching missing recommendations on-demand for ${tmdbMovie.title}`);
                         validRecommendations = await tmdb.getRecommendations(tmdbMovie.id);
                     } catch (e) {
                         console.error('Error fetching on-demand recommendations:', e);
@@ -156,12 +156,21 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
         }
     }
 
-    // 1. Obtener datos básicos de la película
-    const { data: movie, error } = await supabase
-        .from('movies')
-        .select('*')
-        .eq('id', movieId) // Usamos el ID resuelto (ya sea UUID original o el encontrado/creado)
-        .single();
+    // 1. Obtener datos básicos de la película (ahora en paralelo con la autenticación)
+    // const moviePromise = supabase
+    //     .from('movies')
+    //     .select('*')
+    //     .eq('id', movieId)
+    //     .single();
+
+    // Ejecutamos ambas promesas y esperamos
+    const [userResult, movieResult] = await Promise.all([
+        userPromise,
+        supabase.from('movies').select('*').eq('id', movieId).single()
+    ]);
+
+    const user = userResult.data.user;
+    const { data: movie, error } = movieResult;
 
     if (error || !movie) {
         console.error('Error fetching movie:', error, 'ID tried:', movieId);
