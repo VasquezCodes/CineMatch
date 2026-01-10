@@ -24,26 +24,26 @@ export function MovieRecommendations({
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Películas Recomendadas</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <h2 className="text-2xl font-bold mb-4">Si te gustó esta película te puede gustar...</h2>
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
         {recommendations.map((movie) => (
           <Link
             key={movie.tmdb_id}
             href={`/app/movies/${movie.tmdb_id}`}
             className="group flex flex-col"
           >
-            <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg shadow-md border border-border/40 bg-muted transition-all group-hover:shadow-lg group-hover:scale-105">
+            <div className="relative aspect-[2/3] w-full overflow-hidden rounded-md border border-border/20 bg-muted transition-transform hover:scale-[1.02]">
               {movie.poster ? (
                 <Image
                   src={movie.poster}
                   alt={movie.title}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
+                  sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, (max-width: 1280px) 16vw, 14vw"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-muted/50 text-muted-foreground">
-                  <Film className="h-12 w-12 opacity-20" />
+                  <Film className="h-6 w-6 opacity-20" />
                 </div>
               )}
             </div>

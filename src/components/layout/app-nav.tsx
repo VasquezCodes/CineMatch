@@ -25,10 +25,10 @@ export function AppNav() {
             href={item.href}
             className={cn(
               'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-              'hover:bg-muted hover:text-foreground',
+              'hover:bg-accent/80 dark:hover:bg-accent hover:text-accent-foreground',
               isActive
                 ? 'bg-muted text-primary'
-                : 'text-muted-foreground'
+                : 'text-foreground'
             )}
             aria-current={isActive ? 'page' : undefined}
           >

@@ -1,16 +1,16 @@
 import Link from "next/link";
-import { AlertCircle, Star, Upload } from "lucide-react";
-import { APP_ROUTES } from "@/config/routes";
+import { AlertCircle, Star, Upload, Library } from "lucide-react";
+import { APP_ROUTES, SECONDARY_ROUTES } from "@/config/routes";
 import { getAnalysisData } from "@/features/insights/actions";
-import { getWatchlistAnalysis } from "@/features/analysis/actions";
 import { AnalysisStats } from "@/features/analysis/components/AnalysisStats";
-import { AnalysisTable } from "@/features/analysis/components/AnalysisTable";
 import { RankingsSection } from "@/features/analysis/components/RankingsSection";
 import { PageHeader, Section } from "@/components/layout";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { getTopRatedMovies } from "@/features/library";
+import { MovieCard } from "@/features/library";
 
 export default async function AnalysisPage() {
   const { createClient } = await import("@/lib/supabase/server");
@@ -19,19 +19,26 @@ export default async function AnalysisPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const moviesResult = await getWatchlistAnalysis();
-  const moviesData = moviesResult.data ?? [];
-  const moviesError = moviesResult.error;
+  // Obtener películas destacadas (top 6)
+  const topMoviesResult = await getTopRatedMovies(6);
+  const topMovies = topMoviesResult.data ?? [];
+  const moviesError = topMoviesResult.error;
 
-  const unratedMoviesCount = moviesData.filter(
-    (item) => item.watchlist.user_rating === null
-  ).length;
+  // Contar películas sin calificar
+  const { data: allMovies } = await supabase
+    .from("watchlists")
+    .select("user_rating", { count: "exact" })
+    .eq("user_id", user?.id || "")
+    .is("user_rating", null);
+
+  const unratedMoviesCount = allMovies?.length ?? 0;
+  const totalMoviesCount = topMovies.length;
 
   let statsData = null;
   let statsError = null;
 
   try {
-    if (moviesData.length > 0) {
+    if (totalMoviesCount > 0) {
       statsData = await getAnalysisData();
     }
   } catch (err) {
@@ -40,7 +47,7 @@ export default async function AnalysisPage() {
   }
 
   const globalError = moviesError || statsError;
-  const isEmpty = moviesData.length === 0;
+  const isEmpty = totalMoviesCount === 0;
   const hasUnratedMovies = unratedMoviesCount > 0;
 
   if (globalError) {
@@ -135,9 +142,36 @@ export default async function AnalysisPage() {
         </Section>
       )}
 
-      <Section>
-        <AnalysisTable data={moviesData} />
-      </Section>
+      {/* Películas destacadas */}
+      {topMovies.length > 0 && (
+        <Section>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Películas destacadas</CardTitle>
+                  <CardDescription>
+                    Tus {topMovies.length} películas mejor calificadas
+                  </CardDescription>
+                </div>
+                <Button asChild variant="outline" size="sm" className="gap-2">
+                  <Link href={SECONDARY_ROUTES.LIBRARY}>
+                    <Library className="h-4 w-4" />
+                    Ver toda mi biblioteca
+                  </Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {topMovies.map((item) => (
+                  <MovieCard key={item.watchlist.id} item={item} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </Section>
+      )}
     </div>
   );
 }
