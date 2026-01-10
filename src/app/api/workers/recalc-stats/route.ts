@@ -1,9 +1,26 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateRankings } from '@/features/rankings/logic';
-import { createClient } from '@/lib/supabase/server';
+// Use direct supabase-js client for Admin/Service Role access
+import { createClient } from '@supabase/supabase-js';
 
 export const maxDuration = 60; // 60 seconds (Serverless timeout)
+
+// Helper to get Admin Client
+const getAdminClient = () => {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false,
+            }
+        }
+    );
+};
+
+
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
@@ -22,12 +39,14 @@ export async function GET(request: NextRequest) {
         console.log(`[Worker] Starting stats recalc for ${userId}`);
         const start = Date.now();
 
-        const stats = await calculateRankings(userId);
+        // Use Admin Client to bypass RLS for both reading (watchlists) and writing (user_statistics)
+        const supabase = getAdminClient();
+
+        const stats = await calculateRankings(userId, supabase);
 
         console.log(`[Worker] Calculated ${stats.length} stats in ${Date.now() - start}ms`);
 
         // Batch Upsert into user_statistics
-        const supabase = await createClient();
 
         // Prepare payload (mapping keys from logic to DB schema)
         const payload = stats.map(s => ({

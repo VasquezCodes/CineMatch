@@ -13,12 +13,16 @@ export type RankingStatConfig = {
     };
 };
 
+import { SupabaseClient } from '@supabase/supabase-js';
+
 /**
  * Calculates all ranking statistics for a given user.
  * This function allows processing in background (Worker) or on-demand.
+ * @param userId - The user to calculate stats for
+ * @param client - Optional Supabase client (e.g. admin client for workers). Defaults to standard SSR client.
  */
-export async function calculateRankings(userId: string): Promise<RankingStatConfig[]> {
-    const supabase = await createClient();
+export async function calculateRankings(userId: string, client?: SupabaseClient): Promise<RankingStatConfig[]> {
+    const supabase = client || await createClient();
 
     // 1. Fetch entire user library with relevant details
     // We fetch EVERYTHING qualified. Pagination not needed for stats calculation (we need global stats)
