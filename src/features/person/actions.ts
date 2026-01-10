@@ -55,11 +55,21 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
         ]);
 
         // FALLBACK BIOGRAFÍA: Si no hay biografía en español, intentar en inglés
+        // FALLBACK BIOGRAFÍA: Water Fall Strategy (MX -> ES -> US)
+        // Muchas veces la bio está en 'es-ES' pero vacía en 'es-MX'.
         if (details && !details.biography) {
-            console.log(`[Person] Biography missing for ${personSummary.name}, fetching English fallback...`);
-            const englishDetails = await tmdb.getPersonDetails(personSummary.id, 'en-US');
-            if (englishDetails?.biography) {
-                details.biography = englishDetails.biography;
+            // 1. Intentar Español España
+            const spainDetails = await tmdb.getPersonDetails(personSummary.id, 'es-ES');
+            if (spainDetails?.biography) {
+                // console.log(`[Person] Found bio in es-ES for ${personSummary.name}`);
+                details.biography = spainDetails.biography;
+            } else {
+                // 2. Si falla, Inglés (Último recurso)
+                // console.log(`[Person] Bio missing (es-ES) for ${personSummary.name}, fetching English fallback...`);
+                const englishDetails = await tmdb.getPersonDetails(personSummary.id, 'en-US');
+                if (englishDetails?.biography) {
+                    details.biography = englishDetails.biography;
+                }
             }
         }
 
