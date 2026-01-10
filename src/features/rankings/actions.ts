@@ -66,7 +66,7 @@ export async function getRanking(
         name: s.key,
         count: s.count,
         score: s.score,
-        movies: [], // No cargamos películas aquí para listado ligero, o las sacamos del JSONB 'data'
+        movies: s.data?.movies || [],
         image_url: s.data?.image_url,
         roles: s.data?.roles || [],
         is_saga: false // Se podría derivar de data
@@ -95,7 +95,7 @@ export async function getDashboardRankings(userId: string, options: RankingOptio
                 name: s.key,
                 count: s.count,
                 score: s.score,
-                movies: [],
+                movies: (s.data?.movies || []).slice(0, 5), // Optimización para dashboard
                 image_url: s.data?.image_url,
                 roles: s.data?.roles || [],
                 is_saga: false

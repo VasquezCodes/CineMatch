@@ -9,7 +9,13 @@ export type RankingStatConfig = {
     data: {
         image_url?: string;
         roles?: { role: string; movies: string[] }[];
-        movie_ids: string[];
+        movies: {
+            id: string;
+            title: string;
+            year: number;
+            poster_url: string | null;
+            user_rating?: number;
+        }[];
     };
 };
 
@@ -57,7 +63,7 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
     };
 
     const initStat = (type: any, key: string): RankingStatConfig => ({
-        type, key, count: 0, score: 0, data: { movie_ids: [] }
+        type, key, count: 0, score: 0, data: { movies: [] }
     });
 
     const getStat = (type: any, key: string) => {
@@ -81,7 +87,14 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
 
             stat.count++;
             stat.score += 10; // Base score per movie. Could account for rating: + rating
-            stat.data.movie_ids.push(m.id);
+            const movieData = {
+                id: m.id,
+                title: m.title,
+                year: m.year,
+                poster_url: m.poster_url,
+                user_rating: rating
+            };
+            stat.data.movies.push(movieData);
             if (photo && !stat.data.image_url) stat.data.image_url = photo;
 
             if (role) {
@@ -114,7 +127,13 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
                 const stat = getStat('genre', String(g));
                 stat.count++;
                 stat.score += 10;
-                stat.data.movie_ids.push(m.id);
+                stat.data.movies.push({
+                    id: m.id,
+                    title: m.title,
+                    year: m.year,
+                    poster_url: m.poster_url,
+                    user_rating: rating
+                });
             });
         }
 
@@ -123,7 +142,13 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
             const stat = getStat('year', String(m.year));
             stat.count++;
             stat.score += 10;
-            stat.data.movie_ids.push(m.id);
+            stat.data.movies.push({
+                id: m.id,
+                title: m.title,
+                year: m.year,
+                poster_url: m.poster_url,
+                user_rating: rating
+            });
         }
 
         // Crew
