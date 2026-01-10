@@ -177,6 +177,46 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
         return null;
     }
 
+    // 1.5 ENRIQUECIMIENTO ON-DEMAND (UUID Lookup)
+    // Si recuperamos la película de la DB (por UUID) pero le faltan recomendaciones (e.g. importada hace mucho o incompleta),
+    // intentamos buscarlas en TMDB y actualizar.
+    const extended = movie.extended_data as any || {};
+    const hasRecommendations = extended.recommendations && extended.recommendations.length > 0;
+
+    if (!hasRecommendations && movie.imdb_id) {
+        try {
+            // console.log(`[Action] Enriching recommendations for ${movie.title} (${movie.id})`);
+            const { tmdb } = await import('@/lib/tmdb');
+            // Necesitamos TMDB ID. Si no lo tenemos guardado, lo buscamos por IMDB ID.
+            const tmdbMovie = await tmdb.findByImdbId(movie.imdb_id);
+
+            if (tmdbMovie) {
+                const recommendations = tmdbMovie.recommendations?.results || [];
+                if (recommendations.length > 0) {
+                    const validRecommendations = recommendations.slice(0, 12).map((r: any) => ({
+                        id: r.id, // TMDB ID
+                        tmdb_id: r.id,
+                        title: r.title,
+                        year: r.release_date ? parseInt(r.release_date.split('-')[0]) : 0,
+                        poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : null
+                    }));
+
+                    // Actualizar DB
+                    const newExtended = { ...extended, recommendations: validRecommendations };
+                    await supabase
+                        .from('movies')
+                        .update({ extended_data: newExtended })
+                        .eq('id', movie.id);
+
+                    // Actualizar objeto en memoria para esta request
+                    movie.extended_data = newExtended;
+                }
+            }
+        } catch (e) {
+            console.error('Error enriching movie recommendations:', e);
+        }
+    }
+
     // 2. Obtener interacciones del usuario si está logueado
     let userReview = null;
     let userWatchlist = null;
