@@ -31,23 +31,10 @@ export async function getLibraryPaginated(
       };
     }
 
-    // Construir query base
-    // Usamos !inner para asegurar que el filtrado en 'movies' afecte a 'watchlists'
+    // Usamos la VISTA 'user_library_view' para simplificar búsqueda y ordenamiento
     let query = supabase
-      .from("watchlists")
-      .select(
-        `
-        *,
-        movie:movies!inner (
-          id,
-          title,
-          year,
-          poster_url,
-          genres
-        )
-      `,
-        { count: "exact" }
-      )
+      .from("user_library_view")
+      .select("*", { count: "exact" })
       .eq("user_id", user.id);
 
     // 1. Filtros de Rating
@@ -55,57 +42,61 @@ export async function getLibraryPaginated(
       query = query.gte("user_rating", filters.minRating);
     }
 
-    // 2. Filtros de Búsqueda (Search Query)
+    // 2. Filtros de Búsqueda (Multicolumna: Title OR Director OR Year)
     if (filters.searchQuery) {
-      // Buscamos en el título de la película relacionado
-      // Nota: Para buscar en múltiples columnas de una relación, la sintaxis puede ser compleja.
-      // Aquí priorizamos búsqueda por título.
-      // Ojo: ilike en relación requiere sintaxis embebida o uso de filtros específicos.
-      // La forma más robusta con JS client en relaciones es usar el modificador en el select o filtro directo.
-      // Pero 'movies' ya está joineada con !inner.
-      query = query.ilike("movies.title", `%${filters.searchQuery}%`);
+      const q = filters.searchQuery;
+      // Nota: Para buscar por año (numérico) como texto, idealmente Casteamos.
+      // Pero PostgREST 'ilike' espera texto. Si 'year' es int, puede fallar si no casteamos.
+      // Supabase PostgREST permite casting con ::text.
+      // Sintaxis: columna.ilike.val
+
+      // Si el query parece un año (4 dígitos), añadimos filtro exacto de año o cast
+      if (/^\d{4}$/.test(q)) {
+        // Si es un número, podríamos añadir OR year.eq.Numero
+        // Pero para hacerlo en un solo OR con el título:
+        // query = query.or(`title.ilike.%${q}%,director.ilike.%${q}%,year.eq.${q}`)
+        // Esto funciona si la columna year soporta eq con el valor.
+        // Al recargar el query object, concatenamos conditions.
+        // Mejor estrategia: Todo en un solo OR string.
+        query = query.or(`title.ilike.%${q}%,director.ilike.%${q}%,year.eq.${q}`);
+      } else {
+        query = query.or(`title.ilike.%${q}%,director.ilike.%${q}%`);
+      }
     }
 
-    // 3. Ordenamiento
+    // 3. Ordenamiento (Columnas planas de la vista)
     switch (filters.sortBy) {
       case "title":
-        // Ordenar por título de la película
-        query = query.order("title", { foreignTable: "movies", ascending: true });
+        query = query.order("title", { ascending: true });
         break;
       case "year":
-        // Ordenar por año de estreno (descendente por defecto para "más recientes")
-        query = query.order("year", { foreignTable: "movies", ascending: false });
+        query = query.order("year", { ascending: false });
         break;
       case "rating":
-        // Ordenar por rating de usuario
         query = query.order("user_rating", { ascending: false, nullsFirst: false });
         break;
       case "recent":
       default:
-        // Ordenar por fecha de agregado a la watchlist
-        query = query.order("updated_at", { ascending: false });
+        query = query.order("last_interaction", { ascending: false });
         break;
     }
 
     // Paginación
     const from = (page - 1) * DEFAULT_PAGE_SIZE;
     const to = from + DEFAULT_PAGE_SIZE - 1;
-
-    // Ejecutar paginación
     query = query.range(from, to);
 
-    const { data: watchlists, error: watchlistsError, count } = await query;
+    const { data: viewData, error: viewError, count } = await query;
 
-    if (watchlistsError) {
-      console.error("Error fetching library:", JSON.stringify(watchlistsError, null, 2));
+    if (viewError) {
+      console.error("Error fetching library view:", JSON.stringify(viewError, null, 2));
       return {
         data: null,
         error: "Error al obtener la biblioteca",
       };
     }
 
-    // Si no hay resultados, retornar vacío
-    if (!watchlists || watchlists.length === 0) {
+    if (!viewData || viewData.length === 0) {
       return {
         data: {
           items: [],
@@ -118,19 +109,31 @@ export async function getLibraryPaginated(
       };
     }
 
-    // Transformar los datos
-    // Ya no filtramos en memoria, confiamos en la DB
-    const items: LibraryItem[] = watchlists
-      .map((item) => {
-        const { movie, ...watchlistData } = item;
-        if (!movie) return null; // Should not happen with inner join
-
-        return {
-          watchlist: watchlistData as unknown as LibraryItem["watchlist"],
-          movie: movie as unknown as LibraryItem["movie"],
-        };
-      })
-      .filter((item): item is LibraryItem => item !== null);
+    // Transformar datos planos a la estructura anidada que espera el frontend (LibraryItem)
+    const items: LibraryItem[] = viewData.map((row: any) => ({
+      watchlist: {
+        id: row.watchlist_id,
+        user_id: row.user_id,
+        movie_id: row.movie_id,
+        user_rating: row.user_rating,
+        updated_at: row.last_interaction,
+        created_at: row.last_interaction, // Fallback
+        status: row.status,
+      },
+      movie: {
+        id: row.movie_id,
+        title: row.title,
+        year: row.year,
+        poster_url: row.poster_url,
+        genres: row.genres,
+        director: row.director,
+        extended_data: row.extended_data,
+        imdb_id: row.imdb_id,
+        imdb_rating: row.imdb_rating,
+        synopsis: row.synopsis,
+        created_at: row.movie_created_at,
+      },
+    }));
 
     const totalCount = count ?? 0;
     const totalPages = Math.ceil(totalCount / DEFAULT_PAGE_SIZE);

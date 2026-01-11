@@ -9,7 +9,9 @@ export type Json =
 export type Database = {
     // Allows to automatically instantiate createClient with right options
     // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-
+    __InternalSupabase: {
+        PostgrestVersion: "13.0.5"
+    }
     public: {
         Tables: {
             import_queue: {
@@ -117,62 +119,80 @@ export type Database = {
             profiles: {
                 Row: {
                     avatar_url: string | null
-                    created_at: string | null
+                    email: string
                     full_name: string | null
                     id: string
-                    last_stats_recalc: string | null
-                    stats_status: string | null
+                    stats_status: string
                     updated_at: string | null
-                    username: string | null
                 }
                 Insert: {
                     avatar_url?: string | null
-                    created_at?: string | null
+                    email: string
                     full_name?: string | null
                     id: string
-                    last_stats_recalc?: string | null
-                    stats_status?: string | null
+                    stats_status?: string
                     updated_at?: string | null
-                    username?: string | null
                 }
                 Update: {
                     avatar_url?: string | null
-                    created_at?: string | null
+                    email?: string
                     full_name?: string | null
                     id?: string
-                    last_stats_recalc?: string | null
-                    stats_status?: string | null
+                    stats_status?: string
                     updated_at?: string | null
-                    username?: string | null
+                }
+                Relationships: []
+            }
+            push_subscriptions: {
+                Row: {
+                    created_at: string | null
+                    endpoint: string
+                    id: string
+                    keys: Json
+                    updated_at: string | null
+                    user_id: string
+                }
+                Insert: {
+                    created_at?: string | null
+                    endpoint: string
+                    id?: string
+                    keys: Json
+                    updated_at?: string | null
+                    user_id: string
+                }
+                Update: {
+                    created_at?: string | null
+                    endpoint?: string
+                    id?: string
+                    keys?: Json
+                    updated_at?: string | null
+                    user_id?: string
                 }
                 Relationships: []
             }
             reviews: {
                 Row: {
+                    content: string | null
                     created_at: string | null
                     id: string
                     movie_id: string
                     rating: number | null
-                    review_text: string | null
-                    updated_at: string | null
                     user_id: string
                 }
                 Insert: {
+                    content?: string | null
                     created_at?: string | null
                     id?: string
                     movie_id: string
                     rating?: number | null
-                    review_text?: string | null
-                    updated_at?: string | null
                     user_id: string
                 }
                 Update: {
+                    content?: string | null
                     created_at?: string | null
                     id?: string
                     movie_id?: string
                     rating?: number | null
-                    review_text?: string | null
-                    updated_at?: string | null
                     user_id?: string
                 }
                 Relationships: [
@@ -182,6 +202,13 @@ export type Database = {
                         isOneToOne: false
                         referencedRelation: "movies"
                         referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "reviews_movie_id_fkey"
+                        columns: ["movie_id"]
+                        isOneToOne: false
+                        referencedRelation: "user_library_view"
+                        referencedColumns: ["movie_id"]
                     },
                 ]
             }
@@ -220,28 +247,28 @@ export type Database = {
             }
             watchlists: {
                 Row: {
-                    updated_at: string | null
+                    created_at: string | null
                     id: string
                     movie_id: string
-                    user_rating: number | null
-                    status: string
                     user_id: string
+                    user_rating: number | null
+                    updated_at: string | null
                 }
                 Insert: {
-                    updated_at?: string | null
+                    created_at?: string | null
                     id?: string
                     movie_id: string
-                    user_rating?: number | null
-                    status?: string
                     user_id: string
+                    user_rating?: number | null
+                    updated_at?: string | null
                 }
                 Update: {
-                    updated_at?: string | null
+                    created_at?: string | null
                     id?: string
                     movie_id?: string
-                    user_rating?: number | null
-                    status?: string
                     user_id?: string
+                    user_rating?: number | null
+                    updated_at?: string | null
                 }
                 Relationships: [
                     {
@@ -251,11 +278,38 @@ export type Database = {
                         referencedRelation: "movies"
                         referencedColumns: ["id"]
                     },
+                    {
+                        foreignKeyName: "watchlists_movie_id_fkey"
+                        columns: ["movie_id"]
+                        isOneToOne: false
+                        referencedRelation: "user_library_view"
+                        referencedColumns: ["movie_id"]
+                    },
                 ]
             }
         }
         Views: {
-            [_ in never]: never
+            user_library_view: {
+                Row: {
+                    director: string | null
+                    extended_data: Json | null
+                    genres: Json | null
+                    imdb_id: string | null
+                    imdb_rating: number | null
+                    last_interaction: string | null
+                    movie_created_at: string | null
+                    movie_id: string | null
+                    poster_url: string | null
+                    status: string | null
+                    synopsis: string | null
+                    title: string | null
+                    user_id: string | null
+                    user_rating: number | null
+                    watchlist_id: string | null
+                    year: number | null
+                }
+                Relationships: []
+            }
         }
         Functions: {
             [_ in never]: never
@@ -339,16 +393,18 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-    PublicEnumNameOrOptions extends
+    DefaultSchemaEnumNameOrOptions extends
     | keyof PublicSchema["Enums"]
     | { schema: keyof Database },
-    EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+    EnumName extends DefaultSchemaEnumNameOrOptions extends {
+        schema: keyof Database
+    }
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-    : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+    ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+    : DefaultSchemaEnumNameOrOptions extends keyof PublicSchema["Enums"]
+    ? PublicSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
@@ -365,3 +421,9 @@ export type CompositeTypes<
     : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+    public: {
+        Enums: {},
+    },
+} as const
