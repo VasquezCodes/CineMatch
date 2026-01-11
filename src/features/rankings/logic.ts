@@ -35,7 +35,7 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
     const { data: watchlistItems, error } = await supabase
         .from('watchlists')
         .select(`
-            rating,
+            user_rating,
             movies (
                 id,
                 title,
@@ -47,7 +47,7 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
             )
         `)
         .eq('user_id', userId)
-        .gte('rating', 1); // Only rated movies count for rankings? Or just watched? Usually rated.
+        .gte('user_rating', 1); // Only rated movies count for rankings? Or just watched? Usually rated.
 
     if (error || !watchlistItems) {
         console.error('Error fetching data for stats:', error);
@@ -75,7 +75,7 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
         if (!m) continue;
 
         const ext = m.extended_data as any || {};
-        const rating = item.rating || 0;
+        const rating = item.user_rating || 0;
 
         // --- Helpers ---
         const processPerson = (type: any, name?: string, role?: string, photo?: string) => {

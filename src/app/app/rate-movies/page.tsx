@@ -29,7 +29,7 @@ export default async function RateMoviesPage() {
         title: item.movie.title || "Título desconocido",
         year: item.movie.year,
         posterUrl: item.movie.poster_url,
-        currentRating: item.watchlist.rating,
+        currentRating: item.watchlist.user_rating,
       }));
 
       // Si no hay películas en el watchlist

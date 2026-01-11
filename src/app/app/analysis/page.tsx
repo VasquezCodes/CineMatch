@@ -27,9 +27,9 @@ export default async function AnalysisPage() {
   // Contar películas sin calificar
   const { data: allMovies } = await supabase
     .from("watchlists")
-    .select("rating", { count: "exact" })
+    .select("user_rating", { count: "exact" })
     .eq("user_id", user?.id || "")
-    .is("rating", null);
+    .is("user_rating", null);
 
   const unratedMoviesCount = allMovies?.length ?? 0;
   const totalMoviesCount = topMovies.length;

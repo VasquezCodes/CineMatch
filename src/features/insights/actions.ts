@@ -21,7 +21,7 @@ export async function getAnalysisData(): Promise<AnalysisData> {
     const { data: library, error: libraryError } = await supabase
         .from('watchlists')
         .select(`
-            rating,
+            user_rating,
             movies (
                 genres,
                 extended_data
@@ -66,7 +66,7 @@ export async function getAnalysisData(): Promise<AnalysisData> {
         }
 
         // 2. Procesar Ratings (usando user_rating del watchlist)
-        const rating = item.rating
+        const rating = item.user_rating
         if (typeof rating === 'number' && rating > 0) {
             const bucket = Math.round(rating)
             ratingDistribution[bucket] = (ratingDistribution[bucket] || 0) + 1

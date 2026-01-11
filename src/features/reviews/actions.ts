@@ -33,7 +33,8 @@ export async function updateMovieRating(
 
     // Actualizar el rating en watchlists
     const updateData: TablesUpdate<"watchlists"> = {
-      rating: rating,
+      user_rating: rating,
+      updated_at: new Date().toISOString(),
     };
 
     const { error: updateError } = await supabase

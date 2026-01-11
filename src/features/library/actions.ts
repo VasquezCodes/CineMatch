@@ -43,9 +43,7 @@ export async function getLibraryPaginated(
           title,
           year,
           poster_url,
-          genres,
-          runtime,
-          overview
+          genres
         )
       `,
         { count: "exact" }
@@ -54,24 +52,24 @@ export async function getLibraryPaginated(
 
     // Aplicar filtros de rating (mayor o igual al valor seleccionado)
     if (filters.minRating !== undefined && filters.minRating > 0) {
-      query = query.gte("rating", filters.minRating);
+      query = query.gte("user_rating", filters.minRating);
     }
 
     // Aplicar ordenamiento dinámico
     switch (filters.sortBy) {
       case "title":
         // Para ordenar por título necesitamos hacer el join y ordenar
-        query = query.order("added_at", { ascending: false });
+        query = query.order("updated_at", { ascending: false });
         break;
       case "year":
-        query = query.order("added_at", { ascending: false });
+        query = query.order("updated_at", { ascending: false });
         break;
       case "rating":
-        query = query.order("rating", { ascending: false, nullsFirst: false });
+        query = query.order("user_rating", { ascending: false, nullsFirst: false });
         break;
       case "recent":
       default:
-        query = query.order("added_at", { ascending: false });
+        query = query.order("updated_at", { ascending: false });
         break;
     }
 
@@ -86,7 +84,7 @@ export async function getLibraryPaginated(
     const { data: watchlists, error: watchlistsError } = await query;
 
     if (watchlistsError) {
-      console.error("Error fetching library:", watchlistsError);
+      console.error("Error fetching library:", JSON.stringify(watchlistsError, null, 2));
       return {
         data: null,
         error: "Error al obtener la biblioteca",
@@ -192,8 +190,8 @@ export async function getTopRatedMovies(
       `
       )
       .eq("user_id", user.id)
-      .not("rating", "is", null)
-      .order("rating", { ascending: false })
+      .not("user_rating", "is", null)
+      .order("user_rating", { ascending: false })
       .limit(limit);
 
     if (watchlistsError) {

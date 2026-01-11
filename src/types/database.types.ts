@@ -220,26 +220,26 @@ export type Database = {
             }
             watchlists: {
                 Row: {
-                    added_at: string | null
+                    updated_at: string | null
                     id: string
                     movie_id: string
-                    rating: number | null
+                    user_rating: number | null
                     status: string
                     user_id: string
                 }
                 Insert: {
-                    added_at?: string | null
+                    updated_at?: string | null
                     id?: string
                     movie_id: string
-                    rating?: number | null
+                    user_rating?: number | null
                     status?: string
                     user_id: string
                 }
                 Update: {
-                    added_at?: string | null
+                    updated_at?: string | null
                     id?: string
                     movie_id?: string
-                    rating?: number | null
+                    user_rating?: number | null
                     status?: string
                     user_id?: string
                 }
