@@ -163,6 +163,56 @@ export function ImportStatusIndicator() {
     }
   }, [importState, pendingCount]);
 
+  // FALLBACK: Polling de seguridad
+  // Verifica el estado real cada 5 segundos por si se pierden eventos de Realtime.
+  // Esto previene que la UI se quede "pegada" si no llega el evento final.
+  useEffect(() => {
+    if (importState !== 'processing' && importState !== 'calculating_stats') return;
+
+    const checkStatus = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // 1. Verificar cola de importación
+      if (importState === 'processing') {
+        const { count } = await supabase
+          .from('import_queue')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .in('status', ['pending', 'processing']);
+
+        if (count !== null) {
+          setPendingCount(count);
+          // Si la cuenta llega a 0, el efecto de arriba cambiará el estado a calculating_stats
+        }
+      }
+
+      // 2. Verificar estado del perfil (rankings)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('stats_status')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.stats_status === 'idle') {
+        setImportState(current => {
+          // Solo completamos si estábamos esperando algo
+          if (current === 'calculating_stats' || (current === 'processing' && pendingCount === 0)) {
+            return 'completed';
+          }
+          return current;
+        });
+      } else if (profile?.stats_status === 'calculating' && importState !== 'calculating_stats') {
+        // Si por alguna razón nos desincronizamos y el backend ya está calculando
+        setImportState('calculating_stats');
+      }
+    };
+
+    const interval = setInterval(checkStatus, 5000);
+    return () => clearInterval(interval);
+  }, [importState, pendingCount]);
+
   // No renderizar si no está visible
   if (!isVisible) return null;
 
