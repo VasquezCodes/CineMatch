@@ -55,11 +55,11 @@ export function MovieCard({ item }: MovieCardProps) {
             )}
 
             {/* Rating del usuario */}
-            {watchlist.user_rating !== null && (
+            {watchlist.rating !== null && (
               <div className="flex items-center gap-1 pt-1">
                 <Star className="h-3 w-3 fill-primary text-primary" />
                 <span className="text-sm font-medium">
-                  {watchlist.user_rating.toFixed(1)}
+                  {watchlist.rating.toFixed(1)}
                 </span>
               </div>
             )}

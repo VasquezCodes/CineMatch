@@ -43,17 +43,17 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
     const BATCH_SIZE = 100; // Tamaño del lote para inserción en DB
 
     // Obtener items ya en cola para este usuario (pending o processing)
-    // para evitar duplicados si el usuario sube el mismo archivo varias veces o spamea el botón.
+    // Para evitar duplicados si el usuario intenta importar el mismo archivo múltiples veces.
     const uniqueImdbIds = [...new Set(movies.map(m => m.imdb_id))];
 
-    // Consulta optimizada para verificar existencia
+    // Consulta optimizada para verificar existencia en la cola
     const { data: existingItems } = await (await supabase)
         .from('import_queue')
         .select('payload')
         .eq('user_id', user.id)
-        .in('status', ['pending', 'processing']); // Solo nos importa si ya se está procesando o va a ser procesado
+        .in('status', ['pending', 'processing']); // Filtramos por lo que está activo
 
-    // Extraer IDs existentes de forma segura (payload es jsonb, en TS puede ser any)
+    // Extraer IDs existentes de forma segura
     const existingImdbIds = new Set<string>();
     if (existingItems) {
         existingItems.forEach((item: any) => {
@@ -63,14 +63,13 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
         });
     }
 
-    // Filtrar películas que NO están en la cola
+    // Filtrar películas que ya están en cola para evitar re-encolar
     const moviesToInsert = movies.filter(m => !existingImdbIds.has(m.imdb_id));
     const duplicateCount = movies.length - moviesToInsert.length;
 
     console.log(`Import: ${movies.length} total, ${duplicateCount} duplicados ignorados, ${moviesToInsert.length} a insertar.`);
 
-    // Si no hay nuevas películas para insertar, verificamos si hay pendientes en cola.
-    // Si hay pendientes, debemos asegurar que el worker esté corriendo (retry mechanism).
+    // Si no hay nuevas, pero hay pendientes, intentamos despertar al worker por si acaso se detuvo.
     const hasPendingItems = existingItems && existingItems.length > 0;
 
     if (moviesToInsert.length === 0) {
@@ -124,7 +123,7 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
         errors: errorCount
     };
 }
-// Helper para disparar workers
+// Helper para activar los workers de fondo
 function triggerWorker(userId: string) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const workerUrl = `${appUrl}/api/workers/process-import`;
@@ -132,20 +131,22 @@ function triggerWorker(userId: string) {
 
     try {
         console.log("Activando worker:", workerUrl);
+        // LLamada asíncrona (Fire & Forget) con timeout corto
         fetch(workerUrl, {
             method: 'POST',
             headers: {
                 'x-cron-secret': process.env.CRON_SECRET || '',
                 'Content-Type': 'application/json'
             },
-            signal: AbortSignal.timeout(500) // Increased to 500ms for reliability
+            signal: AbortSignal.timeout(500) // 500ms para asegurar que la petición sale
         }).catch(err => {
             if (err.name === 'TimeoutError') console.log("Worker activado (timeout esperado)");
             else console.error("Fallo al activar worker:", err);
         });
 
-        // Trigger Stats Recalc Async
-        fetch(statsUrl, { method: 'GET', signal: AbortSignal.timeout(500) }).catch(() => { });
+        // Trigger Stats Recalc Async - REMOVIDO: Ahora es manejado por el worker `process-import` al finalizar.
+        // Esto evita condiciones de carrera donde se calculan stats con datos incompletos.
+        // fetch(statsUrl, { method: 'GET', signal: AbortSignal.timeout(500) }).catch(() => { });
 
     } catch (e) {
         // Catch silencioso

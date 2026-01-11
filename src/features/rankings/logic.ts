@@ -35,7 +35,7 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
     const { data: watchlistItems, error } = await supabase
         .from('watchlists')
         .select(`
-            user_rating,
+            rating,
             movies (
                 id,
                 title,
@@ -47,16 +47,15 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
             )
         `)
         .eq('user_id', userId)
-        .gte('user_rating', 1); // Only rated movies count for rankings? Or just watched? Usually rated.
+        .gte('rating', 1); // Only rated movies count for rankings? Or just watched? Usually rated.
 
     if (error || !watchlistItems) {
         console.error('Error fetching data for stats:', error);
         throw new Error('Failed to fetch user library');
     }
 
-    // 2. Aggregate Data in Memory
-    // Note: Since this runs in a Worker, we have more time/memory tolerance than a sync interaction.
-    // If library > 10k items, we should batch this. For now (mvp) in-memory is fine for < 5k.
+    // 2. Agregación de datos en memoria (Iteración sobre la biblioteca del usuario)
+    // Nota: Dado que esto corre en un worker, tenemos margen para procesar < 5k items en memoria.
 
     const aggregates: Record<string, Record<string, RankingStatConfig>> = {
         director: {}, actor: {}, genre: {}, year: {}, screenplay: {}, photography: {}, music: {}
@@ -76,17 +75,16 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
         if (!m) continue;
 
         const ext = m.extended_data as any || {};
-        const rating = item.user_rating || 0;
+        const rating = item.rating || 0;
 
         // --- Helpers ---
         const processPerson = (type: any, name?: string, role?: string, photo?: string) => {
             if (!name) return;
-            // Clean name?
             const cleanName = name.trim();
             const stat = getStat(type, cleanName);
 
             stat.count++;
-            stat.score += 10; // Base score per movie. Could account for rating: + rating
+            stat.score += 10; // Puntuación base por película. (Se podría ponderar por rating)
             const movieData = {
                 id: m.id,
                 title: m.title,
@@ -99,19 +97,18 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
 
             if (role) {
                 if (!stat.data.roles) stat.data.roles = [];
-                // Simple role aggreg (duplicates handled later or ignored for simple stats)
                 stat.data.roles.push({ role, movies: [m.title || ''] });
             }
         };
 
-        // Helper to find photo in crew_details
+        // Helper para buscar foto en crew_details
         const getPhoto = (name: string, job?: string) => {
             if (!ext?.crew_details || !Array.isArray(ext.crew_details)) return undefined;
             const person = ext.crew_details.find((c: any) => c.name === name && (!job || c.job === job));
             return person?.photo;
         };
 
-        // Directors
+        // Directores
         if (m.director) {
             m.director.split(',').forEach((d: string) => {
                 const cleanName = d.trim();
@@ -120,7 +117,7 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
             });
         }
 
-        // Genres
+        // Géneros
         const genres = Array.isArray(m.genres) ? m.genres : ext?.technical?.genres;
         if (Array.isArray(genres)) {
             genres.forEach((g: any) => {
@@ -137,7 +134,7 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
             });
         }
 
-        // Year
+        // Año de lanzamiento (Year)
         if (m.year) {
             const stat = getStat('year', String(m.year));
             stat.count++;
@@ -151,26 +148,27 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
             });
         }
 
-        // Crew
-        // Screenplay/Writer
+        // --- Crew Específico (Guion, Foto, Música) ---
+
+        // Guion (Screenplay/Writer)
         if (ext?.crew?.screenplay) {
             processPerson('screenplay', ext.crew.screenplay, undefined, getPhoto(ext.crew.screenplay));
         }
 
-        // Photography
+        // Fotografía (Cinematography)
         if (ext?.crew?.photography) {
             processPerson('photography', ext.crew.photography, undefined, getPhoto(ext.crew.photography, 'Director of Photography'));
         }
 
-        // Music
+        // Música Original
         if (ext?.crew?.music) {
             processPerson('music', ext.crew.music, undefined, getPhoto(ext.crew.music, 'Original Music Composer'));
         }
 
-        // Actors
+        // Actores (Top 20Billing)
         if (Array.isArray(ext?.cast)) {
             const seenInMovie = new Set<string>();
-            ext.cast.slice(0, 20).forEach((c: any) => { // Limit to top 20 billing
+            ext.cast.slice(0, 20).forEach((c: any) => {
                 if (c.name && !seenInMovie.has(c.name)) {
                     processPerson('actor', c.name, c.role, c.photo);
                     seenInMovie.add(c.name);
@@ -179,22 +177,19 @@ export async function calculateRankings(userId: string, client?: SupabaseClient)
         }
     }
 
-    // 3. Post-Process Scores (Saga Logic for Actors)
+    // 3. Post-Procesamiento de Scores (Lógica de Sagas para Actores)
     const flatResults: RankingStatConfig[] = [];
 
     Object.keys(aggregates).forEach(type => {
         Object.values(aggregates[type]).forEach(stat => {
             if (stat.type === 'actor' && stat.data.roles) {
-                // Recalculate Score based on Unique Roles (Saga Logic)
+                // Recalcular Score basado en Roles Únicos (Saga Logic)
+                // Evitamos que un actor que sale en 8 pelis de Harry Potter domine solo por volumen.
                 const uniqueRoles = new Set(stat.data.roles.map(r => r.role));
                 const base = uniqueRoles.size * 10;
-                const bonus = (stat.count - uniqueRoles.size) * 2; // +2 for recurring role
+                const bonus = (stat.count - uniqueRoles.size) * 2; // +2 puntos por repetición del mismo rol
                 stat.score = base + bonus;
             }
-
-            // Limit stored data size?
-            // Store only last 5 movie IDs or full list? Full list is fine for < 100 movies.
-            // But 'roles' array could grow large. Let's simplify roles for storage if needed.
 
             flatResults.push(stat);
         });

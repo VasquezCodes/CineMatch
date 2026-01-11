@@ -33,8 +33,7 @@ export async function updateMovieRating(
 
     // Actualizar el rating en watchlists
     const updateData: TablesUpdate<"watchlists"> = {
-      user_rating: rating,
-      updated_at: new Date().toISOString(),
+      rating: rating,
     };
 
     const { error: updateError } = await supabase
@@ -54,6 +53,8 @@ export async function updateMovieRating(
     revalidatePath("/app/analysis");
 
     // Trigger Async Update for Stats
+    await supabase.from('profiles').update({ stats_status: 'calculating' }).eq('id', user.id);
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     fetch(`${appUrl}/api/workers/recalc-stats?userId=${user.id}`, {
       method: "GET",

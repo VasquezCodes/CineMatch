@@ -32,37 +32,46 @@ export async function getLibraryPaginated(
     }
 
     // Construir query base
+    // Consulta inicial: obtener watchlists del usuario con datos de películas relacionados
     let query = supabase
       .from("watchlists")
       .select(
         `
         *,
-        movie:movies (*)
+        movie:movies!inner (
+          id,
+          title,
+          year,
+          poster_url,
+          genres,
+          runtime,
+          overview
+        )
       `,
         { count: "exact" }
       )
       .eq("user_id", user.id);
 
-    // Aplicar filtros de rating
+    // Aplicar filtros de rating (mayor o igual al valor seleccionado)
     if (filters.minRating !== undefined && filters.minRating > 0) {
-      query = query.gte("user_rating", filters.minRating);
+      query = query.gte("rating", filters.minRating);
     }
 
-    // Aplicar ordenamiento
+    // Aplicar ordenamiento dinámico
     switch (filters.sortBy) {
       case "title":
         // Para ordenar por título necesitamos hacer el join y ordenar
-        query = query.order("updated_at", { ascending: false });
+        query = query.order("added_at", { ascending: false });
         break;
       case "year":
-        query = query.order("updated_at", { ascending: false });
+        query = query.order("added_at", { ascending: false });
         break;
       case "rating":
-        query = query.order("user_rating", { ascending: false, nullsFirst: false });
+        query = query.order("rating", { ascending: false, nullsFirst: false });
         break;
       case "recent":
       default:
-        query = query.order("updated_at", { ascending: false });
+        query = query.order("added_at", { ascending: false });
         break;
     }
 
@@ -183,8 +192,8 @@ export async function getTopRatedMovies(
       `
       )
       .eq("user_id", user.id)
-      .not("user_rating", "is", null)
-      .order("user_rating", { ascending: false })
+      .not("rating", "is", null)
+      .order("rating", { ascending: false })
       .limit(limit);
 
     if (watchlistsError) {

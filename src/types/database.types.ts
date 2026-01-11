@@ -7,6 +7,9 @@ export type Json =
     | Json[]
 
 export type Database = {
+    // Allows to automatically instantiate createClient with right options
+    // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+
     public: {
         Tables: {
             import_queue: {
@@ -81,30 +84,66 @@ export type Database = {
                 }
                 Relationships: []
             }
+            notifications: {
+                Row: {
+                    created_at: string | null
+                    id: string
+                    is_read: boolean | null
+                    message: string
+                    title: string
+                    updated_at: string | null
+                    user_id: string
+                }
+                Insert: {
+                    created_at?: string | null
+                    id?: string
+                    is_read?: boolean | null
+                    message: string
+                    title: string
+                    updated_at?: string | null
+                    user_id: string
+                }
+                Update: {
+                    created_at?: string | null
+                    id?: string
+                    is_read?: boolean | null
+                    message?: string
+                    title?: string
+                    updated_at?: string | null
+                    user_id?: string
+                }
+                Relationships: []
+            }
             profiles: {
                 Row: {
                     avatar_url: string | null
+                    created_at: string | null
                     full_name: string | null
                     id: string
+                    last_stats_recalc: string | null
+                    stats_status: string | null
                     updated_at: string | null
                     username: string | null
-                    website: string | null
                 }
                 Insert: {
                     avatar_url?: string | null
+                    created_at?: string | null
                     full_name?: string | null
                     id: string
+                    last_stats_recalc?: string | null
+                    stats_status?: string | null
                     updated_at?: string | null
                     username?: string | null
-                    website?: string | null
                 }
                 Update: {
                     avatar_url?: string | null
+                    created_at?: string | null
                     full_name?: string | null
                     id?: string
+                    last_stats_recalc?: string | null
+                    stats_status?: string | null
                     updated_at?: string | null
                     username?: string | null
-                    website?: string | null
                 }
                 Relationships: []
             }
@@ -113,31 +152,28 @@ export type Database = {
                     created_at: string | null
                     id: string
                     movie_id: string
-                    movie_name: string | null
-                    rating: number
+                    rating: number | null
                     review_text: string | null
+                    updated_at: string | null
                     user_id: string
-                    user_name: string | null
                 }
                 Insert: {
                     created_at?: string | null
                     id?: string
                     movie_id: string
-                    movie_name?: string | null
-                    rating: number
+                    rating?: number | null
                     review_text?: string | null
+                    updated_at?: string | null
                     user_id: string
-                    user_name?: string | null
                 }
                 Update: {
                     created_at?: string | null
                     id?: string
                     movie_id?: string
-                    movie_name?: string | null
-                    rating?: number
+                    rating?: number | null
                     review_text?: string | null
+                    updated_at?: string | null
                     user_id?: string
-                    user_name?: string | null
                 }
                 Relationships: [
                     {
@@ -145,13 +181,6 @@ export type Database = {
                         columns: ["movie_id"]
                         isOneToOne: false
                         referencedRelation: "movies"
-                        referencedColumns: ["id"]
-                    },
-                    {
-                        foreignKeyName: "reviews_user_id_fkey"
-                        columns: ["user_id"]
-                        isOneToOne: false
-                        referencedRelation: "profiles"
                         referencedColumns: ["id"]
                     },
                 ]
@@ -164,7 +193,7 @@ export type Database = {
                     key: string
                     score: number | null
                     type: string
-                    updated_at: string
+                    updated_at: string | null
                     user_id: string
                 }
                 Insert: {
@@ -174,7 +203,7 @@ export type Database = {
                     key: string
                     score?: number | null
                     type: string
-                    updated_at?: string
+                    updated_at?: string | null
                     user_id: string
                 }
                 Update: {
@@ -184,7 +213,7 @@ export type Database = {
                     key?: string
                     score?: number | null
                     type?: string
-                    updated_at?: string
+                    updated_at?: string | null
                     user_id?: string
                 }
                 Relationships: []
@@ -194,28 +223,25 @@ export type Database = {
                     added_at: string | null
                     id: string
                     movie_id: string
-                    position: number | null
-                    updated_at: string | null
+                    rating: number | null
+                    status: string
                     user_id: string
-                    user_rating: number | null
                 }
                 Insert: {
                     added_at?: string | null
                     id?: string
                     movie_id: string
-                    position?: number | null
-                    updated_at?: string | null
+                    rating?: number | null
+                    status?: string
                     user_id: string
-                    user_rating?: number | null
                 }
                 Update: {
                     added_at?: string | null
                     id?: string
                     movie_id?: string
-                    position?: number | null
-                    updated_at?: string | null
+                    rating?: number | null
+                    status?: string
                     user_id?: string
-                    user_rating?: number | null
                 }
                 Relationships: [
                     {
@@ -223,13 +249,6 @@ export type Database = {
                         columns: ["movie_id"]
                         isOneToOne: false
                         referencedRelation: "movies"
-                        referencedColumns: ["id"]
-                    },
-                    {
-                        foreignKeyName: "watchlists_user_id_fkey"
-                        columns: ["user_id"]
-                        isOneToOne: false
-                        referencedRelation: "profiles"
                         referencedColumns: ["id"]
                     },
                 ]

@@ -51,8 +51,8 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
       const minRating = parseFloat(filterRating);
       filtered = filtered.filter(
         (item) =>
-          item.watchlist.user_rating !== null &&
-          item.watchlist.user_rating >= minRating
+          item.watchlist.rating !== null &&
+          item.watchlist.rating >= minRating
       );
     }
 
@@ -65,13 +65,13 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
           return (b.movie.year || 0) - (a.movie.year || 0);
         case "rating":
           return (
-            (b.watchlist.user_rating || 0) - (a.watchlist.user_rating || 0)
+            (b.watchlist.rating || 0) - (a.watchlist.rating || 0)
           );
         case "recent":
         default:
           return (
-            new Date(b.watchlist.updated_at || 0).getTime() -
-            new Date(a.watchlist.updated_at || 0).getTime()
+            new Date(b.watchlist.added_at || 0).getTime() -
+            new Date(a.watchlist.added_at || 0).getTime()
           );
       }
     });
@@ -233,11 +233,11 @@ function MovieCard({ item }: { item: WatchlistAnalysisItem }) {
             )}
 
             {/* Rating del usuario */}
-            {watchlist.user_rating !== null && (
+            {watchlist.rating !== null && (
               <div className="flex items-center gap-1 pt-1">
                 <Star className="h-3 w-3 fill-primary text-primary" />
                 <span className="text-sm font-medium">
-                  {watchlist.user_rating.toFixed(1)}
+                  {watchlist.rating.toFixed(1)}
                 </span>
               </div>
             )}

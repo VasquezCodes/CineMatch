@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle2, RefreshCw, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type ImportState = 'idle' | 'processing' | 'completed' | 'error';
+type ImportState = 'idle' | 'processing' | 'calculating_stats' | 'completed' | 'error';
 
 /**
  * ImportStatusIndicator
@@ -24,6 +24,7 @@ export function ImportStatusIndicator() {
   const [totalCount, setTotalCount] = useState(0);
   const [importState, setImportState] = useState<ImportState>('idle');
   const [isVisible, setIsVisible] = useState(false);
+
   const router = useRouter();
 
   // Función para refrescar la página actual
@@ -53,13 +54,23 @@ export function ImportStatusIndicator() {
   }, [importState]);
 
   useEffect(() => {
-    let channel: ReturnType<ReturnType<typeof createClient>['channel']>;
+    let importChannel: ReturnType<ReturnType<typeof createClient>['channel']>;
+    let profileChannel: ReturnType<ReturnType<typeof createClient>['channel']>;
     const supabase = createClient();
 
     const setupRealtime = async () => {
-      // 1. Obtener usuario actual
+      // 1. Obtener usuario actual y perfil inicial
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Obtener estado inicial de stats_status
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('stats_status')
+        .eq('id', user.id)
+        .single();
+
+      const currentStatus = profile?.stats_status;
 
       // 2. Obtener conteo inicial de items pendientes
       const { count } = await supabase
@@ -73,165 +84,141 @@ export function ImportStatusIndicator() {
         setTotalCount(count);
         setIsVisible(true);
         setImportState('processing');
+      } else if (currentStatus === 'calculating') {
+        // Si no hay imports pero dice calculating, mostramos eso
+        setIsVisible(true);
+        setImportState('calculating_stats');
       }
 
-      // 3. Suscribirse a cambios en la tabla import_queue
-      channel = supabase
+      // 3. Suscribirse a cambios en import_queue
+      importChannel = supabase
         .channel(`import-progress-${user.id}`)
         .on(
           'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'import_queue',
-            filter: `user_id=eq.${user.id}`
-          },
+          { event: '*', schema: 'public', table: 'import_queue', filter: `user_id=eq.${user.id}` },
           (payload) => {
-            console.log('[ImportStatus] Realtime event:', payload.eventType, payload);
-
-            // Si el evento es INSERT (usuario subió más), incrementar contador
             if (payload.eventType === 'INSERT') {
               setPendingCount(prev => {
                 const newCount = prev + 1;
                 setTotalCount(t => Math.max(t, newCount));
                 if (newCount > 0) {
                   setIsVisible(true);
+                  // Si llega un import, la prioridad es 'processing' aunque esté calculando stats previos
                   setImportState('processing');
                 }
                 return newCount;
               });
             }
-
-            // Si el evento es DELETE (item procesado/limpiado), decrementar contador
             if (payload.eventType === 'DELETE') {
               setPendingCount(prev => Math.max(0, prev - 1));
             }
-
-            // Si hay un error
             if (payload.eventType === 'UPDATE') {
               const newRecord = payload.new as { status?: string };
-              if (newRecord.status === 'failed') {
-                setImportState('error');
+              if (newRecord.status === 'failed') setImportState('error');
+            }
+          }
+        )
+        .subscribe();
+
+      // 4. Suscribirse a cambios en profiles (para stats_status)
+      profileChannel = supabase
+        .channel(`profile-stats-${user.id}`)
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
+          (payload) => {
+            const newRecord = payload.new as { stats_status?: string };
+            const oldRecord = payload.old as { stats_status?: string };
+
+            if (newRecord.stats_status !== oldRecord.stats_status) {
+              if (newRecord.stats_status === 'calculating') {
+                // Si empieza a calcular, mostramos la notificación
+                setIsVisible(true);
+                setImportState('calculating_stats');
+              } else if (newRecord.stats_status === 'idle' && oldRecord.stats_status === 'calculating') {
+                // Si termina de calcular (calculating -> idle), éxito
+                setImportState('completed');
               }
             }
           }
         )
-        .subscribe((status) => {
-          console.log('[ImportStatus] Subscription status:', status);
-          if (status === 'CHANNEL_ERROR') {
-            console.warn('[ImportStatus] Realtime connection error (transient)');
-          }
-        });
+        .subscribe();
     };
 
     setupRealtime();
 
-    // Cleanup: desuscribirse al desmontar
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      if (importChannel) supabase.removeChannel(importChannel);
+      if (profileChannel) supabase.removeChannel(profileChannel);
     };
   }, [router]);
 
-  // Efecto para detectar finalización
+  // Efecto para transiciones de estado
   useEffect(() => {
+    // Si terminó la cola, pasamos a "calculando stats" (a menos que ya haya saltado a completed por el evento de profile)
     if (importState === 'processing' && pendingCount === 0) {
-      setImportState('completed');
-      router.refresh();
+      setImportState('calculating_stats');
     }
-  }, [importState, pendingCount, router]);
+  }, [importState, pendingCount]);
 
   // No renderizar si no está visible
   if (!isVisible) return null;
 
-  // Estado de procesamiento
+  // Estado: PROCESANDO IMPORTACIÓN
   if (importState === 'processing') {
     const progress = totalCount > 0 ? Math.round(((totalCount - pendingCount) / totalCount) * 100) : 0;
-
     return (
-      <div
-        className="fixed bottom-4 right-4 bg-card border border-border px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5"
-        role="status"
-        aria-live="polite"
-      >
-        {/* Spinner animado */}
+      <div className="fixed bottom-4 right-4 bg-card border border-border px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5">
         <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
-
-        {/* Contenido */}
         <div className="flex flex-col min-w-[180px]">
-          <span className="font-semibold text-sm text-foreground">Procesando películas...</span>
-          <span className="text-xs text-muted-foreground">
-            Faltan {pendingCount} de {totalCount} ({progress}%)
-          </span>
-          {/* Barra de progreso */}
+          <span className="font-semibold text-sm text-foreground">Importando películas...</span>
+          <span className="text-xs text-muted-foreground">Faltan {pendingCount} de {totalCount} ({progress}%)</span>
           <div className="w-full h-1 bg-muted rounded-full mt-2 overflow-hidden">
-            <div
-              className="h-full bg-primary transition-all duration-300 ease-out"
-              style={{ width: `${progress}%` }}
-            />
+            <div className="h-full bg-primary transition-all duration-300 ease-out" style={{ width: `${progress}%` }} />
           </div>
         </div>
       </div>
     );
   }
 
-  // Estado completado
+  // Estado: CALCULANDO ESTADÍSTICAS (Nuevo estado intermedio)
+  if (importState === 'calculating_stats') {
+    return (
+      <div className="fixed bottom-4 right-4 bg-card border border-border px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5">
+        <div className="animate-pulse h-5 w-5 rounded-full bg-primary/50" />
+        <div className="flex flex-col min-w-[180px]">
+          <span className="font-semibold text-sm text-foreground">Generando Rankings...</span>
+          <span className="text-xs text-muted-foreground">Analizando tu colección de cine</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Estado: COMPLETADO (Solo cuando stats terminaron)
   if (importState === 'completed') {
     return (
-      <div
-        className="fixed bottom-4 right-4 bg-card border border-primary/30 px-4 py-4 rounded-lg shadow-lg z-50 animate-in slide-in-from-bottom-5"
-        role="status"
-        aria-live="polite"
-      >
+      <div className="fixed bottom-4 right-4 bg-card border border-green-500/30 px-4 py-4 rounded-lg shadow-lg z-50 animate-in slide-in-from-bottom-5">
         <div className="flex items-start gap-3">
-          {/* Icono de éxito */}
-          <div className="rounded-full bg-primary/10 p-1.5">
-            <CheckCircle2 className="h-5 w-5 text-primary" />
+          <div className="rounded-full bg-green-500/10 p-1.5">
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
           </div>
-
-          {/* Contenido */}
           <div className="flex flex-col gap-2">
             <div>
-              <span className="font-semibold text-sm text-foreground block">
-                ¡Importación completada!
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {totalCount} película{totalCount !== 1 ? 's' : ''} procesada{totalCount !== 1 ? 's' : ''}
-              </span>
+              <span className="font-semibold text-sm text-foreground block">¡Rankings Listos!</span>
+              <span className="text-xs text-muted-foreground">Importación y análisis completados.</span>
             </div>
-
-            {/* Acciones */}
             <div className="flex gap-2 mt-1">
-              <Button
-                size="sm"
-                variant="default"
-                className="h-7 text-xs gap-1.5"
-                onClick={handleNavigateToAnalysis}
-              >
+              <Button size="sm" variant="default" className="h-7 text-xs gap-1.5" onClick={handleNavigateToAnalysis}>
                 <BarChart3 className="h-3.5 w-3.5" />
-                Ver análisis
+                Ver Rankings
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 text-xs gap-1.5"
-                onClick={handleRefresh}
-              >
+              <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5" onClick={handleRefresh}>
                 <RefreshCw className="h-3.5 w-3.5" />
                 Refrescar
               </Button>
             </div>
           </div>
-
-          {/* Botón cerrar */}
-          <button
-            onClick={() => setIsVisible(false)}
-            className="text-muted-foreground hover:text-foreground transition-colors ml-2"
-            aria-label="Cerrar"
-          >
-            ×
-          </button>
+          <button onClick={() => setIsVisible(false)} className="text-muted-foreground hover:text-foreground ml-2">×</button>
         </div>
       </div>
     );
@@ -240,23 +227,12 @@ export function ImportStatusIndicator() {
   // Estado de error
   if (importState === 'error') {
     return (
-      <div
-        className="fixed bottom-4 right-4 bg-destructive/10 border border-destructive/30 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5"
-        role="alert"
-      >
+      <div className="fixed bottom-4 right-4 bg-destructive/10 border border-destructive/30 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5">
         <div className="flex flex-col">
           <span className="font-semibold text-sm text-destructive">Error en la importación</span>
-          <span className="text-xs text-muted-foreground">
-            Algunas películas no pudieron procesarse
-          </span>
+          <span className="text-xs text-muted-foreground">Algunas películas no pudieron procesarse</span>
         </div>
-        <button
-          onClick={() => setIsVisible(false)}
-          className="text-muted-foreground hover:text-foreground transition-colors ml-2"
-          aria-label="Cerrar"
-        >
-          ×
-        </button>
+        <button onClick={() => setIsVisible(false)} className="text-muted-foreground hover:text-foreground ml-2">×</button>
       </div>
     );
   }

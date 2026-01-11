@@ -36,6 +36,8 @@ export async function POST(request: NextRequest) {
         let totalSuccess = 0;
         let totalFailed = 0;
 
+        const userIdsEncountered = new Set<string>();
+
         // Loop de procesamiento: Se mantiene vivo mientras tenga tiempo (< 50s)
         while (keepProcessing) {
             const elapsedTime = Date.now() - startTime;
@@ -46,6 +48,7 @@ export async function POST(request: NextRequest) {
             }
 
             // 2. Obtener items pendientes (lotes pequeños para feedback rápido)
+            // Obtenemos una pequeña cantidad (10) para evitar timeouts y dar feedback visual rápido al usuario.
             const { data: queueItems, error: queueError } = await supabase
                 .from('import_queue')
                 .select('*')
@@ -60,21 +63,27 @@ export async function POST(request: NextRequest) {
                 break;
             }
 
+            // Coleccionar IDs de usuarios para verificar si su importación ha finalizado
+            queueItems.forEach(item => userIdsEncountered.add(item.user_id));
+
             console.log(`Processing batch of ${queueItems.length} items... (Elapsed: ${elapsedTime}ms)`);
 
-            // 3. Procesar items
+            // 3. Procesar items individualmente
             const results = await Promise.allSettled(queueItems.map(async (item) => {
                 const payload = item.payload;
+                // Marcar como procesando
                 await supabase.from('import_queue')
                     .update({ status: 'processing', updated_at: new Date().toISOString() })
                     .eq('id', item.id);
 
                 try {
                     await processQueueItem(supabase, item.user_id, item.payload);
+                    // Eliminar de la cola si es exitoso
                     await supabase.from('import_queue').delete().eq('id', item.id);
                     return item.id;
                 } catch (err: any) {
                     console.error(`Item failed ${item.id}:`, err);
+                    // Marcar como fallido para reintento o inspección
                     await supabase.from('import_queue')
                         .update({ status: 'failed', error_message: err.message || 'Error', updated_at: new Date().toISOString() })
                         .eq('id', item.id);
@@ -89,19 +98,45 @@ export async function POST(request: NextRequest) {
             totalSuccess += successCount;
             totalFailed += failCount;
 
-            // Si trajimos menos del límite, es que ya no hay más pendientes
+            // Si trajimos menos del límite, es que ya no hay más pendientes, terminamos el bucle
             if (queueItems.length < 10) {
                 keepProcessing = false;
             }
         }
 
-        // 4. Trigger recursivo: verificamos si quedan items pendientes
+        // 4. Trigger recursivo: verificamos si quedan items pendientes (Globales)
         const { count } = await supabase
             .from('import_queue')
             .select('*', { count: 'exact', head: true })
             .eq('status', 'pending');
 
         const hasMore = count && count > 0;
+
+        // 5. Trigger de Recálculo de Estadísticas (Inteligente)
+        // Solo disparamos el cálculo si la cola de importación DEL USUARIO está vacía.
+        for (const userId of userIdsEncountered) {
+            // Verificamos si este usuario específico tiene pendientes
+            const { count: userPending } = await supabase
+                .from('import_queue')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', userId)
+                .eq('status', 'pending');
+
+            if (userPending === 0) {
+                console.log(`User ${userId} queue cleared. Triggering stats recalc...`);
+
+                // Señalamos al frontend que el cálculo ha comenzado
+                await supabase.from('profiles').update({ stats_status: 'calculating' }).eq('id', userId);
+
+                const statsUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/workers/recalc-stats?userId=${userId}`;
+                // Llamada asíncrona "fire-and-forget" al worker de estadísticas
+                fetch(statsUrl, {
+                    method: 'GET',
+                    headers: { 'x-cron-secret': process.env.CRON_SECRET || '' },
+                    signal: AbortSignal.timeout(1000)
+                }).catch(err => console.error(`Failed to trigger stats for ${userId}`, err));
+            }
+        }
 
         if (hasMore) {
             const workerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/workers/process-import`;

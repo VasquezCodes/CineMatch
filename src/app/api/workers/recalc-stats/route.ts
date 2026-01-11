@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
         // Batch Upsert into user_statistics
 
-        // Prepare payload (mapping keys from logic to DB schema)
+        // Preparar payload (mapeando desde la lógica al esquema de BD)
         const payload = stats.map(s => ({
             user_id: userId,
             type: s.type,
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
             updated_at: new Date().toISOString()
         }));
 
-        // Upsert in batches of 1000 to avoid packet size limits
+        // Upsert en lotes de 500 para evitar límites de tamaño de paquete
         const BATCH_SIZE = 500;
         let upsertedCount = 0;
 
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
             const chunk = payload.slice(i, i + BATCH_SIZE);
             const { error } = await supabase
                 .from('user_statistics')
-                .upsert(chunk, { onConflict: 'user_id,type,key' }); // Ensure DB has this Unique Key
+                .upsert(chunk, { onConflict: 'user_id,type,key' }); // Asegurar que la BD tenga esta clave única
 
             if (error) {
                 console.error('[Worker] Upsert error:', error);
@@ -76,13 +76,22 @@ export async function GET(request: NextRequest) {
             upsertedCount += chunk.length;
         }
 
-        // Clean up OBSOLETE stats? 
-        // Logic: if a stat is NOT in the new calculation, it should be deleted or zeroed.
-        // For simplicity: We delete everything for this user NOT in the current batch? 
-        // Or simpler: We just upsert. If an actor count goes to 0, calculateRankings should probably return it as 0? 
-        // Currently logic doesn't return 0s. 
-        // Mitigation: We could DELETE where user_id = X before inserting, but that causes downtime.
-        // Better: We upsert. Old actors remain with old counts. (Acceptable for MVP).
+        // Limpieza de estadísticas obsoletas:
+        // Idealmente deberíamos borrar las que ya no existen, pero por ahora el upsert es suficiente para MVP.
+        // Las estadísticas viejas permanecen (ej. actor que ya no tienes películas) hasta que se haga un reset completo.
+
+        // 5. Actualizar Timestamp del Perfil para señalar completitud al Frontend
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .update({
+                last_stats_recalc: new Date().toISOString(),
+                stats_status: 'idle' // Volvemos a estado 'idle' (listo)
+            })
+            .eq('id', userId);
+
+        if (profileError) {
+            console.error('[Worker] Failed to update profile timestamp:', profileError);
+        }
 
         return NextResponse.json({
             success: true,
