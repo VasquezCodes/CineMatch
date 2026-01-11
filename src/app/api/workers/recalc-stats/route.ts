@@ -39,7 +39,8 @@ export async function GET(request: NextRequest) {
         console.log(`[Worker] Starting stats recalc for ${userId}`);
         const start = Date.now();
 
-        // Use Admin Client to bypass RLS for both reading (watchlists) and writing (user_statistics)
+        // Usamos Admin Client para saltar RLS tanto para leer (watchlists) como escribir (user_statistics)
+        // Esto es necesario porque el worker se ejecuta en el servidor sin sesión de usuario.
         const supabase = getAdminClient();
 
         const stats = await calculateRankings(userId, supabase);
@@ -60,21 +61,32 @@ export async function GET(request: NextRequest) {
         }));
 
         // Upsert en lotes de 500 para evitar límites de tamaño de paquete
+        // Upsert en lotes paralelos para máxima velocidad
+        // Usamos BATCH_SIZE de 500 para balancear carga de red y memoria.
         const BATCH_SIZE = 500;
-        let upsertedCount = 0;
+        const upsertPromises = [];
 
         for (let i = 0; i < payload.length; i += BATCH_SIZE) {
             const chunk = payload.slice(i, i + BATCH_SIZE);
-            const { error } = await supabase
-                .from('user_statistics')
-                .upsert(chunk, { onConflict: 'user_id,type,key' }); // Asegurar que la BD tenga esta clave única
 
-            if (error) {
-                console.error('[Worker] Upsert error:', error);
-                throw error;
-            }
-            upsertedCount += chunk.length;
+            // Creamos la promesa pero no la esperamos inmediatamente
+            upsertPromises.push(
+                supabase
+                    .from('user_statistics')
+                    .upsert(chunk, { onConflict: 'user_id,type,key' })
+                    .then(({ error }) => {
+                        if (error) {
+                            console.error('[Worker] Upsert batch error:', error);
+                            throw error;
+                        }
+                        return chunk.length;
+                    })
+            );
         }
+
+        // Esperamos a que todos terminen
+        const results = await Promise.all(upsertPromises);
+        let upsertedCount = results.reduce((acc, count) => acc + count, 0);
 
         // Limpieza de estadísticas obsoletas:
         // Idealmente deberíamos borrar las que ya no existen, pero por ahora el upsert es suficiente para MVP.
@@ -85,7 +97,7 @@ export async function GET(request: NextRequest) {
             .from('profiles')
             .update({
                 last_stats_recalc: new Date().toISOString(),
-                stats_status: 'idle' // Volvemos a estado 'idle' (listo)
+                stats_status: 'idle' // Volvemos a estado 'idle' (listo) para que la UI se actualice
             })
             .eq('id', userId);
 
@@ -101,6 +113,17 @@ export async function GET(request: NextRequest) {
 
     } catch (e: any) {
         console.error('[Worker] Fatal error:', e);
+
+        // Intentar revertir el estado a 'idle' para no bloquear la UI
+        // Recuperación ante fallos: 
+        // Si el cálculo explota, forzamos el estado a 'idle' para que la UI no se quede pegada en "Generando..."
+        try {
+            const recoveryClient = getAdminClient();
+            await recoveryClient.from('profiles').update({ stats_status: 'idle' }).eq('id', userId);
+        } catch (recoveryError) {
+            console.error('Failed to reset stats_status during error recovery:', recoveryError);
+        }
+
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

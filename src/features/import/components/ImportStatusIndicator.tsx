@@ -130,15 +130,17 @@ export function ImportStatusIndicator() {
             const newRecord = payload.new as { stats_status?: string };
             const oldRecord = payload.old as { stats_status?: string };
 
-            if (newRecord.stats_status !== oldRecord.stats_status) {
-              if (newRecord.stats_status === 'calculating') {
-                // Si empieza a calcular, mostramos la notificación
-                setIsVisible(true);
-                setImportState('calculating_stats');
-              } else if (newRecord.stats_status === 'idle' && oldRecord.stats_status === 'calculating') {
-                // Si termina de calcular (calculating -> idle), éxito
-                setImportState('completed');
-              }
+            // Simplificar lógica: Si el nuevo estado es 'idle', verificamos si estábamos calculando.
+            // Usamos el 'callback form' de setState para tener el valor actual de importState
+            if (newRecord.stats_status === 'idle') {
+              setImportState(current => {
+                if (current === 'calculating_stats') return 'completed';
+                return current;
+              });
+            } else if (newRecord.stats_status === 'calculating') {
+              // Si cambia a calculating, lo mostramos
+              setIsVisible(true);
+              setImportState('calculating_stats');
             }
           }
         )

@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
         // Loop de procesamiento: Se mantiene vivo mientras tenga tiempo (< 50s)
         while (keepProcessing) {
             const elapsedTime = Date.now() - startTime;
-            // Si pasaron más de 50 segundos, paramos para permitir el trigger recursivo seguro
+            // Si pasaron más de 50 segundos, paramos para permitir el trigger recursivo seguro.
+            // Esto evita que Vercel termine la ejecución abruptamente.
             if (elapsedTime > 50000) {
                 console.log(`Time limit reached (${elapsedTime}ms). Stopping loop.`);
                 break;
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
 
                 try {
                     await processQueueItem(supabase, item.user_id, item.payload);
-                    // Eliminar de la cola si es exitoso
+                    // Eliminar de la cola si es exitoso para evitar re-procesamiento
                     await supabase.from('import_queue').delete().eq('id', item.id);
                     return item.id;
                 } catch (err: any) {
@@ -114,6 +115,7 @@ export async function POST(request: NextRequest) {
 
         // 5. Trigger de Recálculo de Estadísticas (Inteligente)
         // Solo disparamos el cálculo si la cola de importación DEL USUARIO está vacía.
+        // Esto previene cálculos con datos parciales.
         for (const userId of userIdsEncountered) {
             // Verificamos si este usuario específico tiene pendientes
             const { count: userPending } = await supabase
@@ -133,7 +135,7 @@ export async function POST(request: NextRequest) {
                 fetch(statsUrl, {
                     method: 'GET',
                     headers: { 'x-cron-secret': process.env.CRON_SECRET || '' },
-                    signal: AbortSignal.timeout(1000)
+                    signal: AbortSignal.timeout(60000)
                 }).catch(err => console.error(`Failed to trigger stats for ${userId}`, err));
             }
         }
@@ -217,6 +219,7 @@ async function processQueueItem(supabase: any, userId: string, movie: any) {
 
     // 4. Enriquecimiento de datos
     // Optimización: Si ya tenemos extended_data, runtime y fotos del crew, evitamos llamar a TMDB.
+    // Esto ahorra cuota de API y acelera el procesamiento masivo.
     const hasExtendedData = savedMovie.extended_data &&
         savedMovie.extended_data.technical &&
         savedMovie.extended_data.technical.runtime &&
@@ -274,6 +277,7 @@ async function enrichMovieData(supabase: any, movieId: string, imdbId: string) {
             },
             // ESTRATEGIA: Worker NO procesa recomendaciones para maximizar velocidad.
             // Se cargarán "on-demand" vía getMovie la primera vez que se visite la película.
+            // Esto reduce dramáticamente el tiempo de importación inicial.
             recommendations: []
         };
 

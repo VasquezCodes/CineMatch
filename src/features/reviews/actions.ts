@@ -59,7 +59,7 @@ export async function updateMovieRating(
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     fetch(`${appUrl}/api/workers/recalc-stats?userId=${user.id}`, {
       method: "GET",
-      signal: AbortSignal.timeout(200)
+      signal: AbortSignal.timeout(60000)
     }).catch(() => { });
 
     return { success: true };
