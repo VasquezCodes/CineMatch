@@ -11,6 +11,7 @@ export type MovieDetail = {
     director: string | null;
     genres: string[];
     synopsis: string | null;
+    imdb_rating: number | null; // IMDb rating
     rating?: number; // Calificación del usuario si existe
     watchlist?: {
         status: string;
@@ -251,6 +252,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
         director: movie.director,
         genres: movie.genres || [],
         synopsis: movie.synopsis,
+        imdb_rating: movie.imdb_rating || null, // Pass IMDb rating
         extended_data: movie.extended_data || {},
         rating: userReview?.rating,
         watchlist: userWatchlist ? {
