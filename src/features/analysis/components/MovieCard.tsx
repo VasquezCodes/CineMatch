@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CloudinaryImage } from "@/components/shared/CloudinaryImage";
+import CloudinaryImage from "@/components/CloudinaryImage";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
