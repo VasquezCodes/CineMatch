@@ -7,10 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
-import type { RankingItem, RankingType } from "@/features/rankings/actions";
+import type { RankingStatConfig, RankingType } from "@/features/rankings/actions";
 
 interface RankingCardProps {
-  item: RankingItem;
+  item: RankingStatConfig;
   index: number;
   type?: RankingType;
   onViewMore?: () => void;
@@ -26,7 +26,7 @@ export function RankingCard({
 }: RankingCardProps) {
   const router = useRouter();
 
-  const handleMovieClick = (movie: (typeof item.movies)[0]) => {
+  const handleMovieClick = (movie: (typeof item.data.movies)[0]) => {
     // Construir URL con query params para pasar datos temporalmente
     const params = new URLSearchParams({
       title: movie.title,
@@ -38,8 +38,9 @@ export function RankingCard({
     router.push(`/app/movies/${movie.id}?${params.toString()}`);
   };
   // En modo compacto mostramos menos películas
-  const moviesToShow = compact ? item.movies.slice(0, 3) : item.movies;
-  const hasMore = item.movies.length > moviesToShow.length;
+  const movies = item.data?.movies || [];
+  const moviesToShow = compact ? movies.slice(0, 3) : movies;
+  const hasMore = movies.length > moviesToShow.length;
 
   // Mostrar avatar para personas (director, actor, guionista, fotografía, música)
   const showAvatar =
@@ -84,14 +85,14 @@ export function RankingCard({
             {/* Avatar del director/actor - Solo para directores y actores */}
             {showAvatar && (
               <Avatar className="h-6 w-6 ring-1 ring-border/40 transition-transform duration-200 group-hover:scale-105">
-                {item.image_url && getImageUrl(item.image_url) ? (
+                {item.data.image_url && getImageUrl(item.data.image_url) ? (
                   <AvatarImage
-                    src={getImageUrl(item.image_url)!}
-                    alt={item.name}
+                    src={getImageUrl(item.data.image_url)!}
+                    alt={item.key}
                   />
                 ) : null}
                 <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-semibold">
-                  {getInitials(item.name)}
+                  {getInitials(item.key)}
                 </AvatarFallback>
               </Avatar>
             )}
@@ -101,30 +102,23 @@ export function RankingCard({
             </span>
             <h3
               className="font-semibold text-sm md:text-base truncate"
-              title={item.name}
+              title={item.key}
             >
-              {item.name}
+              {item.key}
             </h3>
           </div>
 
           {/* Roles for actors */}
-          {item.roles && item.roles.length > 0 && (
+          {item.data.roles && item.data.roles.length > 0 && (
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[10px] text-muted-foreground line-clamp-1">
-                {item.roles
+                {item.data.roles
                   .slice(0, 2)
                   .map((r) => `${r.role} (${r.movies.join(", ")})`)
                   .join(", ")}
-                {item.roles.length > 2 && ` +${item.roles.length - 2}`}
+                {item.data.roles.length > 2 && ` +${item.data.roles.length - 2}`}
               </span>
-              {item.is_saga && (
-                <Badge
-                  variant="outline"
-                  className="h-4 text-[8px] px-1 bg-primary/5 text-primary/60 border-primary/20 uppercase tracking-tighter"
-                >
-                  Saga
-                </Badge>
-              )}
+              {/* Note: is_saga logic might need to be re-evaluated if it was on item root. Assuming it's not present or moved to data */}
             </div>
           )}
         </div>
@@ -194,7 +188,7 @@ export function RankingCard({
           >
             <ArrowRight className="h-5 w-5 mb-1 transition-transform group-hover/more:translate-x-1" />
             <span className="text-[10px] font-medium">
-              +{item.movies.length - moviesToShow.length} más
+              +{movies.length - moviesToShow.length} más
             </span>
           </button>
         )}

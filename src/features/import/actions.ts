@@ -74,7 +74,7 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
 
     if (moviesToInsert.length === 0) {
         if (hasPendingItems) {
-            console.log("No new movies, but pending items found. Retrying worker trigger...");
+            console.log("No hay nuevas películas, pero hay items pendientes. Re-activando worker...");
             triggerWorker(user.id);
         }
 
@@ -118,7 +118,7 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
     return {
         success: true,
         total: movies.length,
-        new_movies: queuedCount, // Semánticamente cambió: ahora significa "encolado"
+        new_movies: queuedCount, // Semánticamente: "encolado"
         updated_movies: 0,
         errors: errorCount
     };
@@ -127,7 +127,6 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
 function triggerWorker(userId: string) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const workerUrl = `${appUrl}/api/workers/process-import`;
-    const statsUrl = `${appUrl}/api/workers/recalc-stats?userId=${userId}`;
 
     try {
         console.log("Activando worker:", workerUrl);
@@ -138,15 +137,11 @@ function triggerWorker(userId: string) {
                 'x-cron-secret': process.env.CRON_SECRET || '',
                 'Content-Type': 'application/json'
             },
-            signal: AbortSignal.timeout(500) // 500ms para asegurar que la petición sale
+            signal: AbortSignal.timeout(500) // 500ms para asegurar que la petición sale sin bloquear
         }).catch(err => {
             if (err.name === 'TimeoutError') console.log("Worker activado (timeout esperado)");
             else console.error("Fallo al activar worker:", err);
         });
-
-        // Trigger Stats Recalc Async - REMOVIDO: Ahora es manejado por el worker `process-import` al finalizar.
-        // Esto evita condiciones de carrera donde se calculan stats con datos incompletos.
-        // fetch(statsUrl, { method: 'GET', signal: AbortSignal.timeout(500) }).catch(() => { });
 
     } catch (e) {
         // Catch silencioso

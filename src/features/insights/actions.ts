@@ -18,13 +18,14 @@ export async function getAnalysisData(): Promise<AnalysisData> {
     }
 
     // 1. Obtener Watchlist (Biblioteca) con detalles de las películas y user_rating
+    // OPTIMIZACIÓN: Solo traemos 'genres', ya no 'extended_data' completo.
+    // Esto reduce drásticamente el tamaño de la respuesta y el tiempo de carga.
     const { data: library, error: libraryError } = await supabase
         .from('watchlists')
         .select(`
             user_rating,
             movies (
-                genres,
-                extended_data
+                genres
             )
         `)
         .eq('user_id', user.id)
@@ -54,10 +55,8 @@ export async function getAnalysisData(): Promise<AnalysisData> {
             let genres: string[] = []
 
             if (movie.genres && Array.isArray(movie.genres)) {
+                // Filtramos strings válidos
                 genres = movie.genres.map((g: any) => typeof g === 'string' ? g : '').filter(Boolean)
-            }
-            else if (movie.extended_data && (movie.extended_data as any).technical?.genres) {
-                genres = ((movie.extended_data as any).technical.genres as string[]) || []
             }
 
             genres.forEach(genre => {

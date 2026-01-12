@@ -11,7 +11,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getRanking, type RankingType, type RankingItem } from "@/features/rankings/actions";
+import { getRanking, type RankingType, type RankingStatConfig } from "@/features/rankings/actions";
 import { ErrorState } from "@/components/ui/error-state";
 import { TrendingUp, X, Star } from "lucide-react";
 
@@ -30,7 +30,7 @@ export function RankingsSheet({
   rankingType,
   rankingLabel,
 }: RankingsSheetProps) {
-  const [data, setData] = React.useState<RankingItem[]>([]);
+  const [data, setData] = React.useState<RankingStatConfig[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -80,7 +80,7 @@ export function RankingsSheet({
 
   // Cálculos para Quick Stats
   const allMovies = React.useMemo(() => {
-    const movies = data.flatMap((item) => item.movies || []);
+    const movies = data.flatMap((item) => item.data.movies || []);
     // Eliminar duplicados por ID
     return Array.from(new Map(movies.map((m) => [m.id, m])).values());
   }, [data]);
@@ -159,21 +159,21 @@ export function RankingsSheet({
             </div>
           ) : (
             data.map((item, index) => (
-              <div key={item.name} className="space-y-4">
+              <div key={item.key} className="space-y-4">
                 {/* Item Header */}
                 <div className="flex items-end justify-between border-b border-border pb-2" data-theme-transition>
                   <div className="flex items-center gap-3">
                     {/* Avatar del director/actor - Solo para directores y actores */}
                     {showAvatar && (
                       <Avatar className="h-10 w-10 ring-2 ring-border/40">
-                        {item.image_url && getImageUrl(item.image_url) ? (
+                        {item.data.image_url && getImageUrl(item.data.image_url) ? (
                           <AvatarImage
-                            src={getImageUrl(item.image_url)!}
-                            alt={item.name}
+                            src={getImageUrl(item.data.image_url)!}
+                            alt={item.key}
                           />
                         ) : null}
                         <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                          {getInitials(item.name)}
+                          {getInitials(item.key)}
                         </AvatarFallback>
                       </Avatar>
                     )}
@@ -182,11 +182,11 @@ export function RankingsSheet({
                     </span>
                     <div>
                       <h3 className="text-lg font-bold text-foreground leading-tight">
-                        {item.name}
+                        {item.key}
                       </h3>
-                      {item.roles && item.roles.length > 0 && (
+                      {item.data.roles && item.data.roles.length > 0 && (
                         <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                          {item.roles.map((r) => `${r.role} (${r.movies.join(' • ')})`).join(" • ")}
+                          {item.data.roles.map((r) => `${r.role} (${r.movies.join(' • ')})`).join(" • ")}
                         </p>
                       )}
                     </div>
@@ -198,7 +198,7 @@ export function RankingsSheet({
 
                 {/* Movie List (Vertical Compact) */}
                 <div className="space-y-2">
-                  {item.movies.map((movie: any) => (
+                  {(item.data.movies || []).map((movie: any) => (
                     <div
                       key={movie.id}
                       className="group/movie flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50 transition-all cursor-pointer border border-transparent hover:border-border"

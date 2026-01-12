@@ -162,7 +162,7 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {currentData.map((item, index) => (
                         <RankingCard
-                          key={item.name}
+                          key={item.key}
                           item={item}
                           index={index}
                           type={type.value}

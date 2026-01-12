@@ -42,24 +42,24 @@ export async function getLibraryPaginated(
       query = query.gte("user_rating", filters.minRating);
     }
 
-    // 2. Filtros de Búsqueda (Multicolumna: Title OR Director OR Year)
+    // 2. Filtros de Búsqueda (Multicolumna: Título OR Director OR Año)
     if (filters.searchQuery) {
       const q = filters.searchQuery;
-      // Nota: Para buscar por año (numérico) como texto, idealmente Casteamos.
-      // Pero PostgREST 'ilike' espera texto. Si 'year' es int, puede fallar si no casteamos.
-      // Supabase PostgREST permite casting con ::text.
-      // Sintaxis: columna.ilike.val
+      // Nota: Para buscar por año (columna numérica) usando búsqueda de texto,
+      // necesitamos una estrategia ya que ilike es para texto.
+      // Sin embargo, PostgREST y la librería de Supabase manejan cierta magia,
+      // pero mezclar tipos (texto vs int) en un query `or` puede ser delicado.
 
-      // Si el query parece un año (4 dígitos), añadimos filtro exacto de año o cast
+      // Estrategia: "Todo en un solo string OR"
+      // Construimos una cadena de condiciones OR.
+
       if (/^\d{4}$/.test(q)) {
-        // Si es un número, podríamos añadir OR year.eq.Numero
-        // Pero para hacerlo en un solo OR con el título:
-        // query = query.or(`title.ilike.%${q}%,director.ilike.%${q}%,year.eq.${q}`)
-        // Esto funciona si la columna year soporta eq con el valor.
-        // Al recargar el query object, concatenamos conditions.
-        // Mejor estrategia: Todo en un solo OR string.
+        // CASO ESPECIAL: Si el query son exactamente 4 dígitos, asumimos que puede ser un año.
+        // Añadimos una condición exacta para la columna `year` (que es int) o búsqueda parcial en texto.
+        // Nota: `year.eq.${q}` funcionará porque Supabase casteará el valor al tipo de la columna si es compatible.
         query = query.or(`title.ilike.%${q}%,director.ilike.%${q}%,year.eq.${q}`);
       } else {
+        // Búsqueda estándar solo en campos de texto
         query = query.or(`title.ilike.%${q}%,director.ilike.%${q}%`);
       }
     }
@@ -132,6 +132,10 @@ export async function getLibraryPaginated(
         imdb_rating: row.imdb_rating,
         synopsis: row.synopsis,
         created_at: row.movie_created_at,
+        plot: row.plot || null,
+        runtime: row.runtime || null,
+        tmdb_id: row.tmdb_id || null,
+        updated_at: row.movie_updated_at || new Date().toISOString(), // Fallback if view lacks it
       },
     }));
 

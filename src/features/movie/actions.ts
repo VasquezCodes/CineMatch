@@ -1,6 +1,8 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { syncMoviePeople } from '@/features/rankings/people-sync';
 
 export type MovieDetail = {
     id: string;
@@ -56,104 +58,117 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
     // Obtener usuario actual en paralelo (no bloquea el resto de la lógica inicial)
     const userPromise = supabase.auth.getUser();
 
-    // 0. DETECCIÓN INTELIGENTE DE ID
-    // Si el ID es numérico, asumimos que es un TMDB ID y necesitamos buscarlo o importarlo.
+    // 0. DETECCIÓN INTELIGENTE DE ID Y CACHE FIRST
     const isTmdbId = /^\d+$/.test(id);
     let movieId = id;
 
     if (isTmdbId) {
-        // A. Buscar si ya existe en nuestra DB por alguna concordancia (usaremos IMDB ID idealmente)
-        // Para eso, primero necesitamos detalles mínimos de TMDB para saber su IMDB ID
-        try {
-            const { tmdb } = await import('@/lib/tmdb');
-            const tmdbMovie = await tmdb.getMovieDetails(parseInt(id));
+        // A. CACHE CHECK: Buscar primero en DB local por tmdb_id
+        const { data: localMovie } = await supabase
+            .from('movies')
+            .select('id')
+            .eq('tmdb_id', parseInt(id))
+            .maybeSingle();
 
-            if (tmdbMovie) {
-                // ESTRATEGIA ON-DEMAND: Si no vienen recomendaciones (fallo de API o worker rápido), las pedimos aquí.
-                // Esto permite que el worker sea rápido (paralelo) y la carga pesada sea lazy.
-                let validRecommendations = tmdbMovie.recommendations?.results || [];
-                if (validRecommendations.length === 0) {
-                    try {
-                        // console.log(`[Action] Fetching missing recommendations on-demand for ${tmdbMovie.title}`);
-                        validRecommendations = await tmdb.getRecommendations(tmdbMovie.id);
-                    } catch (e) {
-                        console.error('Error fetching on-demand recommendations:', e);
+        if (localMovie) {
+            // HIT! Usamos el ID local y saltamos fetch a TMDB (ahorramos ~300ms)
+            // console.log(`[Cache Hit] Movie ${id} found in DB as ${localMovie.id}`);
+            movieId = localMovie.id;
+        } else {
+            // MISS! Fetch TMDB + Upsert
+            try {
+                const { tmdb } = await import('@/lib/tmdb');
+                const tmdbMovie = await tmdb.getMovieDetails(parseInt(id));
+
+                if (tmdbMovie) {
+                    // Sync People:
+                    // Sincronización "On-Demand": Si la película es nueva o se está recargando,
+                    // aseguramos que los actores y equipo técnico se registren en la tabla relacional `movie_people`.
+                    // Usamos adminClient para evitar restricciones de RLS durante escrituras del sistema.
+                    const adminClient = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+                        auth: { persistSession: false }
+                    });
+                    if (tmdbMovie.credits) {
+                        await syncMoviePeople(adminClient, movieId, tmdbMovie.credits);
                     }
-                }
 
-                // Intentar buscar en DB local por IMDB ID
-                const { data: existing } = await supabase
-                    .from('movies')
-                    .select('id, extended_data')
-                    .eq('imdb_id', tmdbMovie.imdb_id)
-                    .maybeSingle();
-
-                // Mapear datos para inserción/actualización (SIEMPRE actualizamos para asegurar datos completos)
-                const payload = {
-                    title: tmdbMovie.title,
-                    year: tmdbMovie.release_date ? parseInt(tmdbMovie.release_date.split('-')[0]) : null,
-                    imdb_id: tmdbMovie.imdb_id,
-                    poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
-                    director: tmdbMovie.credits?.crew?.find((c: any) => c.job === 'Director')?.name || null,
-                    synopsis: tmdbMovie.overview,
-                    genres: tmdbMovie.genres?.map((g: any) => g.name) || [],
-                    extended_data: {
-                        technical: {
-                            runtime: tmdbMovie.runtime,
-                            tagline: tmdbMovie.tagline,
-                        },
-                        cast: tmdbMovie.credits?.cast?.slice(0, 10).map((c: any) => ({
-                            name: c.name,
-                            role: c.character,
-                            photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
-                        })),
-                        crew_details: tmdbMovie.credits?.crew?.slice(0, 5).map((c: any) => ({
-                            name: c.name,
-                            job: c.job,
-                            photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
-                        })),
-                        recommendations: validRecommendations.slice(0, 12).map((r: any) => ({
-                            id: r.id, // TMDB ID
-                            tmdb_id: r.id,
-                            title: r.title,
-                            year: r.release_date ? parseInt(r.release_date.split('-')[0]) : 0,
-                            poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : null
-                        }))
+                    // Recomendaciones On-Demand:
+                    // Si la API de detalles no devolvió recomendaciones, intentamos obtenerlas explícitamente.
+                    let validRecommendations = tmdbMovie.recommendations?.results || [];
+                    if (validRecommendations.length === 0) {
+                        try {
+                            validRecommendations = await tmdb.getRecommendations(tmdbMovie.id);
+                        } catch (e) {
+                            console.error('Error fetching on-demand recommendations:', e);
+                        }
                     }
-                };
 
-                if (existing) {
-                    movieId = existing.id;
-
-                    // OPTIMIZACIÓN: Solo actualizar si faltan datos clave (extended_data vacío o sin recomendaciones)
-                    // Esto evita escrituras innecesarias cada vez que alguien entra a la película
-                    const hasRecommendations = existing.extended_data &&
-                        (existing.extended_data as any).recommendations &&
-                        (existing.extended_data as any).recommendations.length > 0;
-
-                    if (!hasRecommendations) {
-                        // console.log(`Updating missing data for ${tmdbMovie.title}`);
-                        await supabase
-                            .from('movies')
-                            .update(payload)
-                            .eq('id', movieId);
-                    }
-                } else {
-                    // INSERTAR NUEVO
-                    const { data: newEntry, error: insertError } = await supabase
+                    // Intentar buscar en DB local por IMDB ID (Double Check por si acaso)
+                    const { data: existing } = await supabase
                         .from('movies')
-                        .insert(payload)
-                        .select('id')
-                        .single();
+                        .select('id, extended_data')
+                        .eq('imdb_id', tmdbMovie.imdb_id)
+                        .maybeSingle();
 
-                    if (!insertError && newEntry) {
-                        movieId = newEntry.id;
+                    const payload = {
+                        title: tmdbMovie.title,
+                        year: tmdbMovie.release_date ? parseInt(tmdbMovie.release_date.split('-')[0]) : null,
+                        imdb_id: tmdbMovie.imdb_id,
+                        tmdb_id: tmdbMovie.id, // Ensure we save TMDB ID!
+                        poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
+                        director: tmdbMovie.credits?.crew?.find((c: any) => c.job === 'Director')?.name || null,
+                        synopsis: tmdbMovie.overview,
+                        imdb_rating: tmdbMovie.vote_average,
+                        genres: tmdbMovie.genres?.map((g: any) => g.name) || [],
+                        extended_data: {
+                            technical: {
+                                runtime: tmdbMovie.runtime,
+                                tagline: tmdbMovie.tagline,
+                            },
+                            cast: tmdbMovie.credits?.cast?.slice(0, 50).map((c: any) => ({
+                                name: c.name,
+                                role: c.character,
+                                photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
+                            })),
+                            crew_details: tmdbMovie.credits?.crew?.slice(0, 20).map((c: any) => ({
+                                name: c.name,
+                                job: c.job,
+                                photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
+                            })),
+                            recommendations: validRecommendations.slice(0, 12).map((r: any) => ({
+                                id: r.id,
+                                tmdb_id: r.id,
+                                title: r.title,
+                                year: r.release_date ? parseInt(r.release_date.split('-')[0]) : 0,
+                                poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : null
+                            }))
+                        }
+                    };
+
+                    if (existing) {
+                        movieId = existing.id;
+                        // Solo actualizar si realmente falta algo importante para evitar writes
+                        const hasRecommendations = existing.extended_data &&
+                            (existing.extended_data as any).recommendations &&
+                            (existing.extended_data as any).recommendations.length > 0;
+
+                        // Si no tenía tmdb_id guardado, actualizarlo
+                        await supabase.from('movies').update({ ...payload, tmdb_id: tmdbMovie.id }).eq('id', movieId);
+                    } else {
+                        const { data: newEntry, error: insertError } = await supabase
+                            .from('movies')
+                            .insert(payload)
+                            .select('id')
+                            .single();
+
+                        if (!insertError && newEntry) {
+                            movieId = newEntry.id;
+                        }
                     }
                 }
+            } catch (e) {
+                console.error('Error in on-demand import:', e);
             }
-        } catch (e) {
-            console.error('Error in on-demand import:', e);
-            // Si falla importación, dejamos que falle la búsqueda normal de UUID
         }
     }
 
@@ -192,6 +207,14 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
             const tmdbMovie = await tmdb.findByImdbId(movie.imdb_id);
 
             if (tmdbMovie) {
+                // Sync people using admin client
+                const adminClient = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+                    auth: { persistSession: false }
+                });
+                if (tmdbMovie.credits) {
+                    await syncMoviePeople(adminClient, movie.id, tmdbMovie.credits);
+                }
+
                 const recommendations = tmdbMovie.recommendations?.results || [];
                 if (recommendations.length > 0) {
                     const validRecommendations = recommendations.slice(0, 12).map((r: any) => ({

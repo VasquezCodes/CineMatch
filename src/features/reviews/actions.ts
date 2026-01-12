@@ -31,7 +31,7 @@ export async function updateMovieRating(
       return { success: false, error: "Usuario no autenticado" };
     }
 
-    // Actualizar el rating en watchlists
+    // Actualizar el rating en la tabla watchlists
     const updateData: TablesUpdate<"watchlists"> = {
       user_rating: rating,
       updated_at: new Date().toISOString(),
@@ -41,7 +41,7 @@ export async function updateMovieRating(
       .from("watchlists")
       .update(updateData)
       .eq("id", watchlistId)
-      .eq("user_id", user.id); // Seguridad: solo actualizar propios registros
+      .eq("user_id", user.id); // Seguridad: asegurar que el usuario solo edite su propio registro
 
     if (updateError) {
       console.error("Error updating movie rating:", updateError);
@@ -53,16 +53,9 @@ export async function updateMovieRating(
     revalidatePath("/app/rate-movies");
     revalidatePath("/app/analysis");
 
-    // Trigger Async Update for Stats
-    await supabase.from('profiles').update({ stats_status: 'calculating' }).eq('id', user.id);
-
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    fetch(`${appUrl}/api/workers/recalc-stats?userId=${user.id}`, {
-      method: "GET",
-      signal: AbortSignal.timeout(60000)
-    }).catch(() => { });
-
     return { success: true };
+
+
   } catch (error) {
     console.error("Unexpected error in updateMovieRating:", error);
     return { success: false, error: "Error inesperado al guardar" };

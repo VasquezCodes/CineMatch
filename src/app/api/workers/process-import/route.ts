@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { tmdb, TmdbClient } from '@/lib/tmdb';
 import { NextRequest, NextResponse } from 'next/server';
-
-
+import { syncMoviePeople } from '@/features/rankings/people-sync'; // Lógica compartida para sincronizar People
 
 // Tiempo máximo de ejecución por lote (limitado por Vercel)
 export const maxDuration = 60;
@@ -113,32 +112,9 @@ export async function POST(request: NextRequest) {
 
         const hasMore = count && count > 0;
 
-        // 5. Trigger de Recálculo de Estadísticas (Inteligente)
-        // Solo disparamos el cálculo si la cola de importación DEL USUARIO está vacía.
-        // Esto previene cálculos con datos parciales.
-        for (const userId of userIdsEncountered) {
-            // Verificamos si este usuario específico tiene pendientes
-            const { count: userPending } = await supabase
-                .from('import_queue')
-                .select('*', { count: 'exact', head: true })
-                .eq('user_id', userId)
-                .eq('status', 'pending');
-
-            if (userPending === 0) {
-                console.log(`User ${userId} queue cleared. Triggering stats recalc...`);
-
-                // Señalamos al frontend que el cálculo ha comenzado
-                await supabase.from('profiles').update({ stats_status: 'calculating' }).eq('id', userId);
-
-                const statsUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/workers/recalc-stats?userId=${userId}`;
-                // Llamada asíncrona "fire-and-forget" al worker de estadísticas
-                fetch(statsUrl, {
-                    method: 'GET',
-                    headers: { 'x-cron-secret': process.env.CRON_SECRET || '' },
-                    signal: AbortSignal.timeout(60000)
-                }).catch(err => console.error(`Failed to trigger stats for ${userId}`, err));
-            }
-        }
+        // 5. Trigger de Recálculo de Estadísticas (Inteligente) - REMOVED
+        // La nueva lógica de base de datos normalizada calcula rankings al vuelo.
+        // No es necesario disparar workers de estadísticas.
 
         if (hasMore) {
             const workerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/workers/process-import`;
@@ -240,6 +216,11 @@ async function enrichMovieData(supabase: any, movieId: string, imdbId: string) {
     const details = await tmdb.findByImdbId(imdbId);
 
     if (details) {
+        // Sync people to relational tables
+        if (details.credits) {
+            await syncMoviePeople(supabase, movieId, details.credits);
+        }
+
         const certification = details.release_dates?.results?.find((r: any) => r.iso_3166_1 === 'US')?.release_dates[0]?.certification;
         const trailer = details.videos?.results?.find((v: any) => v.type === 'Trailer' && v.site === 'YouTube')?.key;
 

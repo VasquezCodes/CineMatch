@@ -25,7 +25,7 @@ export default async function RateMoviesPage() {
       unratedMovies = result.data.map((item) => ({
         watchlistId: item.watchlist.id,
         movieId: item.movie.id,
-        imdbId: item.movie.imdb_id,
+        imdbId: item.movie.imdb_id || "",
         title: item.movie.title || "Título desconocido",
         year: item.movie.year,
         posterUrl: item.movie.poster_url,
