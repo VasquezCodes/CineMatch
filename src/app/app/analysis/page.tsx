@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertCircle, Star, Upload, Library } from "lucide-react";
+import { AlertCircle, Star, Upload, Library, Trash } from "lucide-react";
 import { APP_ROUTES, SECONDARY_ROUTES } from "@/config/routes";
 import { getAnalysisData } from "@/features/insights/actions";
 import { AnalysisStats } from "@/features/collection/components/AnalysisStats";
@@ -113,7 +113,7 @@ export default async function AnalysisPage() {
                     {unratedMoviesCount > 1 ? "s" : ""} sin calificar. Completa
                     tu perfil para obtener estadísticas precisas.
                   </p>
-                  <div className="pt-3">
+                  <div className="pt-3 flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -127,6 +127,14 @@ export default async function AnalysisPage() {
                         <Star className="h-3.5 w-3.5 fill-current" />
                         <span>Calificar ahora</span>
                       </Link>
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="h-8 flex items-center gap-2"
+                    >
+                      <Trash className="h-3.5 w-3.5" />
+                      <span>Eliminar CSV</span>
                     </Button>
                   </div>
                 </div>

@@ -7,7 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
-import type { RankingStatConfig, RankingType } from "@/features/rankings/actions";
+import type {
+  RankingStatConfig,
+  RankingType,
+} from "@/features/rankings/actions";
 
 interface RankingCardProps {
   item: RankingStatConfig;
@@ -79,7 +82,7 @@ export function RankingCard({
         {index + 1}
       </div>
 
-      <div className="relative mb-4 flex items-center justify-between gap-2">
+      <div className="relative mb-4 flex items-center gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             {/* Avatar del director/actor - Solo para directores y actores */}
@@ -116,21 +119,23 @@ export function RankingCard({
                   .slice(0, 2)
                   .map((r) => `${r.role} (${r.movies.join(", ")})`)
                   .join(", ")}
-                {item.data.roles.length > 2 && ` +${item.data.roles.length - 2}`}
+                {item.data.roles.length > 2 &&
+                  ` +${item.data.roles.length - 2}`}
               </span>
               {/* Note: is_saga logic might need to be re-evaluated if it was on item root. Assuming it's not present or moved to data */}
             </div>
           )}
         </div>
+      </div>
 
-        <div className="flex flex-col items-end shrink-0">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-            Total
-          </span>
-          <span className="text-lg font-bold leading-none text-foreground/80">
-            {item.count}
-          </span>
-        </div>
+      {/* Total posicionado en la esquina inferior derecha */}
+      <div className="absolute bottom-4 right-4 flex flex-col items-end">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+          Total
+        </span>
+        <span className="text-lg font-bold leading-none text-foreground/80">
+          {item.count}
+        </span>
       </div>
 
       {/* Lista de películas con flex-wrap */}

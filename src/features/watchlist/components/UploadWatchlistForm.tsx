@@ -13,6 +13,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { APP_ROUTES } from "@/config/routes";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils/index";
 import { TypewriterLoader } from "@/components/shared/typewriter-loader";
@@ -254,15 +255,12 @@ export function UploadWatchlistForm({
             >
               <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:justify-center">
                 <AlertDialogAction
-                  onClick={() => (window.location.href = "/app/rate-movies")}
+                  onClick={() => (window.location.href = APP_ROUTES.ANALYSIS)}
                 >
                   Ver análisis
                 </AlertDialogAction>
-                <AlertDialogCancel
-                  onClick={handleReset}
-                  className="!bg-destructive !text-white"
-                >
-                  Eliminar
+                <AlertDialogCancel className="hover:bg-destructive hover:text-destructive-foreground">
+                  Cerrar
                 </AlertDialogCancel>
               </AlertDialogFooter>
             </motion.div>
