@@ -1,12 +1,9 @@
-export default function cloudinaryLoader({
-    src,
-    width,
-    quality,
-}: {
-    src: string;
-    width: number;
-    quality?: number;
-}) {
+"use client";
+
+/**
+ * @param {import('next/image').ImageLoaderProps} props
+ */
+export default function cloudinaryLoader({ src, width, quality }) {
     const params = [
         "f_auto",
         "c_limit",

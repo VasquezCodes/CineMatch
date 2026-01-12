@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/CloudinaryImage";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Star, Film, Bookmark, Clock } from "lucide-react";

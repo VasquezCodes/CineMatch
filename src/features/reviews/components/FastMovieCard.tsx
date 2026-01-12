@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
+import Image from "@/components/CloudinaryImage";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { updateMovieRating } from "../actions";
@@ -49,7 +49,7 @@ export function FastMovieCard({ movie, onRated }: FastMovieCardProps) {
         "group relative flex items-center gap-4 p-3 rounded-xl border transition-[background-color,border-color,box-shadow,opacity] duration-200",
         "bg-card border-border hover:shadow-md hover:border-primary/30",
         isRated &&
-          "border-primary/40 bg-primary/2 dark:bg-primary/5 shadow-[0_0_15px_-5px_hsl(var(--primary)/0.15)]",
+        "border-primary/40 bg-primary/2 dark:bg-primary/5 shadow-[0_0_15px_-5px_hsl(var(--primary)/0.15)]",
         isSaving && "opacity-70 pointer-events-none"
       )}
       data-theme-transition
@@ -93,7 +93,7 @@ export function FastMovieCard({ movie, onRated }: FastMovieCardProps) {
               key={num}
               onClick={() => handleRate(num)}
               disabled={isSaving}
-                className={cn(
+              className={cn(
                 "h-7 w-7 rounded-md text-[11px] font-bold transition-[background-color,border-color,color,transform,box-shadow] duration-200 flex items-center justify-center border",
                 "focus:ring-2 focus:ring-primary/20 outline-none",
                 currentRating === num

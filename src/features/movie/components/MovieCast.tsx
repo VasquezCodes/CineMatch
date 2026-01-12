@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/CloudinaryImage";
 import { User } from "lucide-react";
 import { PersonLink } from "@/components/shared/PersonLink";
 

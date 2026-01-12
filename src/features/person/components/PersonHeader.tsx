@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/CloudinaryImage";
 import { User, Calendar, MapPin, Cake } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { PersonProfile } from "../types";

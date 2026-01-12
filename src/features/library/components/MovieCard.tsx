@@ -1,9 +1,10 @@
-import Image from "next/image";
+import Image from "@/components/CloudinaryImage";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { LibraryItem } from "../types";
+
 
 interface MovieCardProps {
   item: LibraryItem;
