@@ -42,3 +42,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temporary files
+tmpclaude-*
+nul
+CLAUDE.md
+*.log
+build_log*.txt
+tsc_output.txt

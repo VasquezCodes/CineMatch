@@ -1,6 +1,6 @@
 import { PageHeader, Section } from "@/components/layout";
-import { AnalysisStatsSkeleton } from "@/features/analysis/components/AnalysisStatsSkeleton";
-import { AnalysisTableSkeleton } from "@/features/analysis/components/AnalysisTableSkeleton";
+import { AnalysisStatsSkeleton } from "@/features/collection/components/AnalysisStatsSkeleton";
+import { AnalysisTableSkeleton } from "@/features/collection/components/AnalysisTableSkeleton";
 
 export default function AnalysisLoading() {
   return (
@@ -22,4 +22,3 @@ export default function AnalysisLoading() {
     </div>
   );
 }
-

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Image from "@/components/CloudinaryImage";
+import Image from "next/image";
 import {
   Sheet,
   SheetContent,

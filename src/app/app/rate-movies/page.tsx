@@ -4,7 +4,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { APP_ROUTES } from "@/config/routes";
-import { getWatchlistAnalysis } from "@/features/analysis/actions";
+import { getWatchlistAnalysis } from "@/features/collection/actions";
 import { FastRankingGrid } from "@/features/reviews";
 import type { UnratedMovie } from "@/features/reviews";
 import { BarChart3 } from "lucide-react";

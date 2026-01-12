@@ -2,13 +2,19 @@ import Link from "next/link";
 import { AlertCircle, Star, Upload, Library } from "lucide-react";
 import { APP_ROUTES, SECONDARY_ROUTES } from "@/config/routes";
 import { getAnalysisData } from "@/features/insights/actions";
-import { AnalysisStats } from "@/features/analysis/components/AnalysisStats";
-import { RankingsSection } from "@/features/analysis/components/RankingsSection";
+import { AnalysisStats } from "@/features/collection/components/AnalysisStats";
+import { RankingsSection } from "@/features/collection/components/RankingsSection";
 import { PageHeader, Section } from "@/components/layout";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { getTopRatedMovies } from "@/features/library";
 import { MovieCard } from "@/features/library";
 
