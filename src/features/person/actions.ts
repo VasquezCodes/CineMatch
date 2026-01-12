@@ -107,7 +107,7 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
                 if (!item.movies) return;
 
                 const movie = {
-                    id: item.movies.tmdb_id || 0, // Fallback
+                    id: item.movies.tmdb_id, // Can be null, filtered later
                     title: item.movies.title,
                     poster_path: item.movies.poster_url, // URL completa
                     release_date: item.movies.year ? `${item.movies.year}-01-01` : null,
@@ -116,10 +116,12 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
                     job: item.job
                 };
 
-                if (item.role === 'Actor') {
-                    cast.push(movie);
-                } else {
-                    crew.push(movie);
+                if (movie.id && movie.id !== 0) {
+                    if (item.role === 'Actor') {
+                        cast.push(movie);
+                    } else {
+                        crew.push(movie);
+                    }
                 }
             });
 
@@ -127,29 +129,34 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
             const filterJob = (job: string) => crew.filter(c => c.job === job);
             const filterDept = (jobs: string[]) => crew.filter(c => jobs.includes(c.job));
 
-            return {
-                id: dbPerson.tmdb_id,
-                name: dbPerson.name,
-                biography: dbPerson.biography || '',
-                birthday: dbPerson.birthday,
-                deathday: dbPerson.deathday,
-                place_of_birth: dbPerson.place_of_birth,
-                profile_path: dbPerson.photo_url,
-                photo_url: dbPerson.photo_url,
-                known_for_department: dbPerson.known_for_department || 'Unknown',
-                credits: {
-                    cast: cast,
-                    crew: {
-                        directing: filterJob('Director'),
-                        writing: filterDept(['Screenplay', 'Writer', 'Author', 'Story']),
-                        production: filterJob('Producer'),
-                        camera: filterDept(['Director of Photography', 'Cinematographer']),
-                        sound: filterDept(['Original Music Composer', 'Music']),
-                        other: crew.filter(c => !['Director', 'Screenplay', 'Writer', 'Author', 'Story', 'Producer', 'Director of Photography', 'Cinematographer', 'Original Music Composer', 'Music'].includes(c.job || ''))
-                    }
-                },
-                source: 'db'
-            };
+            // Si encontramos créditos en la DB, los retornamos.
+            // Si NO hay créditos (ej. se borraron o nunca se linkearon), dejamos pasar al fallback de TMDB.
+            if (cast.length > 0 || crew.length > 0) {
+                return {
+                    id: dbPerson.tmdb_id,
+                    name: dbPerson.name,
+                    biography: dbPerson.biography || '',
+                    birthday: dbPerson.birthday,
+                    deathday: dbPerson.deathday,
+                    place_of_birth: dbPerson.place_of_birth,
+                    profile_path: dbPerson.photo_url,
+                    photo_url: dbPerson.photo_url,
+                    known_for_department: dbPerson.known_for_department || 'Unknown',
+                    credits: {
+                        cast: cast,
+                        crew: {
+                            directing: filterJob('Director'),
+                            writing: filterDept(['Screenplay', 'Writer', 'Author', 'Story']),
+                            production: filterJob('Producer'),
+                            camera: filterDept(['Director of Photography', 'Cinematographer']),
+                            sound: filterDept(['Original Music Composer', 'Music']),
+                            other: crew.filter(c => !['Director', 'Screenplay', 'Writer', 'Author', 'Story', 'Producer', 'Director of Photography', 'Cinematographer', 'Original Music Composer', 'Music'].includes(c.job || ''))
+                        }
+                    },
+                    source: 'db'
+                };
+            }
+            // console.log(`[Cache Hit] But no credits found for ${name}. Falling back to TMDB.`);
         }
 
         // 3. MISS or STALE: Fetch desde TMDB
@@ -240,6 +247,17 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
                 });
             }
 
+            // 5. Update Movies & Relations (Optimizado)
+            // Upsert movies to ensure they exist before linking
+            if (moviesToUpsert.length > 0) {
+                const { error: moviesError } = await adminClient
+                    .from('movies')
+                    .upsert(moviesToUpsert, { onConflict: 'tmdb_id', ignoreDuplicates: true });
+
+                if (moviesError) console.error('Error seeding movies:', moviesError);
+            }
+
+            // Re-fetch IDs for all related movies (including just inserted ones)
             const tmdbIds = sortedMovies.map(m => m.id);
             const { data: existingMovies } = await adminClient
                 .from('movies')
@@ -262,11 +280,14 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
             });
 
             if (movieRelations.length > 0) {
-                await adminClient
+                const { error: linkError } = await adminClient
                     .from('movie_people')
                     .upsert(movieRelations, { onConflict: 'movie_id, person_id, role, job' });
+
+                if (linkError) console.error('Error linking movies:', linkError);
             }
         }
+
 
         // 6. Return standard response (from TMDB data)
         const castM = credits?.cast || [];
