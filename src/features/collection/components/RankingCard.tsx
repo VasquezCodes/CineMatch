@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import Image from "@/components/CloudinaryImage";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
