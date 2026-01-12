@@ -15,6 +15,7 @@ export type MovieDetail = {
     synopsis: string | null;
     imdb_rating: number | null; // IMDb rating
     rating?: number; // Calificación del usuario si existe
+    personalRating?: number; // Puntaje personal del ranking (watchlists.user_rating)
     watchlist?: {
         status: string;
         added_at: string;
@@ -286,13 +287,13 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
             supabase
                 .from('reviews')
                 .select('rating')
-                .eq('movie_id', id)
+                .eq('movie_id', movieId)
                 .eq('user_id', user.id)
                 .maybeSingle(),
             supabase
                 .from('watchlists')
-                .select('added_at')
-                .eq('movie_id', id)
+                .select('added_at, user_rating')
+                .eq('movie_id', movieId)
                 .eq('user_id', user.id)
                 .maybeSingle()
         ]);
@@ -314,6 +315,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
         imdb_rating: movie.imdb_rating || null, // Pass IMDb rating
         extended_data: movie.extended_data || {},
         rating: userReview?.rating,
+        personalRating: userWatchlist?.user_rating,
         watchlist: userWatchlist ? {
             status: 'listed',
             added_at: userWatchlist.added_at!

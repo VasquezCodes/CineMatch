@@ -7,7 +7,7 @@ import {
   MovieBackButton,
   MovieTechnicalInfo,
   MovieCast,
-  MovieRecommendations,
+  MovieRecommendations
 } from "@/features/movie";
 import { PersonLink } from "@/components/shared/PersonLink";
 
@@ -70,12 +70,12 @@ export default async function MovieDetailPage({ params }: PageProps) {
                 <div className="flex flex-col gap-2 shrink-0">
                   {movie.rating && (
                     <Badge
-                      variant="secondary"
-                      className="text-base px-3 py-1.5 gap-1.5"
-                      title="Tu valoración"
+                      variant="outline"
+                      className="text-sm px-3 py-1.5 gap-1.5"
+                      title="Tu valoración (review)"
                     >
-                      <Star className="h-4 w-4 fill-primary text-primary" />
-                      <span className="font-bold">{movie.rating}</span>
+                      <Star className="h-3.5 w-3.5 fill-accent text-accent" />
+                      <span className="font-semibold">{movie.rating}</span>
                     </Badge>
                   )}
                   {movie.watchlist && (
@@ -91,9 +91,18 @@ export default async function MovieDetailPage({ params }: PageProps) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-muted-foreground mb-4">
-                <Calendar className="h-4 w-4" />
-                <span className="text-lg font-medium">{movie.year}</span>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span className="text-lg font-medium">{movie.year}</span>
+                </div>
+                {movie.personalRating && (
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/20 rounded-md">
+                    <Star className="h-4 w-4 fill-primary text-primary" />
+                    <span className="text-base font-bold text-primary">{movie.personalRating}</span>
+                    <span className="text-xs text-muted-foreground ml-1">personal</span>
+                  </div>
+                )}
               </div>
 
               {/* Director */}

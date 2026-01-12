@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import Image from "@/components/CloudinaryImage";
 import {
   Sheet,
@@ -30,6 +31,7 @@ export function RankingsSheet({
   rankingType,
   rankingLabel,
 }: RankingsSheetProps) {
+  const router = useRouter();
   const [data, setData] = React.useState<RankingStatConfig[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -90,6 +92,10 @@ export function RankingsSheet({
     totalMovies > 0
       ? allMovies.reduce((acc, m) => acc + (m.user_rating || 0), 0) / totalMovies
       : 0;
+
+  const handleMovieClick = (movie: (typeof allMovies)[0]) => {
+    router.push(`/app/movies/${movie.id}`);
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -203,6 +209,7 @@ export function RankingsSheet({
                       key={movie.id}
                       className="group/movie flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50 transition-all cursor-pointer border border-transparent hover:border-border"
                       data-theme-transition
+                      onClick={() => handleMovieClick(movie)}
                     >
                       {/* Thumbnail 2:3 */}
                       <div className="relative aspect-[2/3] w-12 flex-shrink-0 overflow-hidden rounded-md bg-muted border border-border group-hover/movie:border-primary/50 transition-colors" data-theme-transition>
