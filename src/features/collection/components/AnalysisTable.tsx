@@ -41,7 +41,6 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
       filtered = filtered.filter(
         (item) =>
           item.movie.title?.toLowerCase().includes(query) ||
-          item.movie.director?.toLowerCase().includes(query) ||
           item.movie.year?.toString().includes(query)
       );
     }
@@ -51,7 +50,7 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
       const minRating = parseFloat(filterRating);
       filtered = filtered.filter(
         (item) =>
-          item.watchlist.user_rating !== null &&
+          item.watchlist.user_rating != null &&
           item.watchlist.user_rating >= minRating
       );
     }
@@ -70,8 +69,8 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
         case "recent":
         default:
           return (
-            new Date(b.watchlist.updated_at || 0).getTime() -
-            new Date(a.watchlist.updated_at || 0).getTime()
+            new Date(b.watchlist.added_at || 0).getTime() -
+            new Date(a.watchlist.added_at || 0).getTime()
           );
       }
     });
@@ -122,7 +121,7 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
             <div className="relative flex-1 lg:max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por título, director o año..."
+                placeholder="Buscar por título o año..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -229,11 +228,7 @@ function MovieCard({ item }: { item: WatchlistAnalysisItem }) {
               <p className="text-xs text-muted-foreground">{movie.year}</p>
             )}
 
-            {movie.director && (
-              <p className="text-xs text-muted-foreground line-clamp-1">
-                Dir: {movie.director}
-              </p>
-            )}
+
 
             {/* Rating del usuario */}
             {watchlist.user_rating !== null && (
