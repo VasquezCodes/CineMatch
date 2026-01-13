@@ -4,7 +4,7 @@ import type { Tables } from "@/types/database.types";
  * Item de la biblioteca (película con datos del watchlist)
  */
 export type LibraryItem = {
-  watchlist: Tables<"watchlists">;
+  watchlist: Tables<"watchlists"> & { user_rating?: number | null };
   movie: Tables<"movies">;
 };
 

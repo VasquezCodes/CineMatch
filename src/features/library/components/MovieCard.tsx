@@ -49,14 +49,10 @@ export function MovieCard({ item }: MovieCardProps) {
               <p className="text-xs text-muted-foreground">{movie.year}</p>
             )}
 
-            {movie.director && (
-              <p className="text-xs text-muted-foreground line-clamp-1">
-                Dir: {movie.director}
-              </p>
-            )}
+
 
             {/* Rating del usuario */}
-            {watchlist.user_rating !== null && (
+            {watchlist.user_rating != null && (
               <div className="flex items-center gap-1 pt-1">
                 <Star className="h-3 w-3 fill-primary text-primary" />
                 <span className="text-sm font-medium">
