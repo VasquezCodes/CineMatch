@@ -28,32 +28,45 @@ type ImportResult = {
     errors: number;
 };
 
-export async function processImport(movies: CsvMovieImport[]): Promise<ImportResult> {
-    const supabase = createClient();
-    const { data: { user } } = await (await supabase).auth.getUser();
+export async function processImport(movies: CsvMovieImport[], filename: string): Promise<ImportResult> {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
         throw new Error('Usuario no autenticado');
     }
 
+    // 1. Crear registro de importación
+    const { data: importRecord, error: importError } = await supabase
+        .from('user_imports')
+        .insert({
+            user_id: user.id,
+            filename: filename,
+            status: 'processing',
+            counts: { total: movies.length, new: 0, updated: 0 }
+        })
+        .select('id')
+        .single();
+
+    if (importError || !importRecord) {
+        throw new Error(`Error creando registro de importación: ${importError?.message}`);
+    }
+
+    const importId = importRecord.id;
     let queuedCount = 0;
     let errorCount = 0;
 
     // Procesamiento por lotes para insertar en la cola
-    const BATCH_SIZE = 100; // Tamaño del lote para inserción en DB
+    const BATCH_SIZE = 100;
 
     // Obtener items ya en cola para este usuario (pending o processing)
-    // Para evitar duplicados si el usuario intenta importar el mismo archivo múltiples veces.
-    const uniqueImdbIds = [...new Set(movies.map(m => m.imdb_id))];
-
-    // Consulta optimizada para verificar existencia en la cola
-    const { data: existingItems } = await (await supabase)
+    const { data: existingItems } = await supabase
         .from('import_queue')
         .select('payload')
         .eq('user_id', user.id)
-        .in('status', ['pending', 'processing']); // Filtramos por lo que está activo
+        .in('status', ['pending', 'processing']);
 
-    // Extraer IDs existentes de forma segura
+    // Extraer IDs existentes
     const existingImdbIds = new Set<string>();
     if (existingItems) {
         existingItems.forEach((item: any) => {
@@ -67,36 +80,21 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
     const moviesToInsert = movies.filter(m => !existingImdbIds.has(m.imdb_id));
     const duplicateCount = movies.length - moviesToInsert.length;
 
-    console.log(`Import: ${movies.length} total, ${duplicateCount} duplicados ignorados, ${moviesToInsert.length} a insertar.`);
+    console.log(`Import: ${movies.length} total, ${duplicateCount} duplicados en cola, ${moviesToInsert.length} a insertar. Import ID: ${importId}`);
 
-    // Si no hay nuevas, pero hay pendientes, intentamos despertar al worker por si acaso se detuvo.
-    const hasPendingItems = existingItems && existingItems.length > 0;
+    // Encolamos todas las películas del CSV para asegurar la vinculación con este Import ID.
+    // El worker maneja la idempotencia: si la película ya existe, solo crea el link en 'import_items'.
 
-    if (moviesToInsert.length === 0) {
-        if (hasPendingItems) {
-            console.log("No hay nuevas películas, pero hay items pendientes. Re-activando worker...");
-            triggerWorker(user.id);
-        }
-
-        return {
-            success: true,
-            total: movies.length,
-            new_movies: 0,
-            updated_movies: 0,
-            errors: 0
-        };
-    }
-
-    for (let i = 0; i < moviesToInsert.length; i += BATCH_SIZE) {
-        const batch = moviesToInsert.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < movies.length; i += BATCH_SIZE) {
+        const batch = movies.slice(i, i + BATCH_SIZE);
 
         const queueItems = batch.map(movie => ({
             user_id: user.id,
-            payload: movie as any, // Cast a JSON
+            payload: { ...movie, import_id: importId }, // Adjuntamos import_id
             status: 'pending'
         }));
 
-        const { error } = await (await supabase)
+        const { error } = await supabase
             .from('import_queue')
             .insert(queueItems);
 
@@ -108,8 +106,6 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
         }
     }
 
-
-
     // Disparar worker tras insertar
     triggerWorker(user.id);
 
@@ -118,7 +114,7 @@ export async function processImport(movies: CsvMovieImport[]): Promise<ImportRes
     return {
         success: true,
         total: movies.length,
-        new_movies: queuedCount, // Semánticamente: "encolado"
+        new_movies: queuedCount,
         updated_movies: 0,
         errors: errorCount
     };
@@ -146,4 +142,74 @@ function triggerWorker(userId: string) {
     } catch (e) {
         // Catch silencioso
     }
+}
+
+export type UserImport = {
+    id: string;
+    filename: string;
+    imported_at: string;
+    status: string;
+    counts: any;
+};
+
+export async function getImports(): Promise<UserImport[]> {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return [];
+
+    const { data } = await supabase
+        .from('user_imports')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('imported_at', { ascending: false });
+
+    return data || [];
+}
+
+export async function deleteImport(importId: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) throw new Error('Unauthorized');
+
+    // 1. Identificar ítems huérfanos
+    const { data: itemsToDelete } = await supabase
+        .from('import_items')
+        .select('movie_id')
+        .eq('import_id', importId);
+
+    if (itemsToDelete && itemsToDelete.length > 0) {
+        const movieIdsToCheck = itemsToDelete.map(i => i.movie_id);
+
+        // Verificar si existen referencias en otros imports
+        const { data: otherReferences } = await supabase
+            .from('import_items')
+            .select('movie_id')
+            .in('movie_id', movieIdsToCheck)
+            .neq('import_id', importId)
+            .eq('user_id', user.id);
+
+        const protectedMovieIds = new Set(otherReferences?.map(r => r.movie_id));
+        const orphanedMovieIds = movieIdsToCheck.filter(id => !protectedMovieIds.has(id));
+
+        console.log(`Eliminando import ${importId}. Huérfanos: ${orphanedMovieIds.length}. Protegidos: ${protectedMovieIds.size}`);
+
+        if (orphanedMovieIds.length > 0) {
+            // Eliminar huérfanos de Watchlist y Reviews (Cleaning)
+            await Promise.all([
+                supabase.from('watchlists').delete().in('movie_id', orphanedMovieIds).eq('user_id', user.id),
+                supabase.from('reviews').delete().in('movie_id', orphanedMovieIds).eq('user_id', user.id)
+            ]);
+        }
+    }
+
+    // 2. Eliminar registro de importación (Cascade borra los items vinculados)
+    const { error } = await supabase.from('user_imports').delete().eq('id', importId).eq('user_id', user.id);
+
+    if (error) throw error;
+
+    revalidatePath('/app/library');
+    revalidatePath('/app/settings/imports');
+    return { success: true };
 }

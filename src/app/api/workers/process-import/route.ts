@@ -194,14 +194,26 @@ async function processQueueItem(supabase: any, userId: string, movie: any) {
     }
 
     // 4. Enriquecimiento de datos
-    // Optimización: Si ya tenemos extended_data, runtime y fotos del crew, evitamos llamar a TMDB.
-    // Esto ahorra cuota de API y acelera el procesamiento masivo.
+    // Optimización: Si ya tenemos extended_data, runtime y fotos, evitamos llamar a TMDB.
     const hasExtendedData = savedMovie.extended_data &&
         savedMovie.extended_data.technical &&
         savedMovie.extended_data.technical.runtime &&
-        savedMovie.extended_data.technical.runtime &&
         savedMovie.extended_data.crew_details &&
         savedMovie.poster_url;
+
+    // 5. Vincular a Historial de Importación
+    if (movie.import_id) {
+        const { error: linkError } = await supabase.from('import_items').insert({
+            import_id: movie.import_id,
+            movie_id: savedMovie.id,
+            user_id: userId
+        }).select().single();
+
+        // Ignorar duplicados (23505)
+        if (linkError && linkError.code !== '23505') {
+            console.error(`Error vinculando película ${savedMovie.id} al import ${movie.import_id}:`, linkError);
+        }
+    }
 
     if (!hasExtendedData) {
         console.log(`Enriching missing data for: ${movie.imdb_id}`);

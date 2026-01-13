@@ -42,7 +42,7 @@ export default function UploadPage() {
               }))
               .filter((m) => m.imdb_id); // Filtrar filas sin ID
 
-            const result = await processImport(movies);
+            const result = await processImport(movies, file.name);
 
             if (result.success) {
               resolve();
