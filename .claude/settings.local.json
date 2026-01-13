@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npx shadcn@latest add chart:*)",
       "Bash(npx shadcn@latest add:*)",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

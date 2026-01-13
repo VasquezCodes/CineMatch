@@ -18,7 +18,6 @@ import {
   ChartSelector,
   RankingBarChart,
   RankingPieChart,
-  RankingBubbleChart,
   type ChartType,
 } from "./charts";
 import type { RankingStatConfig, RankingType } from "../actions";
@@ -101,23 +100,15 @@ export function RankingsChartsView({
             onSelectItem={handleSelectItem}
           />
         );
-      case "bubble":
-        return (
-          <RankingBubbleChart
-            data={data}
-            selectedIndex={selectedIndex}
-            onSelectItem={handleSelectItem}
-          />
-        );
       default:
         return null;
     }
   };
 
   return (
-    <div className="flex gap-4 min-h-[500px]">
+    <div className="flex flex-col lg:flex-row gap-4 min-h-[400px] lg:min-h-[500px]">
       {/* Sidebar - Desktop (siempre visible) */}
-      <aside className="hidden lg:flex w-72 flex-shrink-0 border border-border/50 rounded-xl bg-card/30 overflow-hidden">
+      <aside className="hidden lg:flex w-64 xl:w-72 flex-shrink-0 border border-border/50 rounded-xl bg-card/30 overflow-hidden">
         <RankingsSidebar
           data={data}
           type={type}
@@ -130,7 +121,7 @@ export function RankingsChartsView({
       {/* Área principal de gráficos */}
       <main className="flex-1 min-w-0 space-y-4">
         {/* Header con selector de gráfico y botón de sidebar móvil */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
           <ChartSelector value={chartType} onValueChange={setChartType} />
 
           {/* Botón para abrir sidebar en móvil/tablet */}
@@ -145,7 +136,7 @@ export function RankingsChartsView({
                 <span className="hidden sm:inline">Ver Top 10</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-80 p-0">
+            <SheetContent side="left" className="w-[85vw] max-w-xs sm:max-w-sm p-0">
               <SheetHeader className="sr-only">
                 <SheetTitle>Top 10 {TYPE_LABELS[type]}</SheetTitle>
               </SheetHeader>
@@ -170,12 +161,10 @@ export function RankingsChartsView({
             <h3 className="text-lg font-semibold">
               {chartType === "bar" && "Comparación por cantidad de películas"}
               {chartType === "pie" && "Distribución porcentual"}
-              {chartType === "bubble" && "Correlación cantidad vs rating"}
             </h3>
             <p className="text-sm text-muted-foreground">
               {chartType === "bar" && "Visualiza cuántas películas tienes de cada " + TYPE_LABELS[type].toLowerCase().slice(0, -1)}
               {chartType === "pie" && "Proporción de tu colección por " + TYPE_LABELS[type].toLowerCase().slice(0, -1)}
-              {chartType === "bubble" && "Relación entre cantidad de películas, rating promedio y puntuación total"}
             </p>
           </div>
 
@@ -190,7 +179,7 @@ export function RankingsChartsView({
 
         {/* Stats rápidos */}
         {!isLoading && data.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             <StatCard
               label="Total en Top 10"
               value={data.slice(0, 10).reduce((sum, item) => sum + item.count, 0)}
@@ -240,7 +229,7 @@ function SelectedItemInfo({
         <div className="flex-1">
           <p className="font-medium">{item.key}</p>
           <p className="text-sm text-muted-foreground">
-            {item.count} películas · Rating promedio: ★ {avgRating}
+            {item.count} películas · Rating promedio: <span className="text-star-yellow font-semibold">★ {avgRating}</span>
           </p>
         </div>
       </div>
@@ -264,7 +253,7 @@ function StatCard({
     <div className="p-3 rounded-lg border border-border/50 bg-card/30">
       <p className="text-xs text-muted-foreground mb-1">{label}</p>
       <p className="font-semibold truncate">
-        {prefix && <span className="text-primary mr-1">{prefix}</span>}
+        {prefix && <span className="text-star-yellow mr-1">{prefix}</span>}
         {value}
       </p>
       {suffix && (

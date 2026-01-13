@@ -1,5 +1,6 @@
 import { AppHeader } from './app-header';
 import { MobileTabs } from './mobile-tabs';
+import { Container } from './container';
 import { ImportStatusIndicator } from '@/features/import';
 
 interface AppShellProps {
@@ -20,9 +21,9 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* Contenido principal */}
       <main className="flex-1">
-        <div className="container mx-auto max-w-7xl px-4 py-6 pb-24 md:pb-6">
+        <Container className="py-6 pb-24 md:py-8 md:pb-8">
           {children}
-        </div>
+        </Container>
       </main>
 
       {/* Tabs móviles (solo visible en mobile) */}

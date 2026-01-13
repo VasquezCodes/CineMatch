@@ -3,7 +3,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Film, User } from "lucide-react";
 import type { RankingStatConfig, RankingType } from "../actions";
@@ -114,14 +113,9 @@ export function RankingsSidebar({
                   <p className="text-sm font-medium truncate">{item.key}</p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span>{item.count} películas</span>
-                    <span className="text-primary">★ {avgRating}</span>
+                    <span className="text-star-yellow font-semibold">★ {avgRating}</span>
                   </div>
                 </div>
-
-                {/* Badge de count */}
-                <Badge variant="secondary" className="flex-shrink-0 text-xs">
-                  {item.count}
-                </Badge>
               </button>
             );
           })}

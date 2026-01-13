@@ -99,12 +99,12 @@ export default async function AnalysisPage() {
       {hasUnratedMovies && (
         <Section>
           <Card className="border-primary/20 bg-primary/5 transition-colors duration-300">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-4">
-                <div className="rounded-full bg-primary/10 p-2">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
                   <AlertCircle className="h-5 w-5 text-primary" />
                 </div>
-                <div className="flex-1 space-y-1">
+                <div className="flex-1 min-w-0 space-y-2">
                   <h4 className="text-sm font-semibold leading-none tracking-tight">
                     Calificaciones pendientes
                   </h4>
@@ -113,7 +113,7 @@ export default async function AnalysisPage() {
                     {unratedMoviesCount > 1 ? "s" : ""} sin calificar. Completa
                     tu perfil para obtener estadísticas precisas.
                   </p>
-                  <div className="pt-3 flex gap-2">
+                  <div className="pt-2 flex flex-wrap gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -177,7 +177,7 @@ export default async function AnalysisPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {topMovies.map((item) => (
                   <MovieCard key={item.watchlist.id} item={item} />
                 ))}

@@ -61,8 +61,10 @@ export function MovieCard({ item }: MovieCardProps) {
 
             {/* Rating IMDb */}
             {movie.imdb_rating && (
-              <div className="text-xs text-muted-foreground">
-                IMDb: {movie.imdb_rating.toFixed(1)}
+              <div className="flex items-center gap-1 text-xs">
+                <span className="text-star-yellow">★</span>
+                <span className="text-star-yellow font-medium">{movie.imdb_rating.toFixed(1)}</span>
+                <span className="text-muted-foreground text-[10px]">IMDB</span>
               </div>
             )}
 

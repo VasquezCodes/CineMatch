@@ -6,6 +6,9 @@ export { MobileTabs } from "./mobile-tabs";
 export { ThemeToggle } from "./theme-toggle";
 
 // Page layout components
+export { Container } from "./container";
+export type { ContainerProps } from "./container";
 export { PageHeader } from "./page-header";
 export { Section, SectionGrid } from "./section";
+export type { SectionProps, SectionGridProps } from "./section";
 

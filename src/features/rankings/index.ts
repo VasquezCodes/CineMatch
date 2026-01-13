@@ -15,6 +15,5 @@ export {
   ChartSelector,
   RankingBarChart,
   RankingPieChart,
-  RankingBubbleChart,
   type ChartType,
 } from "./components/charts";

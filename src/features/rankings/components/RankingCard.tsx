@@ -1,13 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "@/components/CloudinaryImage";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
-import type { RankingStatConfig, RankingType } from "@/features/rankings/actions";
+import type {
+  RankingStatConfig,
+  RankingType,
+} from "@/features/rankings/actions";
 
 interface RankingCardProps {
   item: RankingStatConfig;
@@ -84,7 +88,7 @@ export function RankingCard({
           <div className="flex items-center gap-2 mb-1">
             {/* Avatar del director/actor - Solo para directores y actores */}
             {showAvatar && (
-              <Avatar className="h-6 w-6 ring-1 ring-border/40 transition-transform duration-200 group-hover:scale-105">
+              <Avatar className="h-8 w-8 ring-1 ring-border/40 transition-transform duration-200 group-hover:scale-105">
                 {item.data.image_url && getImageUrl(item.data.image_url) ? (
                   <AvatarImage
                     src={getImageUrl(item.data.image_url)!}
@@ -100,12 +104,22 @@ export function RankingCard({
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
               {index + 1}
             </span>
-            <h3
-              className="font-semibold text-sm md:text-base truncate"
-              title={item.key}
-            >
-              {item.key}
-            </h3>
+            {showAvatar ? (
+              <Link
+                href={`/person/${encodeURIComponent(item.key)}`}
+                className="relative inline-block font-semibold text-sm md:text-base truncate after:absolute after:bottom-0 after:left-0 after:h-[1.5px] after:bg-foreground after:w-0 hover:after:w-full after:transition-all after:duration-300 after:ease-in-out"
+                title={item.key}
+              >
+                {item.key}
+              </Link>
+            ) : (
+              <h3
+                className="font-semibold text-sm md:text-base truncate"
+                title={item.key}
+              >
+                {item.key}
+              </h3>
+            )}
           </div>
 
           {/* Roles for actors */}
@@ -116,7 +130,8 @@ export function RankingCard({
                   .slice(0, 2)
                   .map((r) => `${r.role} (${r.movies.join(", ")})`)
                   .join(", ")}
-                {item.data.roles.length > 2 && ` +${item.data.roles.length - 2}`}
+                {item.data.roles.length > 2 &&
+                  ` +${item.data.roles.length - 2}`}
               </span>
             </div>
           )}

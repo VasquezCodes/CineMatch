@@ -115,9 +115,9 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
         )}
       >
         {/* Filtros */}
-        <Card className="p-4">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="relative flex-1 max-w-md">
+        <Card className="p-3 sm:p-4">
+          <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="relative flex-1 lg:max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por título, director o año..."
@@ -127,35 +127,38 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
               />
             </div>
 
-            <div className="flex gap-2 items-center">
-              <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-              <Select
-                value={sortBy}
-                onValueChange={(v) => setSortBy(v as SortOption)}
-              >
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Ordenar por" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Más reciente</SelectItem>
-                  <SelectItem value="title">Título A-Z</SelectItem>
-                  <SelectItem value="year">Año (desc)</SelectItem>
-                  <SelectItem value="rating">Rating (desc)</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+              <SlidersHorizontal className="h-4 w-4 text-muted-foreground hidden sm:block shrink-0" />
 
-              <Select value={filterRating} onValueChange={setFilterRating}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Rating mín." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="8">8+ ⭐</SelectItem>
-                  <SelectItem value="7">7+ ⭐</SelectItem>
-                  <SelectItem value="6">6+ ⭐</SelectItem>
-                  <SelectItem value="5">5+ ⭐</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-2 sm:flex gap-2">
+                <Select
+                  value={sortBy}
+                  onValueChange={(v) => setSortBy(v as SortOption)}
+                >
+                  <SelectTrigger className="w-full sm:w-[140px] lg:w-[160px]">
+                    <SelectValue placeholder="Ordenar por" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">Más reciente</SelectItem>
+                    <SelectItem value="title">Título A-Z</SelectItem>
+                    <SelectItem value="year">Año (desc)</SelectItem>
+                    <SelectItem value="rating">Rating (desc)</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={filterRating} onValueChange={setFilterRating}>
+                  <SelectTrigger className="w-full sm:w-[120px] lg:w-[140px]">
+                    <SelectValue placeholder="Rating mín." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="8">8+ ⭐</SelectItem>
+                    <SelectItem value="7">7+ ⭐</SelectItem>
+                    <SelectItem value="6">6+ ⭐</SelectItem>
+                    <SelectItem value="5">5+ ⭐</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </Card>
@@ -178,7 +181,7 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
             </div>
 
             {/* Grid de películas */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredAndSortedData.map((item) => (
                 <MovieCard key={item.watchlist.id} item={item} />
               ))}

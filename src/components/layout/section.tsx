@@ -91,18 +91,29 @@ export interface SectionGridProps {
   children: React.ReactNode;
   /**
    * Número de columnas en desktop (default: 2)
+   * Escala progresiva: 1 col (mobile) -> 2 col (md) -> N col (lg+)
    */
   cols?: 2 | 3 | 4;
+  /**
+   * Gap entre elementos
+   */
+  gap?: "sm" | "md" | "lg";
   /**
    * Clases adicionales
    */
   className?: string;
 }
 
+const gapClasses = {
+  sm: "gap-3 sm:gap-4",
+  md: "gap-4 sm:gap-5 lg:gap-6",
+  lg: "gap-5 sm:gap-6 lg:gap-8",
+} as const;
+
 /**
  * SectionGrid
  * Grid responsivo para layouts de bloques.
- * 1 columna en mobile, N columnas en lg+ según prop cols.
+ * Escala progresiva: 1 col (mobile) -> 2 col (md) -> N col (lg+)
  *
  * @example
  * ```tsx
@@ -116,16 +127,18 @@ export interface SectionGridProps {
 export function SectionGrid({
   children,
   cols = 2,
+  gap = "md",
   className,
 }: SectionGridProps) {
+  // Progresión: 1 col -> 2 col (md) -> N col (lg)
   const colsClass = {
-    2: "lg:grid-cols-2",
-    3: "lg:grid-cols-3",
-    4: "lg:grid-cols-4",
+    2: "sm:grid-cols-2",
+    3: "sm:grid-cols-2 lg:grid-cols-3",
+    4: "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
   }[cols];
 
   return (
-    <div className={cn("grid grid-cols-1 gap-6", colsClass, className)}>
+    <div className={cn("grid grid-cols-1", gapClasses[gap], colsClass, className)}>
       {children}
     </div>
   );

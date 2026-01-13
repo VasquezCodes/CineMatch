@@ -16,13 +16,18 @@ interface RankingBarChartProps {
   onSelectItem: (index: number) => void;
 }
 
-// Colores para las barras (gradiente del primario al secundario)
+// Paleta de colores del sistema de diseño (chart-1 a chart-10)
 const BAR_COLORS = [
   "hsl(var(--chart-1))",
   "hsl(var(--chart-2))",
   "hsl(var(--chart-3))",
   "hsl(var(--chart-4))",
   "hsl(var(--chart-5))",
+  "hsl(var(--chart-6))",
+  "hsl(var(--chart-7))",
+  "hsl(var(--chart-8))",
+  "hsl(var(--chart-9))",
+  "hsl(var(--chart-10))",
 ];
 
 const chartConfig = {
@@ -33,8 +38,23 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function RankingBarChart({ data, selectedIndex, onSelectItem }: RankingBarChartProps) {
+  // Ordenar datos de mayor a menor por count (asegurar orden correcto)
+  const sortedData = [...data]
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  // Crear mapeo de índices: índice en sortedData -> índice original en data
+  const indexMap = sortedData.map((sortedItem) => 
+    data.findIndex((originalItem) => originalItem.key === sortedItem.key)
+  );
+
+  // Mapear selectedIndex original al índice en sortedData
+  const sortedSelectedIndex = selectedIndex !== null 
+    ? indexMap.findIndex((originalIdx) => originalIdx === selectedIndex)
+    : null;
+
   // Preparar datos para el gráfico (máximo 10)
-  const chartData = data.slice(0, 10).map((item, index) => {
+  const chartData = sortedData.map((item, index) => {
     const avgRating = item.data.movies.length > 0
       ? item.data.movies.reduce((sum, m) => sum + (m.user_rating || 0), 0) / item.data.movies.length
       : 0;
@@ -45,34 +65,36 @@ export function RankingBarChart({ data, selectedIndex, onSelectItem }: RankingBa
       count: item.count,
       avgRating: avgRating.toFixed(1),
       index,
+      originalIndex: indexMap[index], // Guardar índice original para el click
     };
   });
 
   return (
-    <ChartContainer config={chartConfig} className="h-[400px] w-full">
+    <ChartContainer config={chartConfig} className="h-[350px] sm:h-[400px] w-full">
       <BarChart
         data={chartData}
         layout="vertical"
-        margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+        margin={{ top: 10, right: 16, left: 0, bottom: 10 }}
       >
-        <XAxis type="number" tickLine={false} axisLine={false} />
+        <XAxis type="number" tickLine={false} axisLine={false} hide />
         <YAxis
           type="category"
           dataKey="name"
           tickLine={false}
           axisLine={false}
-          width={100}
-          tick={{ fontSize: 12 }}
+          width={80}
+          tick={{ fontSize: 11 }}
         />
         <ChartTooltip
           content={
             <ChartTooltipContent
+              hideLabel
               formatter={(value, name, item) => (
                 <div className="flex flex-col gap-1">
                   <span className="font-medium">{item.payload.fullName}</span>
                   <span>{value} películas</span>
                   <span className="text-muted-foreground">
-                    Promedio: ★ {item.payload.avgRating}
+                    Promedio: <span className="text-[hsl(var(--star-yellow))]">★</span> {item.payload.avgRating}
                   </span>
                 </div>
               )}
@@ -83,15 +105,22 @@ export function RankingBarChart({ data, selectedIndex, onSelectItem }: RankingBa
           dataKey="count"
           radius={[0, 4, 4, 0]}
           cursor="pointer"
-          onClick={(data) => onSelectItem(data.index)}
+          onClick={(clickedData: any) => {
+            // Recharts pasa el payload directamente o dentro de un objeto
+            const payload = clickedData.payload || clickedData;
+            const clickedItem = chartData.find((item) => item.name === payload.name || item.fullName === payload.fullName);
+            if (clickedItem && clickedItem.originalIndex !== undefined) {
+              onSelectItem(clickedItem.originalIndex);
+            }
+          }}
         >
           {chartData.map((entry, index) => (
             <Cell
               key={`cell-${index}`}
-              fill={BAR_COLORS[index % BAR_COLORS.length]}
-              opacity={selectedIndex === null || selectedIndex === index ? 1 : 0.4}
-              stroke={selectedIndex === index ? "hsl(var(--primary))" : "transparent"}
-              strokeWidth={selectedIndex === index ? 2 : 0}
+              fill={BAR_COLORS[index]} // Sin repetición: usar índice directo (máximo 10 elementos)
+              opacity={sortedSelectedIndex === null || sortedSelectedIndex === index ? 1 : 0.4}
+              stroke={sortedSelectedIndex === index ? "hsl(var(--primary))" : "transparent"}
+              strokeWidth={sortedSelectedIndex === index ? 2 : 0}
             />
           ))}
         </Bar>

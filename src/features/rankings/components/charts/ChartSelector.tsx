@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { BarChart3, PieChart, ScatterChart } from "lucide-react";
+import { BarChart3, PieChart } from "lucide-react";
 
-export type ChartType = "bar" | "pie" | "bubble";
+export type ChartType = "bar" | "pie";
 
 interface ChartSelectorProps {
   value: ChartType;
@@ -14,7 +14,6 @@ interface ChartSelectorProps {
 const CHART_OPTIONS: Array<{ value: ChartType; label: string; icon: React.ReactNode }> = [
   { value: "bar", label: "Barras", icon: <BarChart3 className="h-4 w-4" /> },
   { value: "pie", label: "Torta", icon: <PieChart className="h-4 w-4" /> },
-  { value: "bubble", label: "Burbujas", icon: <ScatterChart className="h-4 w-4" /> },
 ];
 
 export function ChartSelector({ value, onValueChange }: ChartSelectorProps) {

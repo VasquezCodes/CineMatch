@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Pie, PieChart, Cell, ResponsiveContainer, Legend, Sector } from "recharts";
+import { Pie, PieChart, Cell, Legend, Sector } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -10,24 +10,38 @@ import {
 } from "@/components/ui/chart";
 import type { RankingStatConfig } from "../../actions";
 
+// Hook para detectar si es móvil
+function useIsMobile(breakpoint = 640) {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < breakpoint);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, [breakpoint]);
+
+  return isMobile;
+}
+
 interface RankingPieChartProps {
   data: RankingStatConfig[];
   selectedIndex: number | null;
   onSelectItem: (index: number) => void;
 }
 
-// Paleta de colores para el pie chart
+// Paleta de colores del sistema de diseño (chart-1 a chart-10)
 const PIE_COLORS = [
   "hsl(var(--chart-1))",
   "hsl(var(--chart-2))",
   "hsl(var(--chart-3))",
   "hsl(var(--chart-4))",
   "hsl(var(--chart-5))",
-  "hsl(220, 70%, 50%)",
-  "hsl(280, 70%, 50%)",
-  "hsl(340, 70%, 50%)",
-  "hsl(40, 70%, 50%)",
-  "hsl(100, 70%, 50%)",
+  "hsl(var(--chart-6))",
+  "hsl(var(--chart-7))",
+  "hsl(var(--chart-8))",
+  "hsl(var(--chart-9))",
+  "hsl(var(--chart-10))",
 ];
 
 const chartConfig = {
@@ -37,10 +51,26 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function RankingPieChart({ data, selectedIndex, onSelectItem }: RankingPieChartProps) {
-  // Preparar datos para el gráfico
-  const totalCount = data.slice(0, 10).reduce((sum, item) => sum + item.count, 0);
+  const isMobile = useIsMobile();
 
-  const chartData = data.slice(0, 10).map((item, index) => {
+  // Ordenar datos de mayor a menor por count (asegurar orden correcto)
+  const sortedData = [...data]
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  // Crear mapeo de índices: índice en sortedData -> índice original en data
+  const indexMap = sortedData.map((sortedItem) => 
+    data.findIndex((originalItem) => originalItem.key === sortedItem.key)
+  );
+
+  // Mapear selectedIndex original al índice en sortedData
+  const sortedSelectedIndex = selectedIndex !== null 
+    ? indexMap.findIndex((originalIdx) => originalIdx === selectedIndex)
+    : null;
+
+  const totalCount = sortedData.reduce((sum, item) => sum + item.count, 0);
+
+  const chartData = sortedData.map((item, index) => {
     const avgRating = item.data.movies.length > 0
       ? item.data.movies.reduce((sum, m) => sum + (m.user_rating || 0), 0) / item.data.movies.length
       : 0;
@@ -51,53 +81,43 @@ export function RankingPieChart({ data, selectedIndex, onSelectItem }: RankingPi
       percentage: ((item.count / totalCount) * 100).toFixed(1),
       avgRating: avgRating.toFixed(1),
       index,
-      fill: PIE_COLORS[index % PIE_COLORS.length],
+      originalIndex: indexMap[index], // Guardar índice original para el click
+      fill: PIE_COLORS[index], // Sin repetición: usar índice directo (máximo 10 elementos)
     };
   });
 
   // Renderizador personalizado para sector activo
   const renderActiveShape = (props: any) => {
     const {
-      cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent
+      cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill
     } = props;
 
     return (
-      <g>
-        <Sector
-          cx={cx}
-          cy={cy}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius + 8}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          fill={fill}
-          stroke="hsl(var(--primary))"
-          strokeWidth={2}
-        />
-        <text
-          x={cx}
-          y={cy - 10}
-          textAnchor="middle"
-          fill="hsl(var(--foreground))"
-          className="text-sm font-medium"
-        >
-          {payload.name}
-        </text>
-        <text
-          x={cx}
-          y={cy + 10}
-          textAnchor="middle"
-          fill="hsl(var(--muted-foreground))"
-          className="text-xs"
-        >
-          {`${(percent * 100).toFixed(1)}%`}
-        </text>
-      </g>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 8}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        stroke="hsl(var(--primary))"
+        strokeWidth={2}
+      />
     );
   };
 
+  // Configuración responsive
+  const pieConfig = isMobile
+    ? { cx: "50%", cy: "40%", innerRadius: 40, outerRadius: 80 }
+    : { cx: "50%", cy: "50%", innerRadius: 60, outerRadius: 120 };
+
+  const legendConfig = isMobile
+    ? { layout: "horizontal" as const, align: "center" as const, verticalAlign: "bottom" as const }
+    : { layout: "vertical" as const, align: "right" as const, verticalAlign: "middle" as const };
+
   return (
-    <ChartContainer config={chartConfig} className="h-[400px] w-full">
+    <ChartContainer config={chartConfig} className={isMobile ? "h-[450px] w-full" : "h-[400px] w-full"}>
       <PieChart>
         <ChartTooltip
           content={
@@ -116,35 +136,43 @@ export function RankingPieChart({ data, selectedIndex, onSelectItem }: RankingPi
         />
         <Pie
           data={chartData}
-          cx="50%"
-          cy="50%"
-          innerRadius={60}
-          outerRadius={120}
+          cx={pieConfig.cx}
+          cy={pieConfig.cy}
+          innerRadius={pieConfig.innerRadius}
+          outerRadius={pieConfig.outerRadius}
           paddingAngle={2}
           dataKey="count"
           nameKey="name"
-          activeIndex={selectedIndex ?? undefined}
+          activeIndex={sortedSelectedIndex !== null ? sortedSelectedIndex : undefined}
           activeShape={renderActiveShape}
-          onClick={(data) => onSelectItem(data.index)}
+          onClick={(clickedData: any) => {
+            // Recharts pasa el payload directamente o dentro de un objeto
+            const payload = clickedData.payload || clickedData;
+            const clickedItem = chartData.find((item) => item.name === payload.name);
+            if (clickedItem && clickedItem.originalIndex !== undefined) {
+              onSelectItem(clickedItem.originalIndex);
+            }
+          }}
           cursor="pointer"
         >
           {chartData.map((entry, index) => (
             <Cell
               key={`cell-${index}`}
               fill={entry.fill}
-              opacity={selectedIndex === null || selectedIndex === index ? 1 : 0.5}
+              opacity={sortedSelectedIndex === null || sortedSelectedIndex === index ? 1 : 0.5}
             />
           ))}
         </Pie>
         <Legend
-          layout="vertical"
-          align="right"
-          verticalAlign="middle"
+          layout={legendConfig.layout}
+          align={legendConfig.align}
+          verticalAlign={legendConfig.verticalAlign}
           iconType="circle"
           iconSize={8}
+          wrapperStyle={isMobile ? { paddingTop: 20 } : undefined}
           formatter={(value, entry: any) => (
             <span className="text-xs text-muted-foreground">
-              {truncateName(value, 15)} ({entry.payload.percentage}%)
+              {isMobile ? truncateName(value, 12) : truncateName(value, 18)} ({entry.payload.percentage}%)
             </span>
           )}
         />
