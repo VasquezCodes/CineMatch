@@ -116,7 +116,7 @@ export async function getLibraryPaginated(
         user_id: row.user_id,
         movie_id: row.movie_id,
         user_rating: row.user_rating,
-        updated_at: row.last_interaction,
+        added_at: row.last_interaction,
         created_at: row.last_interaction, // Fallback
         status: row.status,
       },
@@ -126,7 +126,6 @@ export async function getLibraryPaginated(
         year: row.year,
         poster_url: row.poster_url,
         genres: row.genres,
-        director: row.director,
         extended_data: row.extended_data,
         imdb_id: row.imdb_id,
         imdb_rating: row.imdb_rating,
@@ -135,7 +134,19 @@ export async function getLibraryPaginated(
         plot: row.plot || null,
         runtime: row.runtime || null,
         tmdb_id: row.tmdb_id || null,
-        updated_at: row.movie_updated_at || new Date().toISOString(), // Fallback if view lacks it
+
+        updated_at: row.movie_updated_at || new Date().toISOString(),
+        backdrop_url: row.backdrop_url || null,
+        original_title: row.original_title || row.title,
+        overview: row.overview || row.synopsis || null,
+        popularity: row.popularity || 0,
+        release_date: row.release_date || null,
+        runtime_minutes: row.runtime_minutes || row.runtime || null,
+        tagline: null,
+        vote_average: row.vote_average || 0,
+        vote_count: row.vote_count || 0,
+        tmdb_data: null,
+        video: false,
       },
     }));
 
