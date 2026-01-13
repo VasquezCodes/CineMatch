@@ -43,11 +43,7 @@ export function MovieCard({ item }: MovieCardProps) {
               <p className="text-xs text-muted-foreground">{movie.year}</p>
             )}
 
-            {movie.director && (
-              <p className="text-xs text-muted-foreground line-clamp-1">
-                Dir: {movie.director}
-              </p>
-            )}
+
 
             {/* Rating del usuario */}
             {watchlist.user_rating !== null && (
