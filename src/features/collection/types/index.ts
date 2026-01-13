@@ -5,7 +5,7 @@ import type { Tables } from "@/types/database.types";
  * Usado para mostrar la tabla/grid de películas con detalles completos
  */
 export type WatchlistAnalysisItem = {
-  watchlist: Tables<"watchlists">;
+  watchlist: Tables<"watchlists"> & { user_rating?: number | null };
   movie: Tables<"movies">;
 };
 
