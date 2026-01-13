@@ -315,7 +315,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
         imdb_rating: movie.imdb_rating || null, // Pass IMDb rating
         extended_data: movie.extended_data || {},
         rating: userReview?.rating,
-        personalRating: userWatchlist?.user_rating,
+        personalRating: userWatchlist?.user_rating ?? userReview?.rating,
         watchlist: userWatchlist ? {
             status: 'listed',
             added_at: userWatchlist.added_at!
