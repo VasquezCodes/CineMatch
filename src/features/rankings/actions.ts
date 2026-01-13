@@ -70,18 +70,17 @@ export async function getRanking(
                     poster_url: m.poster_url,
                     user_rating: m.user_rating
                 }))
-                .filter((m) => m.user_rating && m.user_rating > 0);
+                .filter((m: any) => m.user_rating && m.user_rating > 0);
 
-            const count = movies.length;
-            const avgRating = count > 0
-                ? movies.reduce((acc, m) => acc + (m.user_rating || 0), 0) / count
-                : 0;
+            // Usamos los valores calculados por el RPC que ya manejan la lógica de sagas/roles únicos
+            const count = Number(item.total_movies) || 0;
+            const score = Number(item.score) || 0;
 
             return {
                 type,
                 key: item.name,
                 count: count,
-                score: (count * 10) + (avgRating * 2),
+                score: score,
                 data: {
                     image_url: item.photo_url,
                     movies: movies
