@@ -56,22 +56,7 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
   });
   const [error, setError] = React.useState<string | null>(null);
 
-  // Limpiar datos cuando cambia el modo de vista para forzar recarga con nuevo límite
-  const prevViewMode = React.useRef(viewMode);
-  React.useEffect(() => {
-    if (prevViewMode.current !== viewMode) {
-      setData({
-        director: undefined,
-        actor: undefined,
-        genre: undefined,
-        year: undefined,
-        screenplay: undefined,
-        photography: undefined,
-        music: undefined,
-      });
-      prevViewMode.current = viewMode;
-    }
-  }, [viewMode]);
+
 
   // Cargar datos del tab activo
   React.useEffect(() => {
@@ -85,8 +70,9 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
       setError(null);
 
       try {
-        // En modo charts cargamos Top 10, en modo cards Top 5
-        const limit = viewMode === "charts" ? 10 : 5;
+        // Siempre cargamos 20 items para garantizar consistencia en el ordenamiento
+        // (ya que el DB puede devolver items diferentes si hay empates en count)
+        const limit = 20;
         const result = await getRanking(userId, activeTab, {
           minRating: 1,
           limit,
@@ -101,9 +87,11 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
     };
 
     loadRankingData();
-  }, [activeTab, userId, data, isCollapsed, loading, viewMode]);
+  }, [activeTab, userId, data, isCollapsed, loading]);
 
-  const currentData = data[activeTab] || [];
+  const rawData = data[activeTab] || [];
+  const displayLimit = viewMode === "charts" ? 10 : 5;
+  const currentData = rawData.slice(0, displayLimit);
   const isLoading = loading[activeTab];
   const currentLabel = RANKING_TYPES.find((t) => t.value === activeTab)?.label || "";
 
