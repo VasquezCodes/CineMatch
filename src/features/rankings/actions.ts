@@ -59,23 +59,37 @@ export async function getRanking(
         if (!data) return [];
 
         // Mapeamos la respuesta optimizada del RPC a la estructura visual del frontend.
+        // Mapeamos la respuesta optimizada del RPC a la estructura visual del frontend.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return data.map((item: any) => ({
-            type,
-            key: item.name,
-            count: item.count,
-            score: (item.count * 10) + (item.avg_rating * 2), // Lógica de puntuación simple: (Cantidad * 10) + (Rating Promedio * 2)
-            data: {
-                image_url: item.photo_url,
-                movies: (item.top_movies as any[] || []).map((m: any) => ({
+        return data.map((item: any) => {
+            const movies = (item.top_movies as any[] || [])
+                .map((m: any) => ({
                     id: m.id,
                     title: m.title,
                     year: m.year,
                     poster_url: m.poster_url,
                     user_rating: m.user_rating
                 }))
-            }
-        }));
+                .filter((m) => m.user_rating && m.user_rating > 0);
+
+            const count = movies.length;
+            const avgRating = count > 0
+                ? movies.reduce((acc, m) => acc + (m.user_rating || 0), 0) / count
+                : 0;
+
+            return {
+                type,
+                key: item.name,
+                count: count,
+                score: (count * 10) + (avgRating * 2),
+                data: {
+                    image_url: item.photo_url,
+                    movies: movies
+                }
+            };
+        })
+            .filter((item: any) => item.data.movies.length > 0)
+            .sort((a: any, b: any) => b.score - a.score);
     }
 
     // 2. Rankings por Género y Año (Agregación en Memoria Optimizada)

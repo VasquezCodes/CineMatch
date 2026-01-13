@@ -89,11 +89,24 @@ export default async function MovieDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center gap-4 mb-4 flex-wrap">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 <span className="text-lg font-medium">{movie.year}</span>
               </div>
+
+              {movie.imdb_rating && (
+                <Badge
+                  variant="secondary"
+                  className="text-sm px-3 py-1 gap-1.5 bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/25 border-yellow-500/20"
+                  title="IMDb Rating"
+                >
+                  <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+                  <span className="font-bold">{movie.imdb_rating.toFixed(1)}</span>
+                  <span className="text-xs opacity-80 font-normal">IMDb</span>
+                </Badge>
+              )}
+
               {movie.personalRating && (
                 <div className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/20 rounded-md">
                   <Star className="h-4 w-4 fill-primary text-primary" />
