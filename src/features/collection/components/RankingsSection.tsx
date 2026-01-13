@@ -5,11 +5,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
-import { ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ChevronDown, ChevronUp, TrendingUp, LayoutGrid, BarChart3 } from "lucide-react";
 import { RankingCard } from "./RankingCard";
 import { RankingsSheet } from "./RankingsSheet";
+import { RankingsChartsView } from "@/features/rankings/components/RankingsChartsView";
 import { getRanking, type RankingType } from "@/features/rankings/actions";
 import { cn } from "@/lib/utils";
+
+type ViewMode = "cards" | "charts";
 
 interface RankingsSectionProps {
   userId: string;
@@ -27,6 +31,7 @@ const RANKING_TYPES: Array<{ value: RankingType; label: string }> = [
 
 export function RankingsSection({ userId }: RankingsSectionProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState<ViewMode>("cards");
   const [activeTab, setActiveTab] = React.useState<RankingType>("director");
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [sheetRankingType, setSheetRankingType] = React.useState<RankingType>("director");
@@ -51,6 +56,23 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
   });
   const [error, setError] = React.useState<string | null>(null);
 
+  // Limpiar datos cuando cambia el modo de vista para forzar recarga con nuevo límite
+  const prevViewMode = React.useRef(viewMode);
+  React.useEffect(() => {
+    if (prevViewMode.current !== viewMode) {
+      setData({
+        director: undefined,
+        actor: undefined,
+        genre: undefined,
+        year: undefined,
+        screenplay: undefined,
+        photography: undefined,
+        music: undefined,
+      });
+      prevViewMode.current = viewMode;
+    }
+  }, [viewMode]);
+
   // Cargar datos del tab activo
   React.useEffect(() => {
     if (isCollapsed) return; // No cargar si está colapsado
@@ -63,9 +85,11 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
       setError(null);
 
       try {
+        // En modo charts cargamos Top 10, en modo cards Top 5
+        const limit = viewMode === "charts" ? 10 : 5;
         const result = await getRanking(userId, activeTab, {
           minRating: 1,
-          limit: 5, // Solo Top 5 para la vista compacta
+          limit,
         });
         setData((prev) => ({ ...prev, [activeTab]: result }));
       } catch (err) {
@@ -77,7 +101,7 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
     };
 
     loadRankingData();
-  }, [activeTab, userId, data, isCollapsed, loading]);
+  }, [activeTab, userId, data, isCollapsed, loading, viewMode]);
 
   const currentData = data[activeTab] || [];
   const isLoading = loading[activeTab];
@@ -91,32 +115,61 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
   return (
     <>
       <div className="space-y-4">
-        {/* Header con toggle de colapsar */}
-        <div className="flex items-center justify-between">
+        {/* Header con toggle de vista y colapsar */}
+        <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
             <h2 className="text-2xl font-bold tracking-tight">Rankings</h2>
             <p className="text-sm text-muted-foreground mt-1">
               Descubre tus preferencias cinematográficas
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="gap-2"
-          >
-            {isCollapsed ? (
-              <>
-                Expandir
-                <ChevronDown className="h-4 w-4" />
-              </>
-            ) : (
-              <>
-                Colapsar
-                <ChevronUp className="h-4 w-4" />
-              </>
-            )}
-          </Button>
+
+          <div className="flex items-center gap-2">
+            {/* Toggle de vista: Cards vs Charts */}
+            <ToggleGroup
+              type="single"
+              value={viewMode}
+              onValueChange={(v) => v && setViewMode(v as ViewMode)}
+              className="bg-muted/50 p-1 rounded-lg"
+            >
+              <ToggleGroupItem
+                value="cards"
+                aria-label="Vista de tarjetas"
+                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
+              >
+                <LayoutGrid className="h-4 w-4" />
+                <span className="hidden sm:inline text-sm">Cards</span>
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="charts"
+                aria-label="Vista de gráficos"
+                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
+              >
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline text-sm">Gráficos</span>
+              </ToggleGroupItem>
+            </ToggleGroup>
+
+            {/* Botón de colapsar */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="gap-2"
+            >
+              {isCollapsed ? (
+                <>
+                  <span className="hidden sm:inline">Expandir</span>
+                  <ChevronDown className="h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  <span className="hidden sm:inline">Colapsar</span>
+                  <ChevronUp className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Contenido colapsable */}
@@ -143,47 +196,60 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
             {/* Contenido de cada tab */}
             {RANKING_TYPES.map((type) => (
               <TabsContent key={type.value} value={type.value} className="mt-6">
-                {isLoading && type.value === activeTab ? (
-                  <RankingsSkeleton />
-                ) : error ? (
-                  <ErrorState
-                    title="Error al cargar rankings"
-                    description={error}
-                  />
-                ) : currentData.length === 0 ? (
-                  <EmptyState
-                    icon={<TrendingUp className="h-12 w-12" />}
-                    title={`No hay rankings de ${type.label.toLowerCase()}`}
-                    description="Califica más películas para ver rankings personalizados."
+                {viewMode === "charts" ? (
+                  /* Vista de Gráficos */
+                  <RankingsChartsView
+                    data={currentData}
+                    type={type.value}
+                    isLoading={isLoading && type.value === activeTab}
+                    error={error}
                   />
                 ) : (
+                  /* Vista de Cards (original) */
                   <>
-                    {/* Grid responsive: 1 columna en mobile, 2 en desktop */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      {currentData.map((item, index) => (
-                        <RankingCard
-                          key={item.key}
-                          item={item}
-                          index={index}
-                          type={type.value}
-                          onViewMore={() => handleViewMore(type.value)}
-                          compact
-                        />
-                      ))}
-                    </div>
+                    {isLoading && type.value === activeTab ? (
+                      <RankingsSkeleton />
+                    ) : error ? (
+                      <ErrorState
+                        title="Error al cargar rankings"
+                        description={error}
+                      />
+                    ) : currentData.length === 0 ? (
+                      <EmptyState
+                        icon={<TrendingUp className="h-12 w-12" />}
+                        title={`No hay rankings de ${type.label.toLowerCase()}`}
+                        description="Califica más películas para ver rankings personalizados."
+                      />
+                    ) : (
+                      <>
+                        {/* Grid responsive: 1 columna en mobile, 2 en desktop */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          {currentData.map((item, index) => (
+                            <RankingCard
+                              key={item.key}
+                              item={item}
+                              index={index}
+                              type={type.value}
+                              onViewMore={() => handleViewMore(type.value)}
+                              compact
+                            />
+                          ))}
+                        </div>
 
-                    {/* Botón para ver Top 10 completo */}
-                    {currentData.length > 0 && (
-                      <div className="mt-6 text-center">
-                        <Button
-                          variant="outline"
-                          onClick={() => handleViewMore(type.value)}
-                          className="gap-2"
-                        >
-                          Ver Top 10 completo de {type.label}
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                      </div>
+                        {/* Botón para ver Top 10 completo */}
+                        {currentData.length > 0 && (
+                          <div className="mt-6 text-center">
+                            <Button
+                              variant="outline"
+                              onClick={() => handleViewMore(type.value)}
+                              className="gap-2"
+                            >
+                              Ver Top 10 completo de {type.label}
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </>
                     )}
                   </>
                 )}
