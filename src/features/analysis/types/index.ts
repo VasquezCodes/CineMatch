@@ -8,4 +8,3 @@ export type WatchlistAnalysisItem = {
   watchlist: Tables<"watchlists"> & { user_rating?: number | null };
   movie: Tables<"movies">;
 };
-

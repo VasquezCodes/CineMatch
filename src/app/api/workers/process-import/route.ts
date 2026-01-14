@@ -130,11 +130,34 @@ export async function POST(request: NextRequest) {
                     headers: { 'x-cron-secret': process.env.CRON_SECRET || '' },
                     signal: controller.signal
                 });
-            } catch (err: any) {
-                if (err.name === 'AbortError') console.log('Recursive trigger sent.');
+            } catch (err: unknown) {
+                const errorName = err instanceof Error ? err.name : 'Unknown';
+                if (errorName === 'AbortError') console.log('Recursive trigger sent.');
                 else console.error('Error triggering recursion:', err);
             } finally {
                 clearTimeout(timeoutId);
+            }
+        } else {
+            // No quedan más items en la cola - marcar imports como completados
+            // Actualizamos todos los user_imports que aún están en 'processing'
+            for (const userId of userIdsEncountered) {
+                // Verificar si quedan items para este usuario específico
+                const { count: userItemsLeft } = await supabase
+                    .from('import_queue')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', userId)
+                    .eq('status', 'pending');
+
+                if (!userItemsLeft || userItemsLeft === 0) {
+                    // No quedan items para este usuario, marcar sus imports como completados
+                    await supabase
+                        .from('user_imports')
+                        .update({ status: 'completed' })
+                        .eq('user_id', userId)
+                        .eq('status', 'processing');
+
+                    console.log(`Marked imports as completed for user: ${userId}`);
+                }
             }
         }
 
@@ -236,6 +259,10 @@ async function enrichMovieData(supabase: any, movieId: string, imdbId: string) {
         const certification = details.release_dates?.results?.find((r: any) => r.iso_3166_1 === 'US')?.release_dates[0]?.certification;
         const trailer = details.videos?.results?.find((v: any) => v.type === 'Trailer' && v.site === 'YouTube')?.key;
 
+        // Capturamos datos de colección/saga para agrupar roles de actores
+        const collectionId = details.belongs_to_collection?.id || null;
+        const collectionName = details.belongs_to_collection?.name || null;
+
         const extendedData = {
             cast: details.credits.cast.slice(0, 50).map((c: any) => ({
                 name: c.name,
@@ -280,6 +307,10 @@ async function enrichMovieData(supabase: any, movieId: string, imdbId: string) {
             synopsis: details.overview,
             director: extendedData.crew.director,
             genres: extendedData.technical.genres,
+            tmdb_id: details.id,
+            collection_id: collectionId,
+            collection_name: collectionName,
         }).eq('id', movieId);
     }
 }
+
