@@ -70,7 +70,7 @@ export function RankingBarChart({ data, selectedIndex, onSelectItem }: RankingBa
   });
 
   return (
-    <ChartContainer config={chartConfig} className="h-[350px] sm:h-[400px] w-full">
+    <ChartContainer config={chartConfig} className="h-full max-h-[400px] w-full">
       <BarChart
         data={chartData}
         layout="vertical"

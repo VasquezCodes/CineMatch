@@ -47,9 +47,7 @@ export default function AppPage() {
             <CardHeader>
               <BarChart3 className="h-8 w-8 text-primary" aria-hidden="true" />
               <CardTitle>Análisis</CardTitle>
-              <CardDescription>
-                Elabora rankings con tus gustos
-              </CardDescription>
+              <CardDescription>Elabora rankings con tus gustos</CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="outline" asChild className="w-full">
@@ -62,7 +60,10 @@ export default function AppPage() {
           <Card>
             <CardHeader>
               <div className="flex items-start justify-between gap-3">
-                <ClipboardCheck className="h-8 w-8 text-primary" aria-hidden="true" />
+                <ClipboardCheck
+                  className="h-8 w-8 text-primary"
+                  aria-hidden="true"
+                />
                 {isQualified && (
                   <Badge variant="secondary" className="text-xs">
                     Completado
@@ -72,7 +73,7 @@ export default function AppPage() {
               <CardTitle>Perfil cinéfilo</CardTitle>
               <CardDescription>
                 {isQualified
-                  ? "Tu perfil de cualificación está listo. Podés editarlo cuando quieras."
+                  ? "Señalá las cualidades de tus films favoritos."
                   : "Definí qué aspectos del cine valoras para recibir mejores recomendaciones."}
               </CardDescription>
             </CardHeader>
@@ -82,9 +83,7 @@ export default function AppPage() {
                 asChild
                 className="w-full"
               >
-                <Link href={SECONDARY_ROUTES.QUALIFICATION}>
-                  Cualificar
-                </Link>
+                <Link href={SECONDARY_ROUTES.QUALIFICATION}>Cualificar</Link>
               </Button>
             </CardContent>
           </Card>
