@@ -19,11 +19,11 @@ interface RankingsSectionProps {
 const RANKING_TYPES: Array<{ value: RankingType; label: string }> = [
   { value: "director", label: "Directores" },
   { value: "actor", label: "Actores" },
-  { value: "genre", label: "Géneros" },
-  { value: "year", label: "Años" },
   { value: "screenplay", label: "Guionistas" },
   { value: "photography", label: "Fotografía" },
   { value: "music", label: "Música" },
+  { value: "genre", label: "Géneros" },
+  { value: "year", label: "Años" },
 ];
 
 export function RankingsSection({ userId }: RankingsSectionProps) {

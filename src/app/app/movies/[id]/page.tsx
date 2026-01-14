@@ -97,22 +97,14 @@ export default async function MovieDetailPage({ params }: PageProps) {
 
               {movie.imdb_rating && (
                 <Badge
-                  variant="secondary"
-                  className="text-sm px-3 py-1 gap-1.5 bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/25 border-yellow-500/20"
+                  variant="outline"
+                  className="text-sm px-2.5 py-1 gap-1 text-yellow-600 dark:text-yellow-400 border-yellow-500/30"
                   title="IMDb Rating"
                 >
-                  <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
-                  <span className="font-bold">{movie.imdb_rating.toFixed(1)}</span>
-                  <span className="text-xs opacity-80 font-normal">IMDb</span>
+                  <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                  <span className="font-medium">{movie.imdb_rating.toFixed(1)}</span>
+                  <span className="text-xs opacity-70">IMDb</span>
                 </Badge>
-              )}
-
-              {movie.personalRating && (
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/20 rounded-md">
-                  <Star className="h-4 w-4 fill-primary text-primary" />
-                  <span className="text-base font-bold text-primary">{movie.personalRating}</span>
-                  <span className="text-xs text-muted-foreground ml-1">personal</span>
-                </div>
               )}
             </div>
 

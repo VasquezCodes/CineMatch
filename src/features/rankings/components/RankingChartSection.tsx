@@ -6,33 +6,6 @@ import {
 } from "./charts";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { RankingStatConfig, RankingType } from "../actions";
-import { calculateItemAverageRating } from "../hooks/useRankingCalculations";
-
-interface SelectedItemInfoProps {
-  item: RankingStatConfig;
-  index: number;
-}
-
-function SelectedItemInfo({ item, index }: SelectedItemInfoProps) {
-  const avgRating = calculateItemAverageRating(item);
-
-  return (
-    <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
-      <div className="flex items-center gap-3">
-        <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary">
-          {index + 1}
-        </div>
-        <div className="flex-1">
-          <p className="font-medium">{item.key}</p>
-          <p className="text-sm text-muted-foreground">
-            {item.count} películas · Rating promedio:{" "}
-            <span className="text-star-yellow font-semibold">★ {avgRating}</span>
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function ChartSkeleton() {
   return (
@@ -130,10 +103,6 @@ export function RankingChartSection({
         </header>
 
         {renderChart()}
-
-        {selectedIndex !== null && data[selectedIndex] && (
-          <SelectedItemInfo item={data[selectedIndex]} index={selectedIndex} />
-        )}
       </div>
     </div>
   );
