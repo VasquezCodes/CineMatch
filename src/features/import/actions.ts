@@ -67,10 +67,11 @@ export async function processImport(movies: CsvMovieImport[], filename: string):
         .in('status', ['pending', 'processing']);
 
     // Extraer IDs existentes
+    type QueuePayload = { imdb_id?: string; import_id?: string };
     const existingImdbIds = new Set<string>();
     if (existingItems) {
-        existingItems.forEach((item: any) => {
-            if (item.payload && item.payload.imdb_id) {
+        existingItems.forEach((item: { payload: QueuePayload }) => {
+            if (item.payload?.imdb_id) {
                 existingImdbIds.add(item.payload.imdb_id);
             }
         });
@@ -149,7 +150,7 @@ export type UserImport = {
     filename: string;
     imported_at: string;
     status: string;
-    counts: any;
+    counts: { total: number; new: number; updated: number };
 };
 
 export async function getImports(): Promise<UserImport[]> {

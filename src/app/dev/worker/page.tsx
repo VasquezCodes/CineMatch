@@ -12,11 +12,7 @@ export default function WorkerDebugPage() {
         setError(null);
         setResult(null);
         try {
-            // Call an internal API route that triggers the worker (to handle the secret on server side)
-            // OR call the worker directly if we skip the secret check for debugging? 
-            // Better: Create a server action or proxy route? 
-            // Let's assume we can call the worker directly if we know the secret (which we don't on client).
-            // So we'll use a server action.
+            // Usamos una ruta proxy para manejar el secreto del lado del servidor
             const response = await fetch('/api/dev/trigger-worker', { method: 'POST' });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Failed to trigger');

@@ -1,4 +1,4 @@
-// Utility for conditional class names
+// Utilidad para nombres de clases condicionales
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 

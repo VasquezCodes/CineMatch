@@ -10,14 +10,7 @@ import { cn } from '@/lib/utils';
 type ImportState = 'idle' | 'processing' | 'calculating_stats' | 'completed' | 'error';
 
 /**
- * ImportStatusIndicator
- * 
- * Componente que muestra un toast flotante con el progreso de importación
- * en tiempo real usando Supabase Realtime.
- * 
- * - Se suscribe a cambios en la tabla `import_queue`
- * - Muestra el número de películas pendientes de procesar
- * - Cuando termina, ofrece opciones para navegar o refrescar
+ * Toast flotante con progreso de importación en tiempo real via Supabase Realtime.
  */
 export function ImportStatusIndicator() {
   const [pendingCount, setPendingCount] = useState(0);
@@ -163,9 +156,7 @@ export function ImportStatusIndicator() {
     }
   }, [importState, pendingCount]);
 
-  // FALLBACK: Polling de seguridad
-  // Verifica el estado real cada 5 segundos por si se pierden eventos de Realtime.
-  // Esto previene que la UI se quede "pegada" si no llega el evento final.
+  // Polling de seguridad cada 5s por si se pierden eventos Realtime
   useEffect(() => {
     if (importState !== 'processing' && importState !== 'calculating_stats') return;
 

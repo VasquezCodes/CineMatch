@@ -5,8 +5,8 @@ type TmdbCreditPerson = {
     id: number;
     name: string;
     profile_path: string | null;
-    job?: string; // For crew
-    character?: string; // For cast
+    job?: string; // Para crew
+    character?: string; // Para cast
 };
 
 /**

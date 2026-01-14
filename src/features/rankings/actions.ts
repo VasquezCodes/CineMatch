@@ -12,15 +12,26 @@ export type RankingStatConfig = {
     score: number;
     data: {
         image_url?: string;
-        movies: {
-            id: string;
-            title: string;
-            year: number;
-            poster_url: string | null;
-            user_rating?: number;
-        }[];
-        roles?: { role: string; movies: string[] }[]; // Keeping for compatibility, though RPC handles roles implicitly
+        movies: RankingMovie[];
+        roles?: { role: string; movies: string[] }[];
     };
+};
+
+// Tipos para respuestas RPC
+type RankingMovie = {
+    id: string;
+    title: string;
+    year: number;
+    poster_url: string | null;
+    user_rating?: number;
+};
+
+type PersonRankingRpcRow = {
+    name: string;
+    photo_url: string | null;
+    total_movies: number;
+    score: number;
+    top_movies: RankingMovie[];
 };
 
 export async function getRanking(
@@ -31,12 +42,12 @@ export async function getRanking(
     const supabase = await createClient();
     const limit = options.limit || 20;
 
-    // Map frontend type to DB role (for person categories)
+    // Mapear tipo del frontend a rol de DB (para categorías de personas)
     let role: string | null = null;
     switch (type) {
         case 'director': role = 'Director'; break;
         case 'actor': role = 'Actor'; break;
-        case 'screenplay': role = 'Writer'; break; // Maps to 'Screenplay' or 'Writer' in RPC
+        case 'screenplay': role = 'Writer'; break; // Mapea a 'Screenplay' o 'Writer' en RPC
         case 'photography': role = 'Director of Photography'; break;
         case 'music': role = 'Original Music Composer'; break;
     }
@@ -58,155 +69,102 @@ export async function getRanking(
 
         if (!data) return [];
 
-        // Mapeamos la respuesta optimizada del RPC a la estructura visual del frontend.
-        // Mapeamos la respuesta optimizada del RPC a la estructura visual del frontend.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return data.map((item: any) => {
-            const movies = (item.top_movies as any[] || [])
-                .map((m: any) => ({
+        // Mapeamos la respuesta del RPC a la estructura del frontend
+        return (data as PersonRankingRpcRow[]).map((item) => {
+            const movies = (item.top_movies || [])
+                .map((m) => ({
                     id: m.id,
                     title: m.title,
                     year: m.year,
                     poster_url: m.poster_url,
                     user_rating: m.user_rating
                 }))
-                .filter((m: any) => m.user_rating && m.user_rating > 0);
+                .filter((m) => m.user_rating && m.user_rating > 0);
 
-            // Usamos los valores calculados por el RPC que ya manejan la lógica de sagas/roles únicos
             const count = Number(item.total_movies) || 0;
             const score = Number(item.score) || 0;
 
             return {
                 type,
                 key: item.name,
-                count: count,
-                score: score,
+                count,
+                score,
                 data: {
-                    image_url: item.photo_url,
-                    movies: movies
+                    image_url: item.photo_url ?? undefined,
+                    movies
                 }
             };
         })
-            .filter((item: any) => item.data.movies.length > 0)
-            .sort((a: any, b: any) => b.score - a.score);
+            .filter((item) => item.data.movies.length > 0)
+            .sort((a, b) => b.score - a.score);
     }
 
-    // 2. Rankings por Género y Año (Agregación en Memoria Optimizada)
-    // Nota: Ya no traemos `extended_data` completo (que es muy pesado).
-    // Traemos solo las columnas estrictamente necesarias y realizamos la agregación en memoria,
-    // lo cual ahora es suficientemente rápido.
-    // TODO: En el futuro, si el catálogo crece exponencialmente, considerar migrar a RPC.
-
-    // GÉNERO
+    // 2. Rankings por Género (vía RPC)
     if (type === 'genre') {
-        // Dado que los géneros están en `movies.genres` (JSON), necesitamos extraerlos.
-        // Consultamos solo los datos necesarios de la tabla `watchlists` unida a `movies`.
+        const { data, error } = await supabase.rpc('get_genre_rankings', {
+            p_user_id: userId,
+            p_limit: limit
+        });
 
-        const { data: movies, error } = await supabase
-            .from('watchlists')
-            .select(`
-                user_rating,
-                movies!inner (
-                    id, title, year, poster_url, genres
-                )
-            `)
-            .eq('user_id', userId)
-            .gte('user_rating', 1);
-
-        if (error || !movies) return [];
-
-        // Agregación en memoria (Rápida gracias a la reducción de datos consultados)
-        const genreCounts: Record<string, RankingStatConfig> = {};
-
-
-        for (const item of movies) {
-            const mData = item.movies;
-            const m = Array.isArray(mData) ? mData[0] : mData;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            if (!m || !(m as any).genres) continue;
-
-            // Aseguramos que genres sea un array, casteando si es necesario desde JSON.
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const genresReq = Array.isArray((m as any).genres) ? (m as any).genres : [];
-
-            for (const g of genresReq) {
-                const gName = String(g);
-                if (!genreCounts[gName]) {
-                    genreCounts[gName] = {
-                        type: 'genre',
-                        key: gName,
-                        count: 0,
-                        score: 0,
-                        data: { movies: [] }
-                    };
-                }
-                const stat = genreCounts[gName];
-                stat.count++;
-                stat.score += 10;
-                stat.data.movies.push({
-                    id: m.id,
-                    title: m.title,
-                    year: m.year,
-                    poster_url: m.poster_url,
-                    user_rating: item.user_rating || 0
-                });
-            }
+        if (error) {
+            console.error('Error fetching genre rankings:', error);
+            throw new Error('Failed to fetch genre rankings');
         }
 
-        return Object.values(genreCounts)
-            .sort((a, b) => b.count - a.count)
-            .slice(0, limit);
+        if (!data) return [];
+
+        return data.map((item: { genre: string; total_movies: number; average_rating: number; score: number; top_movies: unknown[] }) => ({
+            type: 'genre' as RankingType,
+            key: item.genre,
+            count: Number(item.total_movies),
+            score: Number(item.score),
+            data: {
+                movies: (item.top_movies || []).map((m: unknown) => {
+                    const movie = m as { id: string; title: string; year: number; poster_url: string | null; user_rating: number };
+                    return {
+                        id: movie.id,
+                        title: movie.title,
+                        year: movie.year,
+                        poster_url: movie.poster_url,
+                        user_rating: movie.user_rating
+                    };
+                })
+            }
+        }));
     }
 
-    // YEAR
+    // 3. Rankings por Año (vía RPC)
     if (type === 'year') {
-        const { data: movies, error } = await supabase
-            .from('watchlists')
-            .select(`
-                user_rating,
-                movies!inner (
-                    id, title, year, poster_url
-                )
-            `)
-            .eq('user_id', userId)
-            .gte('user_rating', 1);
+        const { data, error } = await supabase.rpc('get_year_rankings', {
+            p_user_id: userId,
+            p_limit: limit
+        });
 
-        if (error || !movies) return [];
-
-        const yearCounts: Record<string, RankingStatConfig> = {};
-
-
-        for (const item of movies) {
-            const mData = item.movies;
-            const m = Array.isArray(mData) ? mData[0] : mData;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            if (!m || !(m as any).year) continue;
-
-            const y = String((m as any).year);
-            if (!yearCounts[y]) {
-                yearCounts[y] = {
-                    type: 'year',
-                    key: y,
-                    count: 0,
-                    score: 0,
-                    data: { movies: [] }
-                };
-            }
-            const stat = yearCounts[y];
-            stat.count++;
-            stat.score += 10;
-            stat.data.movies.push({
-                id: m.id,
-                title: m.title,
-                year: m.year,
-                poster_url: m.poster_url,
-                user_rating: item.user_rating || 0
-            });
+        if (error) {
+            console.error('Error fetching year rankings:', error);
+            throw new Error('Failed to fetch year rankings');
         }
 
-        return Object.values(yearCounts)
-            .sort((a, b) => b.count - a.count)
-            .slice(0, limit);
+        if (!data) return [];
+
+        return data.map((item: { year: number; total_movies: number; average_rating: number; score: number; top_movies: unknown[] }) => ({
+            type: 'year' as RankingType,
+            key: String(item.year),
+            count: Number(item.total_movies),
+            score: Number(item.score),
+            data: {
+                movies: (item.top_movies || []).map((m: unknown) => {
+                    const movie = m as { id: string; title: string; year: number; poster_url: string | null; user_rating: number };
+                    return {
+                        id: movie.id,
+                        title: movie.title,
+                        year: movie.year,
+                        poster_url: movie.poster_url,
+                        user_rating: movie.user_rating
+                    };
+                })
+            }
+        }));
     }
 
     return [];

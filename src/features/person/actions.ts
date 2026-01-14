@@ -4,7 +4,7 @@ import { tmdb, TmdbClient } from '@/lib/tmdb';
 import { createClient } from '@/lib/supabase/server'; // Use server client
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 
-// Helper types for DB return
+// Tipos auxiliares para respuestas de DB
 type DbPerson = {
     id: string;
     name: string;
@@ -18,25 +18,52 @@ type DbPerson = {
     updated_at: string | null;
 };
 
+// Tipo para créditos de filmografía
+type FilmCredit = {
+    id: number;
+    title: string;
+    poster_path: string | null;
+    release_date: string | null;
+    vote_average: number | null;
+    vote_count?: number;
+    character?: string;
+    job?: string;
+    overview?: string;
+};
+
+// Tipo para filas de créditos desde la DB
+type CreditsDbRow = {
+    role: string;
+    job: string;
+    movies: {
+        id: string;
+        title: string;
+        poster_url: string | null;
+        year: number | null;
+        imdb_rating: number | null;
+        tmdb_id: number | null;
+    } | null;
+};
+
 export type PersonProfile = {
-    id: number; // TMDB ID for frontend compatibility
+    id: number;
     name: string;
     biography: string;
     birthday: string | null;
     deathday: string | null;
     place_of_birth: string | null;
-    profile_path: string | null; // For compatibility
+    profile_path: string | null;
     photo_url: string | null;
     known_for_department: string;
     credits: {
-        cast: any[];
+        cast: FilmCredit[];
         crew: {
-            directing: any[];
-            writing: any[];
-            production: any[];
-            camera: any[];
-            sound: any[];
-            other: any[];
+            directing: FilmCredit[];
+            writing: FilmCredit[];
+            production: FilmCredit[];
+            camera: FilmCredit[];
+            sound: FilmCredit[];
+            other: FilmCredit[];
         };
     };
     error?: string;
@@ -48,7 +75,7 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
 
     const supabase = await createClient();
 
-    // Admin client for writes (bypass RLS)
+    // Cliente admin para escrituras (bypass RLS)
     const adminClient = createAdminClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -79,7 +106,7 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
 
         // 2. HIT: Retornar desde DB si existe y es reciente
         if (dbPerson && isFresh && dbPerson.biography) {
-            // console.log(`[Cache Hit] Serving ${name} from DB`);
+            // console.log(`[Cache Hit] Sirviendo ${name} desde DB`);
 
             // Obtener créditos desde las relaciones en la DB (`movie_people`)
             const { data: creditsData } = await supabase
@@ -100,16 +127,16 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
                 .eq('person_id', dbPerson.id);
 
             // Transformar créditos de DB a la estructura estándar de TMDB
-            const cast: any[] = [];
-            const crew: any[] = [];
+            const cast: FilmCredit[] = [];
+            const crew: FilmCredit[] = [];
 
-            creditsData?.forEach((item: any) => {
+            (creditsData as CreditsDbRow[] | null)?.forEach((item) => {
                 if (!item.movies) return;
 
-                const movie = {
-                    id: item.movies.tmdb_id, // Can be null, filtered later
+                const movie: FilmCredit = {
+                    id: item.movies.tmdb_id ?? 0,
                     title: item.movies.title,
-                    poster_path: item.movies.poster_url, // URL completa
+                    poster_path: item.movies.poster_url,
                     release_date: item.movies.year ? `${item.movies.year}-01-01` : null,
                     vote_average: item.movies.imdb_rating,
                     character: item.role === 'Actor' ? item.job : undefined,
@@ -127,10 +154,9 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
 
             // Helpers de filtrado
             const filterJob = (job: string) => crew.filter(c => c.job === job);
-            const filterDept = (jobs: string[]) => crew.filter(c => jobs.includes(c.job));
+            const filterDept = (jobs: string[]) => crew.filter(c => c.job && jobs.includes(c.job));
 
-            // Si encontramos créditos en la DB, los retornamos.
-            // Si NO hay créditos (ej. se borraron o nunca se linkearon), dejamos pasar al fallback de TMDB.
+            // Sin créditos, pasar al fallback de TMDB
             if (cast.length > 0 || crew.length > 0) {
                 return {
                     id: dbPerson.tmdb_id,
@@ -156,13 +182,13 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
                     source: 'db'
                 };
             }
-            // console.log(`[Cache Hit] But no credits found for ${name}. Falling back to TMDB.`);
+            // console.log(`[Cache Hit] Sin créditos para ${name}. Fallback a TMDB.`);
         }
 
         // 3. MISS or STALE: Fetch desde TMDB
-        // console.log(`[Cache Miss] Fetching ${name} from TMDB`);
+        // console.log(`[Cache Miss] Obteniendo ${name} de TMDB`);
 
-        // 3.1 Resolver ID: Si teníamos un dato viejo en DB, usamos su tmdb_id. Si no, buscamos.
+        // Resolver TMDB ID si no lo tenemos
         let tmdbId = dbPerson?.tmdb_id;
         if (!tmdbId) {
             const people = await tmdb.searchPerson(name);
@@ -171,13 +197,13 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
             tmdbId = personSummary.id;
         }
 
-        // 3.2 Obtener Detalles Completos
+        // Obtener detalles completos de TMDB
         let [details, credits] = await Promise.all([
             tmdb.getPersonDetails(tmdbId),
             tmdb.getPersonMovieCredits(tmdbId)
         ]);
 
-        // Fallbacks para Biografía (Intento ES -> Fallback EN)
+        // Fallback de biografía: ES -> EN
         if (details && !details.biography) {
             const spainDetails = await tmdb.getPersonDetails(tmdbId, 'es-ES');
             if (spainDetails?.biography) details.biography = spainDetails.biography;
@@ -219,19 +245,30 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
             const castMovies = credits.cast || [];
             const crewMovies = credits.crew || [];
 
-            // Estrategia: Elegir las 20 películas más populares/votadas para cachear
+            // Cachear solo las 20 películas más populares
             const allMovies = [...castMovies, ...crewMovies];
             const uniqueMovies = new Map();
             allMovies.forEach(m => {
                 if (m.id && !uniqueMovies.has(m.id)) uniqueMovies.set(m.id, m);
             });
 
-            const sortedMovies = Array.from(uniqueMovies.values())
-                .sort((a: any, b: any) => (b.vote_count || 0) - (a.vote_count || 0))
-                .slice(0, 20); // Top 20
+            const sortedMovies = Array.from(uniqueMovies.values()) as FilmCredit[];
+            sortedMovies.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
+            const top20Movies = sortedMovies.slice(0, 20);
 
-            // Insert Movies First
-            const moviesToUpsert: any[] = [];
+            // Tipo para payload de upsert
+            type MovieUpsertPayload = {
+                tmdb_id: number;
+                title: string;
+                poster_url: string | null;
+                year: number | null;
+                imdb_rating: number | null;
+                synopsis: string | null;
+                updated_at: string;
+            };
+
+            // Insertar películas primero
+            const moviesToUpsert: MovieUpsertPayload[] = [];
             const movieRelations: { movie_id: string; person_id: string; role: string; job: string }[] = [];
 
             for (const m of sortedMovies) {
@@ -242,13 +279,13 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
                     poster_url: TmdbClient.getImageUrl(m.poster_path, 'w500'),
                     year: releaseDate ? releaseDate.getFullYear() : null,
                     imdb_rating: m.vote_average,
-                    synopsis: m.overview,
+                    synopsis: m.overview ?? null,
                     updated_at: new Date().toISOString()
                 });
             }
 
-            // 5. Update Movies & Relations (Optimizado)
-            // Upsert movies to ensure they exist before linking
+            // 5. Actualizar películas y relaciones (Optimizado)
+            // Upsert películas para asegurar que existan antes de linkear
             if (moviesToUpsert.length > 0) {
                 const { error: moviesError } = await adminClient
                     .from('movies')
@@ -257,7 +294,7 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
                 if (moviesError) console.error('Error seeding movies:', moviesError);
             }
 
-            // Re-fetch IDs for all related movies (including just inserted ones)
+            // Re-obtener IDs de películas relacionadas (incluyendo las recién insertadas)
             const tmdbIds = sortedMovies.map(m => m.id);
             const { data: existingMovies } = await adminClient
                 .from('movies')
@@ -266,7 +303,7 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
 
             const existingMovieMap = new Map(existingMovies?.map(m => [m.tmdb_id, m.id]));
 
-            // Create Relations for Existing Movies
+            // Crear relaciones para películas existentes
             allMovies.forEach(credit => {
                 const movieId = existingMovieMap.get(credit.id);
                 if (movieId) {
@@ -289,12 +326,12 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
         }
 
 
-        // 6. Return standard response (from TMDB data)
+        // 6. Retornar respuesta estándar (desde datos de TMDB)
         const castM = credits?.cast || [];
         const crewM = credits?.crew || [];
 
         // Use same enrich helpers?
-        const enrichList = (list: any[]) => {
+        const enrichList = (list: FilmCredit[]) => {
             return list.map(item => ({
                 ...item,
                 poster_path: TmdbClient.getImageUrl(item.poster_path, 'w500'),
@@ -302,12 +339,12 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
             })).sort((a, b) => new Date(b.release_date || 0).getTime() - new Date(a.release_date || 0).getTime());
         };
 
-        const directing = crewM.filter((c: any) => c.job === 'Director');
-        const writing = crewM.filter((c: any) => ['Screenplay', 'Writer', 'Author', 'Story'].includes(c.job));
-        const camera = crewM.filter((c: any) => ['Director of Photography', 'Cinematographer'].includes(c.job));
-        const sound = crewM.filter((c: any) => ['Original Music Composer', 'Music'].includes(c.job));
-        const production = crewM.filter((c: any) => c.job === 'Producer');
-        const other = crewM.filter((c: any) =>
+        const directing = crewM.filter((c: FilmCredit) => c.job === 'Director');
+        const writing = crewM.filter((c: FilmCredit) => c.job && ['Screenplay', 'Writer', 'Author', 'Story'].includes(c.job));
+        const camera = crewM.filter((c: FilmCredit) => c.job && ['Director of Photography', 'Cinematographer'].includes(c.job));
+        const sound = crewM.filter((c: FilmCredit) => c.job && ['Original Music Composer', 'Music'].includes(c.job));
+        const production = crewM.filter((c: FilmCredit) => c.job === 'Producer');
+        const other = crewM.filter((c: FilmCredit) =>
             !directing.includes(c) && !writing.includes(c) && !camera.includes(c) && !sound.includes(c) && !production.includes(c)
         );
 

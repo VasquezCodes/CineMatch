@@ -40,15 +40,13 @@ export async function POST(request: NextRequest) {
         // Loop de procesamiento: Se mantiene vivo mientras tenga tiempo (< 50s)
         while (keepProcessing) {
             const elapsedTime = Date.now() - startTime;
-            // Si pasaron más de 50 segundos, paramos para permitir el trigger recursivo seguro.
-            // Esto evita que Vercel termine la ejecución abruptamente.
+            // Límite de 50s para evitar cortes abruptos de Vercel
             if (elapsedTime > 50000) {
                 console.log(`Time limit reached (${elapsedTime}ms). Stopping loop.`);
                 break;
             }
 
-            // 2. Obtener items pendientes (lotes pequeños para feedback rápido)
-            // Obtenemos una pequeña cantidad (10) para evitar timeouts y dar feedback visual rápido al usuario.
+            // Obtener items pendientes (lotes de 10 para feedback rápido)
             const { data: queueItems, error: queueError } = await supabase
                 .from('import_queue')
                 .select('*')
@@ -112,9 +110,7 @@ export async function POST(request: NextRequest) {
 
         const hasMore = count && count > 0;
 
-        // 5. Trigger de Recálculo de Estadísticas (Inteligente) - REMOVED
-        // La nueva lógica de base de datos normalizada calcula rankings al vuelo.
-        // No es necesario disparar workers de estadísticas.
+        // La nueva lógica calcula rankings al vuelo, no necesita workers de estadísticas
 
         if (hasMore) {
             const workerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/workers/process-import`;
@@ -138,8 +134,7 @@ export async function POST(request: NextRequest) {
                 clearTimeout(timeoutId);
             }
         } else {
-            // No quedan más items en la cola - marcar imports como completados
-            // Actualizamos todos los user_imports que aún están en 'processing'
+            // Marcar imports como completados para usuarios sin items pendientes
             for (const userId of userIdsEncountered) {
                 // Verificar si quedan items para este usuario específico
                 const { count: userItemsLeft } = await supabase
@@ -295,9 +290,7 @@ async function enrichMovieData(supabase: any, movieId: string, imdbId: string) {
                 trailer_key: trailer,
                 tagline: details.tagline
             },
-            // ESTRATEGIA: Worker NO procesa recomendaciones para maximizar velocidad.
-            // Se cargarán "on-demand" vía getMovie la primera vez que se visite la película.
-            // Esto reduce dramáticamente el tiempo de importación inicial.
+            // Recomendaciones se cargan on-demand al visitar la película
             recommendations: []
         };
 

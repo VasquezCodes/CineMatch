@@ -4,6 +4,11 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { syncMoviePeople } from '@/features/rankings/people-sync';
 
+// Tipos auxiliares para mappings de TMDB
+type TmdbCrew = { id: number; name: string; job: string; profile_path: string | null };
+type TmdbCast = { id: number; name: string; character: string; profile_path: string | null };
+type TmdbGenre = { id: number; name: string };
+type TmdbRecommendation = { id: number; title: string; poster_path: string | null; release_date: string };
 export type MovieDetail = {
     id: string;
     imdb_id: string | null;
@@ -13,7 +18,7 @@ export type MovieDetail = {
     director: string | null;
     genres: string[];
     synopsis: string | null;
-    imdb_rating: number | null; // IMDb rating
+    imdb_rating: number | null; // Calificación IMDb
     rating?: number; // Calificación del usuario si existe
     personalRating?: number; // Puntaje personal del ranking (watchlists.user_rating)
     watchlist?: {
@@ -59,12 +64,12 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
     // Obtener usuario actual en paralelo (no bloquea el resto de la lógica inicial)
     const userPromise = supabase.auth.getUser();
 
-    // 0. DETECCIÓN INTELIGENTE DE ID Y CACHE FIRST
+    // Detectar tipo de ID y buscar en cache primero
     const isTmdbId = /^\d+$/.test(id);
     let movieId = id;
 
     if (isTmdbId) {
-        // A. CACHE CHECK: Buscar primero en DB local por tmdb_id
+        // Buscar en DB local por tmdb_id
         const { data: localMovie } = await supabase
             .from('movies')
             .select('id')
@@ -72,19 +77,18 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
             .maybeSingle();
 
         if (localMovie) {
-            // HIT! Usamos el ID local y saltamos fetch a TMDB (ahorramos ~300ms)
+            // Cache HIT - usamos ID local
             // console.log(`[Cache Hit] Movie ${id} found in DB as ${localMovie.id}`);
             movieId = localMovie.id;
         } else {
-            // MISS! Fetch TMDB + Upsert
+            // Cache MISS - fetch desde TMDB
             try {
                 const { tmdb } = await import('@/lib/tmdb');
                 const tmdbMovie = await tmdb.getMovieDetails(parseInt(id));
 
                 if (tmdbMovie) {
 
-                    // Recomendaciones On-Demand:
-                    // Si la API de detalles no devolvió recomendaciones, intentamos obtenerlas explícitamente.
+                    // Si no hay recomendaciones, obtenerlas explícitamente
                     let validRecommendations = tmdbMovie.recommendations?.results || [];
                     if (validRecommendations.length === 0) {
                         try {
@@ -94,7 +98,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                         }
                     }
 
-                    // Intentar buscar en DB local por IMDB ID (Double Check por si acaso)
+                    // Verificar si ya existe por IMDB ID
                     const { data: existing } = await supabase
                         .from('movies')
                         .select('id, extended_data')
@@ -105,28 +109,28 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                         title: tmdbMovie.title,
                         year: tmdbMovie.release_date ? parseInt(tmdbMovie.release_date.split('-')[0]) : null,
                         imdb_id: tmdbMovie.imdb_id,
-                        tmdb_id: tmdbMovie.id, // Ensure we save TMDB ID!
+                        tmdb_id: tmdbMovie.id, // Asegurar que guardamos el TMDB ID
                         poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
-                        director: tmdbMovie.credits?.crew?.find((c: any) => c.job === 'Director')?.name || null,
+                        director: tmdbMovie.credits?.crew?.find((c: TmdbCrew) => c.job === 'Director')?.name || null,
                         synopsis: tmdbMovie.overview,
                         imdb_rating: tmdbMovie.vote_average,
-                        genres: tmdbMovie.genres?.map((g: any) => g.name) || [],
+                        genres: tmdbMovie.genres?.map((g: TmdbGenre) => g.name) || [],
                         extended_data: {
                             technical: {
                                 runtime: tmdbMovie.runtime,
                                 tagline: tmdbMovie.tagline,
                             },
-                            cast: tmdbMovie.credits?.cast?.slice(0, 50).map((c: any) => ({
+                            cast: tmdbMovie.credits?.cast?.slice(0, 50).map((c: TmdbCast) => ({
                                 name: c.name,
                                 role: c.character,
                                 photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
                             })),
-                            crew_details: tmdbMovie.credits?.crew?.slice(0, 20).map((c: any) => ({
+                            crew_details: tmdbMovie.credits?.crew?.slice(0, 20).map((c: TmdbCrew) => ({
                                 name: c.name,
                                 job: c.job,
                                 photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
                             })),
-                            recommendations: validRecommendations.slice(0, 12).map((r: any) => ({
+                            recommendations: validRecommendations.slice(0, 12).map((r: TmdbRecommendation) => ({
                                 id: r.id,
                                 tmdb_id: r.id,
                                 title: r.title,
@@ -138,8 +142,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
 
                     if (existing) {
                         movieId = existing.id;
-                        // Solo actualizar si realmente falta algo importante para evitar writes
-                        // Si no tenía tmdb_id guardado, actualizarlo
+                        // Actualizar si falta tmdb_id
                         await supabase.from('movies').update({ ...payload, tmdb_id: tmdbMovie.id }).eq('id', movieId);
                     } else {
                         const { data: newEntry, error: insertError } = await supabase
@@ -153,9 +156,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                         }
                     }
 
-                    // Sync People POST-UPSERT:
-                    // Ahora que tenemos un movieId válido (UUID) de nuestra DB,
-                    // podemos sincronizar los actores y relaciones.
+                    // Sincronizar actores y crew con la DB
                     if (tmdbMovie.credits && movieId && movieId !== id) {
                         const adminClient = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
                             auth: { persistSession: false }
@@ -172,9 +173,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
 
     // 1. Obtener datos básicos de la película (ahora en paralelo con la autenticación)
 
-    // SAFETY CHECK: Validar UUID
-    // Si entró un ID numérico (TMDB) y no logramos resolverlo a un UUID (falló upsert o no existe),
-    // NO intentamos consultar la DB porque fallará con "invalid input syntax for type uuid".
+    // Validar UUID: si no logramos resolverlo, retornar null
     if (isTmdbId && movieId === id) {
         // console.warn(`[getMovie] Could not resolve TMDB ID ${id} to a valid UUID. Returning null.`);
         return null;
@@ -230,26 +229,26 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                     imdb_id: tmdbMovie.imdb_id,
                     tmdb_id: tmdbMovie.id,
                     poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
-                    director: tmdbMovie.credits?.crew?.find((c: any) => c.job === 'Director')?.name || null,
+                    director: tmdbMovie.credits?.crew?.find((c: TmdbCrew) => c.job === 'Director')?.name || null,
                     synopsis: tmdbMovie.overview,
                     imdb_rating: tmdbMovie.vote_average,
-                    genres: tmdbMovie.genres?.map((g: any) => g.name) || [],
+                    genres: tmdbMovie.genres?.map((g: TmdbGenre) => g.name) || [],
                     extended_data: {
                         technical: {
                             runtime: tmdbMovie.runtime,
                             tagline: tmdbMovie.tagline,
                         },
-                        cast: tmdbMovie.credits?.cast?.slice(0, 50).map((c: any) => ({
+                        cast: tmdbMovie.credits?.cast?.slice(0, 50).map((c: TmdbCast) => ({
                             name: c.name,
                             role: c.character,
                             photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
                         })),
-                        crew_details: tmdbMovie.credits?.crew?.slice(0, 20).map((c: any) => ({
+                        crew_details: tmdbMovie.credits?.crew?.slice(0, 20).map((c: TmdbCrew) => ({
                             name: c.name,
                             job: c.job,
                             photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
                         })),
-                        recommendations: validRecommendations.slice(0, 12).map((r: any) => ({
+                        recommendations: validRecommendations.slice(0, 12).map((r: TmdbRecommendation) => ({
                             id: r.id,
                             tmdb_id: r.id,
                             title: r.title,
@@ -312,7 +311,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
         director: movie.director,
         genres: movie.genres || [],
         synopsis: movie.synopsis,
-        imdb_rating: movie.imdb_rating || null, // Pass IMDb rating
+        imdb_rating: movie.imdb_rating || null, // Pasar calificación IMDb
         extended_data: movie.extended_data || {},
         rating: userReview?.rating,
         personalRating: userWatchlist?.user_rating ?? userReview?.rating,

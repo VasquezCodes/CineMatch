@@ -5,6 +5,38 @@ import type { LibraryItem, LibraryFiltersState, PaginatedLibraryResult } from ".
 
 const DEFAULT_PAGE_SIZE = 12;
 
+// Tipo para filas de la vista user_library_view
+type UserLibraryViewRow = {
+  watchlist_id: string;
+  user_id: string;
+  movie_id: string;
+  user_rating: number | null;
+  last_interaction: string;
+  status: string | null;
+  title: string;
+  year: number | null;
+  poster_url: string | null;
+  genres: string[] | null;
+  extended_data: Record<string, unknown> | null;
+  imdb_id: string | null;
+  imdb_rating: number | null;
+  synopsis: string | null;
+  movie_created_at: string | null;
+  plot: string | null;
+  runtime: number | null;
+  tmdb_id: number | null;
+  movie_updated_at: string | null;
+  backdrop_url: string | null;
+  original_title: string | null;
+  overview: string | null;
+  popularity: number | null;
+  release_date: string | null;
+  runtime_minutes: number | null;
+  vote_average: number | null;
+  vote_count: number | null;
+  director: string | null;
+};
+
 /**
  * Obtiene la biblioteca paginada del usuario actual con filtros
  */
@@ -45,18 +77,9 @@ export async function getLibraryPaginated(
     // 2. Filtros de Búsqueda (Multicolumna: Título OR Director OR Año)
     if (filters.searchQuery) {
       const q = filters.searchQuery;
-      // Nota: Para buscar por año (columna numérica) usando búsqueda de texto,
-      // necesitamos una estrategia ya que ilike es para texto.
-      // Sin embargo, PostgREST y la librería de Supabase manejan cierta magia,
-      // pero mezclar tipos (texto vs int) en un query `or` puede ser delicado.
-
-      // Estrategia: "Todo en un solo string OR"
-      // Construimos una cadena de condiciones OR.
 
       if (/^\d{4}$/.test(q)) {
-        // CASO ESPECIAL: Si el query son exactamente 4 dígitos, asumimos que puede ser un año.
-        // Añadimos una condición exacta para la columna `year` (que es int) o búsqueda parcial en texto.
-        // Nota: `year.eq.${q}` funcionará porque Supabase casteará el valor al tipo de la columna si es compatible.
+        // Si son 4 dígitos, buscar también por año
         query = query.or(`title.ilike.%${q}%,director.ilike.%${q}%,year.eq.${q}`);
       } else {
         // Búsqueda estándar solo en campos de texto
@@ -110,7 +133,7 @@ export async function getLibraryPaginated(
     }
 
     // Transformar datos planos a la estructura anidada que espera el frontend (LibraryItem)
-    const items: LibraryItem[] = viewData.map((row: any) => ({
+    const items: LibraryItem[] = (viewData as UserLibraryViewRow[]).map((row) => ({
       watchlist: {
         id: row.watchlist_id,
         user_id: row.user_id,

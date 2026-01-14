@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  // if "next" is in param, use it as the redirect URL
+  // Si "next" está en los params, usarlo como URL de redirección
   const next = searchParams.get("next") ?? "/app";
 
   if (code) {
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
       mod.cookies()
     );
 
-    // Create Supabase client with simple cookie handling for the callback
+    // Crear cliente Supabase con manejo simple de cookies para el callback
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -27,16 +27,15 @@ export async function GET(request: Request) {
                 cookieStore.set(name, value, options)
               );
             } catch {
-              // The `setAll` method was called from a Server Component.
-              // This can be ignored if you have middleware refreshing
-              // user sessions.
+              // `setAll` fue llamado desde un Server Component.
+              // Se puede ignorar si tienes middleware refrescando sesiones.
             }
           },
         },
       }
     );
 
-    // Exchange the code for a session
+    // Intercambiar el código por una sesión
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
@@ -45,7 +44,7 @@ export async function GET(request: Request) {
       const isLocalEnv = process.env.NODE_ENV === "development";
 
       if (isLocalEnv) {
-        // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
+        // En entorno local no hay load balancer, no es necesario revisar X-Forwarded-Host
         return NextResponse.redirect(`${origin}${next}`);
       } else if (forwardedHost) {
         return NextResponse.redirect(`https://${forwardedHost}${next}`);
@@ -55,6 +54,6 @@ export async function GET(request: Request) {
     }
   }
 
-  // return the user to an error page with instructions
+  // Redirigir al usuario a una página de error con instrucciones
   return NextResponse.redirect(`${origin}/auth/auth-code-error`);
 }

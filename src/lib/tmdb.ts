@@ -1,7 +1,7 @@
 import { env } from 'process';
 
 const TMDB_READ_TOKEN = process.env.TMDB_READ_TOKEN;
-const TMDB_API_KEY = process.env.TMDB_API_KEY; // Fallback if needed, but preference is Read Token
+const TMDB_API_KEY = process.env.TMDB_API_KEY; // Alternativa si no hay token
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
 
@@ -111,7 +111,7 @@ export class TmdbClient {
 
         try {
             const url = `${TMDB_BASE_URL}${endpoint}?${queryParams.toString()}`;
-            // console.log(`[TMDb] Fetching: ${url}`); // Debug
+            // console.log(`[TMDb] Consultando: ${url}`);
 
             const res = await fetch(url, {
                 headers,
@@ -150,7 +150,7 @@ export class TmdbClient {
         });
 
         if (!findRes || !findRes.movie_results?.[0]) {
-            // console.warn(`Movie not found for IMDb ID: ${imdbId}`);
+            // console.warn(`Película no encontrada para IMDb ID: ${imdbId}`);
             return null;
         }
 

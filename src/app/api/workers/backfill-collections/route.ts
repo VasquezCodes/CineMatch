@@ -59,57 +59,67 @@ export async function POST(request: NextRequest) {
 
         console.log(`Processing ${movies.length} movies for collection backfill...`);
 
-        // Procesar cada película
-        for (const movie of movies) {
+        // Configuración de paralelización
+        const BATCH_SIZE = 5; // Peticiones concurrentes
+        const BATCH_DELAY = 150; // ms entre lotes (TMDB ~40 req/s)
+
+        // Función para procesar una película
+        const processMovie = async (movie: { id: string; tmdb_id: number; title: string }) => {
+            const details = await tmdb.getMovieDetails(movie.tmdb_id);
+
+            if (!details) {
+                return { status: 'skipped' as const, movie };
+            }
+
+            const collectionId = details.belongs_to_collection?.id || null;
+            const collectionName = details.belongs_to_collection?.name || null;
+
+            if (collectionId) {
+                await supabase
+                    .from('movies')
+                    .update({ collection_id: collectionId, collection_name: collectionName })
+                    .eq('id', movie.id);
+                return { status: 'updated' as const, movie, collectionName };
+            } else {
+                // Marcar como procesado sin colección
+                await supabase
+                    .from('movies')
+                    .update({ collection_id: 0 })
+                    .eq('id', movie.id);
+                return { status: 'skipped' as const, movie };
+            }
+        };
+
+        // Procesar en lotes paralelos
+        for (let i = 0; i < movies.length; i += BATCH_SIZE) {
             const elapsed = Date.now() - startTime;
             if (elapsed > 50000) {
                 console.log('Time limit approaching, stopping batch.');
                 break;
             }
 
-            try {
+            const batch = movies.slice(i, i + BATCH_SIZE);
+            const results = await Promise.allSettled(batch.map(movie => processMovie(movie)));
+
+            // Contabilizar resultados
+            for (const result of results) {
                 totalProcessed++;
-
-                // Obtener detalles de TMDB
-                const details = await tmdb.getMovieDetails(movie.tmdb_id);
-
-                if (!details) {
-                    totalSkipped++;
-                    continue;
-                }
-
-                // Actualizar con datos de colección
-                const collectionId = details.belongs_to_collection?.id || null;
-                const collectionName = details.belongs_to_collection?.name || null;
-
-                if (collectionId) {
-                    await supabase
-                        .from('movies')
-                        .update({
-                            collection_id: collectionId,
-                            collection_name: collectionName
-                        })
-                        .eq('id', movie.id);
-
-                    totalUpdated++;
-                    console.log(`Updated: ${movie.title} -> ${collectionName}`);
+                if (result.status === 'fulfilled') {
+                    if (result.value.status === 'updated') {
+                        totalUpdated++;
+                        console.log(`Updated: ${result.value.movie.title} -> ${result.value.collectionName}`);
+                    } else {
+                        totalSkipped++;
+                    }
                 } else {
-                    // Marcar como procesado sin colección (0 = no tiene saga)
-                    await supabase
-                        .from('movies')
-                        .update({ collection_id: 0 })
-                        .eq('id', movie.id);
-
-                    totalSkipped++;
+                    totalErrors++;
+                    console.error('Batch error:', result.reason);
                 }
+            }
 
-                // Rate limiting para TMDB API
-                await new Promise(resolve => setTimeout(resolve, 100));
-
-            } catch (err: unknown) {
-                const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-                console.error(`Error processing ${movie.title}:`, errorMessage);
-                totalErrors++;
+            // Delay entre lotes para respetar rate limits
+            if (i + BATCH_SIZE < movies.length) {
+                await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
             }
         }
 
