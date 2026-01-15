@@ -13,6 +13,7 @@ export { AccordionMovieCard } from "./components/AccordionMovieCard";
 // Charts Components
 export { RankingsChartsView } from "./components/RankingsChartsView";
 export { RankingsSidebar } from "./components/RankingsSidebar";
+export { RankingItemMovies } from "./components/RankingItemMovies";
 export {
   ChartSelector,
   RankingBarChart,

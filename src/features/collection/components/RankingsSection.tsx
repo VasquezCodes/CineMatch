@@ -6,15 +6,14 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { ChevronDown, ChevronUp, TrendingUp, LayoutGrid, BarChart3, List } from "lucide-react";
+import { ChevronDown, ChevronUp, TrendingUp, LayoutGrid, BarChart3 } from "lucide-react";
 import { RankingCard } from "./RankingCard";
 import { RankingsSheet } from "./RankingsSheet";
 import { RankingsChartsView } from "@/features/rankings/components/RankingsChartsView";
-import { RankingAccordionRow } from "@/features/rankings/components/RankingAccordionRow";
 import { getRanking, type RankingType } from "@/features/rankings/actions";
 import { cn } from "@/lib/utils";
 
-type ViewMode = "cards" | "charts" | "accordion";
+type ViewMode = "cards" | "charts";
 
 interface RankingsSectionProps {
   userId: string;
@@ -91,7 +90,7 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
   }, [activeTab, userId, data, isCollapsed, loading]);
 
   const rawData = data[activeTab] || [];
-  const displayLimit = viewMode === "charts" || viewMode === "accordion" ? 10 : 5;
+  const displayLimit = viewMode === "charts" ? 10 : 5;
   const currentData = rawData.slice(0, displayLimit);
   const isLoading = loading[activeTab];
   const currentLabel = RANKING_TYPES.find((t) => t.value === activeTab)?.label || "";
@@ -136,14 +135,6 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
               >
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline text-sm">Gráficos</span>
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="accordion"
-                aria-label="Vista de acordeón"
-                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
-              >
-                <List className="h-4 w-4" />
-                <span className="hidden sm:inline text-sm">Lista</span>
               </ToggleGroupItem>
             </ToggleGroup>
 
@@ -200,38 +191,6 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
                     isLoading={isLoading && type.value === activeTab}
                     error={error}
                   />
-                ) : viewMode === "accordion" ? (
-                  <>
-                    {isLoading && type.value === activeTab ? (
-                      <RankingsSkeleton />
-                    ) : error ? (
-                      <ErrorState
-                        title="Error al cargar rankings"
-                        description={error}
-                      />
-                    ) : currentData.length === 0 ? (
-                      <EmptyState
-                        icon={<TrendingUp className="h-12 w-12" />}
-                        title={`No hay rankings de ${type.label.toLowerCase()}`}
-                        description="Califica más películas para ver rankings personalizados."
-                      />
-                    ) : (
-                      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-                        {currentData.map((item, index) => (
-                          <RankingAccordionRow
-                            key={item.key}
-                            rank={index + 1}
-                            name={item.key}
-                            count={item.count}
-                            score={item.score}
-                            movies={item.data.movies}
-                            imageUrl={item.data.image_url}
-                            type={type.value}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </>
                 ) : (
                   <>
                     {isLoading && type.value === activeTab ? (

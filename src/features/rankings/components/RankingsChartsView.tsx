@@ -6,6 +6,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { TrendingUp } from "lucide-react";
 import { RankingChartSection } from "./RankingChartSection";
 import { RankingDetailList } from "./RankingDetailList";
+import { RankingItemMovies } from "./RankingItemMovies";
 import type { ChartType } from "./charts";
 import type { RankingStatConfig, RankingType } from "../actions";
 import { useRankingCalculations } from "../hooks/useRankingCalculations";
@@ -60,18 +61,29 @@ export function RankingsChartsView({
     );
   }
 
+  const selectedItem = selectedIndex !== null ? data[selectedIndex] : null;
+
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-4 lg:gap-6">
       <section>
-        <RankingChartSection
-          chartType={chartType}
-          onChartTypeChange={setChartType}
-          data={data}
-          type={type}
-          selectedIndex={selectedIndex}
-          onSelectItem={handleSelectItem}
-          isLoading={isLoading}
-        />
+        {selectedItem ? (
+          <RankingItemMovies
+            item={selectedItem}
+            index={selectedIndex!}
+            type={type}
+            onBack={() => setSelectedIndex(null)}
+          />
+        ) : (
+          <RankingChartSection
+            chartType={chartType}
+            onChartTypeChange={setChartType}
+            data={data}
+            type={type}
+            selectedIndex={selectedIndex}
+            onSelectItem={handleSelectItem}
+            isLoading={isLoading}
+          />
+        )}
       </section>
 
       {!isLoading && data.length > 0 && (

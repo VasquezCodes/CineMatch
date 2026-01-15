@@ -44,10 +44,12 @@ export function UploadWatchlistForm({
   const [file, setFile] = React.useState<File | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [isDragging, setIsDragging] = React.useState(false);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleFinished = React.useCallback(() => {
     setStatus("success");
+    setIsDialogOpen(true);
   }, []);
 
   const validateFile = (fileToValidate: File): string | null => {
@@ -209,7 +211,15 @@ export function UploadWatchlistForm({
         />
       </div>
 
-      <AlertDialog open={status === "success"}>
+      <AlertDialog 
+        open={isDialogOpen} 
+        onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            handleReset();
+          }
+        }}
+      >
         <AlertDialogContent className="max-w-[400px]">
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -259,7 +269,13 @@ export function UploadWatchlistForm({
                 >
                   Ver análisis
                 </AlertDialogAction>
-                <AlertDialogCancel className="hover:bg-destructive hover:text-destructive-foreground">
+                <AlertDialogCancel 
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    handleReset();
+                  }}
+                  className="hover:bg-destructive hover:text-destructive-foreground"
+                >
                   Cerrar
                 </AlertDialogCancel>
               </AlertDialogFooter>
