@@ -11,6 +11,7 @@ interface Movie {
   year: number;
   poster_url: string | null;
   user_rating?: number;
+  director_name?: string;
 }
 
 interface RankingAccordionRowProps {
@@ -105,7 +106,7 @@ export function RankingAccordionRow({
                     title={movie.title}
                     year={movie.year}
                     posterUrl={movie.poster_url}
-                    director={name}
+                    director={movie.director_name}
                     showDirector={showDirector}
                     userRating={movie.user_rating}
                   />

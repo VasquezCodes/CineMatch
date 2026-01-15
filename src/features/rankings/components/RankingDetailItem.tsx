@@ -18,6 +18,7 @@ export function RankingDetailItem({
 }: RankingDetailItemProps) {
   const itemRef = React.useRef<HTMLButtonElement>(null);
   const avgRating = calculateItemAverageRating(item);
+  const imageUrl = item.data?.image_url;
 
   React.useEffect(() => {
     if (isSelected && itemRef.current) {
@@ -51,6 +52,16 @@ export function RankingDetailItem({
       >
         {index + 1}
       </div>
+
+      {imageUrl && (
+        <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden border border-border/50 bg-muted">
+          <img
+            src={imageUrl}
+            alt={item.key}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
 
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate">{item.key}</p>

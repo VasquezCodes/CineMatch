@@ -24,6 +24,7 @@ type RankingMovie = {
     year: number;
     poster_url: string | null;
     user_rating?: number;
+    director_name?: string;
 };
 
 type PersonRankingRpcRow = {
@@ -77,7 +78,8 @@ export async function getRanking(
                     title: m.title,
                     year: m.year,
                     poster_url: m.poster_url,
-                    user_rating: m.user_rating
+                    user_rating: m.user_rating,
+                    director_name: m.director_name
                 }))
                 .filter((m) => m.user_rating && m.user_rating > 0);
 

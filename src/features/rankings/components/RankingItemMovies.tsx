@@ -80,10 +80,10 @@ export function RankingItemMovies({
               index === 0
                 ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-500"
                 : index === 1
-                ? "bg-slate-400/20 text-slate-600 dark:text-slate-400"
-                : index === 2
-                ? "bg-amber-600/20 text-amber-700 dark:text-amber-600"
-                : "bg-muted text-muted-foreground"
+                  ? "bg-slate-400/20 text-slate-600 dark:text-slate-400"
+                  : index === 2
+                    ? "bg-amber-600/20 text-amber-700 dark:text-amber-600"
+                    : "bg-muted text-muted-foreground"
             }
             style={{
               fontSize: "2.5rem",
@@ -170,6 +170,11 @@ export function RankingItemMovies({
                     </span>
                   )}
                 </div>
+                {type !== "director" && movie.director_name && (
+                  <p className="text-xs text-muted-foreground/70 truncate">
+                    {movie.director_name}
+                  </p>
+                )}
               </div>
             </div>
           ))}
