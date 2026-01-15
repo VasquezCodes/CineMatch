@@ -98,10 +98,10 @@ export default async function MovieDetailPage({ params }: PageProps) {
               {movie.imdb_rating && (
                 <Badge
                   variant="outline"
-                  className="text-sm px-2.5 py-1 gap-1 text-yellow-600 dark:text-yellow-400 border-yellow-500/30"
+                  className="text-sm px-2.5 py-1 gap-1 text-star-yellow border-star-yellow/30"
                   title="IMDb Rating"
                 >
-                  <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                  <Star className="h-3 w-3 fill-star-yellow text-star-yellow" />
                   <span className="font-medium">{movie.imdb_rating.toFixed(1)}</span>
                   <span className="text-xs opacity-70">IMDb</span>
                 </Badge>

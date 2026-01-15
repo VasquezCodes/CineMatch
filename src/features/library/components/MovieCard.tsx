@@ -39,8 +39,8 @@ export function MovieCard({ item }: MovieCardProps) {
             <div className="flex items-center justify-between gap-2 mb-1">
               <div className="flex items-center gap-1.5">
                 {watchlist.user_rating != null && (
-                  <div className="flex items-center gap-1 text-star-yellow">
-                    <Star className="h-3 w-3 fill-star-yellow" />
+                  <div className="flex items-center gap-1 text-accent">
+                    <Star className="h-3 w-3 fill-accent text-accent" />
                     <span className="text-xs font-bold leading-none">
                       {watchlist.user_rating.toFixed(1)}
                     </span>

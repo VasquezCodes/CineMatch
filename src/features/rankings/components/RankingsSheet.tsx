@@ -247,11 +247,11 @@ export function RankingsSheet({
 
                       {/* Rating */}
                       {movie.user_rating && (
-                        <div className="flex items-center gap-1 shrink-0 bg-primary/5 px-2 py-1 rounded border border-primary/10" data-theme-transition>
-                          <span className="text-xs font-black text-primary">
+                        <div className="flex items-center gap-1 shrink-0 bg-accent/5 px-2 py-1 rounded border border-accent/10" data-theme-transition>
+                          <span className="text-xs font-black text-accent">
                             {movie.user_rating}
                           </span>
-                          <Star className="h-2.5 w-2.5 fill-primary text-primary" />
+                          <Star className="h-2.5 w-2.5 fill-accent text-accent" />
                         </div>
                       )}
                     </div>

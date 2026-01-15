@@ -44,7 +44,7 @@ export function AccordionMovieCard({
           </div>
         )}
         {userRating && userRating > 0 && (
-          <div className="absolute bottom-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded bg-slate-900/80 backdrop-blur-sm text-[10px] font-bold text-white">
+          <div className="absolute bottom-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded bg-background/80 backdrop-blur-sm text-[10px] font-bold text-accent border border-accent/20">
             {userRating.toFixed(1)}
           </div>
         )}

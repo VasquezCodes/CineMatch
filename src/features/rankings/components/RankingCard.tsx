@@ -173,7 +173,7 @@ export function RankingCard({
 
               {/* Rating overlay minimalista */}
               {movie.user_rating && (
-                <div className="absolute bottom-1 right-1 flex h-5 w-5 items-center justify-center rounded-md bg-background/80 backdrop-blur-sm text-[10px] font-bold text-primary shadow-sm border border-primary/20">
+                <div className="absolute bottom-1 right-1 flex h-5 w-5 items-center justify-center rounded-md bg-background/80 backdrop-blur-sm text-[10px] font-bold text-accent shadow-sm border border-accent/20">
                   {movie.user_rating}
                 </div>
               )}

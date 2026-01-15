@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Image from "@/components/CloudinaryImage";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, Star } from "lucide-react";
 import type { RankingStatConfig, RankingType } from "../actions";
 import { calculateItemAverageRating } from "../hooks/useRankingCalculations";
@@ -107,9 +106,6 @@ export function RankingItemMovies({
           </div>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <Badge className="bg-muted/50 hover:bg-muted text-muted-foreground border-border text-xs" data-theme-transition>
-            {item.count} películas
-          </Badge>
           <div className="flex items-center gap-1 text-sm font-semibold text-star-yellow">
             <Star className="h-4 w-4 fill-current" />
             {avgRating}
@@ -146,11 +142,11 @@ export function RankingItemMovies({
                 )}
                 {/* Rating overlay */}
                 {movie.user_rating && (
-                  <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 backdrop-blur-sm px-2 py-1 rounded border border-primary/30">
-                    <span className="text-xs font-black text-primary">
+                  <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 backdrop-blur-sm px-2 py-1 rounded border border-accent/30">
+                    <span className="text-xs font-black text-accent">
                       {movie.user_rating}
                     </span>
-                    <Star className="h-2.5 w-2.5 fill-primary text-primary" />
+                    <Star className="h-2.5 w-2.5 fill-accent text-accent" />
                   </div>
                 )}
               </div>

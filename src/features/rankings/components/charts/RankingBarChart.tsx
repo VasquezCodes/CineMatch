@@ -94,7 +94,7 @@ export function RankingBarChart({ data, selectedIndex, onSelectItem }: RankingBa
                   <span className="font-medium">{item.payload.fullName}</span>
                   <span>{value} películas</span>
                   <span className="text-muted-foreground">
-                    Promedio: <span className="text-[hsl(var(--star-yellow))]">★</span> {item.payload.avgRating}
+                    Promedio: <span className="text-accent">★</span> {item.payload.avgRating}
                   </span>
                 </div>
               )}

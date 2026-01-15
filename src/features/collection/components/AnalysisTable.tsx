@@ -233,8 +233,8 @@ function MovieCard({ item }: { item: WatchlistAnalysisItem }) {
             {/* Rating del usuario */}
             {watchlist.user_rating !== null && (
               <div className="flex items-center gap-1 pt-1">
-                <Star className="h-3 w-3 fill-primary text-primary" />
-                <span className="text-sm font-medium">
+                <Star className="h-3 w-3 fill-accent text-accent" />
+                <span className="text-sm font-medium text-accent">
                   {(item.watchlist.user_rating || 0).toFixed(1)}
                 </span>
               </div>

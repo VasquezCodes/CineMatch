@@ -70,8 +70,8 @@ export function RankingAccordionRow({
             {averageRating > 0 && (
               <>
                 <span>·</span>
-                <div className="flex items-center gap-1 text-star-yellow">
-                  <Star className="h-3 w-3 fill-star-yellow" />
+                <div className="flex items-center gap-1 text-accent">
+                  <Star className="h-3 w-3 fill-accent text-accent" />
                   <span className="font-semibold">{averageRating.toFixed(1)}</span>
                 </div>
               </>

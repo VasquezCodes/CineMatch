@@ -113,7 +113,7 @@ export function RankingsSidebar({
                   <p className="text-sm font-medium truncate">{item.key}</p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span>{item.count} películas</span>
-                    <span className="text-star-yellow font-semibold">★ {avgRating}</span>
+                    <span className="text-accent font-semibold">★ {avgRating}</span>
                   </div>
                 </div>
               </button>

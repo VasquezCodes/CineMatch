@@ -24,6 +24,7 @@ type RankingMovie = {
     year: number;
     poster_url: string | null;
     user_rating?: number;
+    imdb_rating?: number;
     director_name?: string;
 };
 
@@ -73,12 +74,13 @@ export async function getRanking(
         // Mapeamos la respuesta del RPC a la estructura del frontend
         return (data as PersonRankingRpcRow[]).map((item) => {
             const movies = (item.top_movies || [])
-                .map((m) => ({
+                .map((m: any) => ({
                     id: m.id,
                     title: m.title,
                     year: m.year,
                     poster_url: m.poster_url,
                     user_rating: m.user_rating,
+                    imdb_rating: m.imdb_rating,
                     director_name: m.director_name
                 }))
                 .filter((m) => m.user_rating && m.user_rating > 0);
@@ -122,13 +124,14 @@ export async function getRanking(
             score: Number(item.score),
             data: {
                 movies: (item.top_movies || []).map((m: unknown) => {
-                    const movie = m as { id: string; title: string; year: number; poster_url: string | null; user_rating: number };
+                    const movie = m as { id: string; title: string; year: number; poster_url: string | null; user_rating: number; imdb_rating?: number };
                     return {
                         id: movie.id,
                         title: movie.title,
                         year: movie.year,
                         poster_url: movie.poster_url,
-                        user_rating: movie.user_rating
+                        user_rating: movie.user_rating,
+                        imdb_rating: movie.imdb_rating
                     };
                 })
             }
@@ -156,13 +159,14 @@ export async function getRanking(
             score: Number(item.score),
             data: {
                 movies: (item.top_movies || []).map((m: unknown) => {
-                    const movie = m as { id: string; title: string; year: number; poster_url: string | null; user_rating: number };
+                    const movie = m as { id: string; title: string; year: number; poster_url: string | null; user_rating: number; imdb_rating?: number };
                     return {
                         id: movie.id,
                         title: movie.title,
                         year: movie.year,
                         poster_url: movie.poster_url,
-                        user_rating: movie.user_rating
+                        user_rating: movie.user_rating,
+                        imdb_rating: movie.imdb_rating
                     };
                 })
             }
