@@ -5,6 +5,11 @@ const TMDB_API_KEY = process.env.TMDB_API_KEY; // Alternativa si no hay token
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
 
+// Rate limiting: TMDB permite ~40 requests/10s
+const RATE_LIMIT_DELAY_MS = 250; // 4 req/s = 40 req/10s
+const MAX_RETRIES = 3;
+const INITIAL_BACKOFF_MS = 1000;
+
 export type TmdbImageSize = 'w92' | 'w154' | 'w185' | 'w342' | 'w500' | 'w780' | 'original';
 
 export type TmdbMovieDetails = {
@@ -88,6 +93,24 @@ export type TmdbMovieDetails = {
     };
 };
 
+// Simple rate limiter
+let lastRequestTime = 0;
+
+async function rateLimitedDelay(): Promise<void> {
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTime;
+
+    if (timeSinceLastRequest < RATE_LIMIT_DELAY_MS) {
+        await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_DELAY_MS - timeSinceLastRequest));
+    }
+
+    lastRequestTime = Date.now();
+}
+
+async function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export class TmdbClient {
     private async fetch<T>(endpoint: string, params: Record<string, string> = {}): Promise<T | null> {
         let headers: Record<string, string> = {
@@ -109,26 +132,47 @@ export class TmdbClient {
             return null;
         }
 
-        try {
-            const url = `${TMDB_BASE_URL}${endpoint}?${queryParams.toString()}`;
-            // console.log(`[TMDb] Consultando: ${url}`);
+        const url = `${TMDB_BASE_URL}${endpoint}?${queryParams.toString()}`;
 
-            const res = await fetch(url, {
-                headers,
-                next: { revalidate: 3600 }, // Cache 1 hora
-            });
+        // Retry loop with exponential backoff
+        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+            try {
+                // Apply rate limiting delay
+                await rateLimitedDelay();
 
-            if (!res.ok) {
-                console.error(`TMDb Error [${res.status}]: ${res.statusText} for ${url}`);
-                // Podríamos manejar rate limits aquí (status 429)
-                return null;
+                const res = await fetch(url, {
+                    headers,
+                    next: { revalidate: 3600 }, // Cache 1 hora
+                });
+
+                // Handle rate limit (429)
+                if (res.status === 429) {
+                    const retryAfter = parseInt(res.headers.get('Retry-After') || '1', 10);
+                    const backoffMs = Math.max(retryAfter * 1000, INITIAL_BACKOFF_MS * Math.pow(2, attempt));
+                    console.warn(`[TMDB] Rate limited. Retry ${attempt + 1}/${MAX_RETRIES} after ${backoffMs}ms`);
+                    await sleep(backoffMs);
+                    continue;
+                }
+
+                if (!res.ok) {
+                    console.error(`TMDb Error [${res.status}]: ${res.statusText} for ${url}`);
+                    return null;
+                }
+
+                return res.json();
+            } catch (error) {
+                if (attempt === MAX_RETRIES - 1) {
+                    console.error('TMDb Fetch Exception (all retries exhausted):', error);
+                    return null;
+                }
+                // Retry on network errors
+                const backoffMs = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
+                console.warn(`[TMDB] Network error. Retry ${attempt + 1}/${MAX_RETRIES} after ${backoffMs}ms`);
+                await sleep(backoffMs);
             }
-
-            return res.json();
-        } catch (error) {
-            console.error('TMDb Fetch Exception:', error);
-            return null;
         }
+
+        return null;
     }
 
     /**

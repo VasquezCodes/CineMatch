@@ -142,11 +142,11 @@ export function RankingItemMovies({
                 )}
                 {/* Rating overlay */}
                 {movie.user_rating && (
-                  <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 backdrop-blur-sm px-2 py-1 rounded border border-accent/30">
-                    <span className="text-xs font-black text-accent">
+                  <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 backdrop-blur-sm px-2 py-1 rounded border border-star-yellow/30">
+                    <Star className="h-2.5 w-2.5 fill-star-yellow text-star-yellow" />
+                    <span className="text-xs font-black text-star-yellow">
                       {movie.user_rating}
                     </span>
-                    <Star className="h-2.5 w-2.5 fill-accent text-accent" />
                   </div>
                 )}
               </div>

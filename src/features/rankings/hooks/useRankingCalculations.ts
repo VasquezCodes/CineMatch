@@ -41,9 +41,9 @@ export function calculateItemAverageRating(item: RankingStatConfig): string {
   const movies = item.data.movies;
   if (movies.length === 0) return "N/A";
 
-  const moviesWithRating = movies.filter((m) => m.imdb_rating != null);
+  const moviesWithRating = movies.filter((m) => m.user_rating != null && m.user_rating > 0);
   if (moviesWithRating.length === 0) return "N/A";
 
-  const sum = moviesWithRating.reduce((acc, m) => acc + (m.imdb_rating || 0), 0);
+  const sum = moviesWithRating.reduce((acc, m) => acc + (m.user_rating || 0), 0);
   return (sum / moviesWithRating.length).toFixed(1);
 }

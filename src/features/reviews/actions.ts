@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { updateRatingSchema, validateInput } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 
 /**
  * Actualiza el rating de una película en el watchlist del usuario
@@ -12,12 +14,15 @@ export async function updateMovieRating(
   watchlistId: string,
   rating: number
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    // Validación básica
-    if (rating < 1 || rating > 10) {
-      return { success: false, error: "La calificación debe estar entre 1 y 10" };
-    }
+  // Validación con Zod
+  const validation = validateInput(updateRatingSchema, { watchlistId, rating });
+  if (!validation.success) {
+    return { success: false, error: validation.error };
+  }
 
+  const log = logger.withContext({ action: "updateMovieRating", watchlistId });
+
+  try {
     const supabase = await createClient();
 
     // Verificar usuario autenticado
@@ -27,6 +32,7 @@ export async function updateMovieRating(
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
+      log.warn("Usuario no autenticado");
       return { success: false, error: "Usuario no autenticado" };
     }
 
@@ -38,7 +44,7 @@ export async function updateMovieRating(
       .single();
 
     if (fetchError || !watchlist) {
-      console.error("Error fetching watchlist item:", fetchError);
+      log.error("Watchlist no encontrado", { userId: user.id }, fetchError as Error);
       return { success: false, error: "Elemento no encontrado" };
     }
 
@@ -55,9 +61,11 @@ export async function updateMovieRating(
       .eq("user_id", user.id);
 
     if (updateError) {
-      console.error("Error updating watchlist:", updateError);
+      log.error("Error actualizando rating", { userId: user.id, movieId }, updateError as Error);
       return { success: false, error: "Error al guardar calificación" };
     }
+
+    log.info("Rating actualizado", { userId: user.id, movieId, rating });
 
     // Revalidar páginas relacionadas
     revalidatePath("/app/rate-movies");
@@ -66,7 +74,7 @@ export async function updateMovieRating(
 
     return { success: true };
   } catch (error) {
-    console.error("Unexpected error in updateMovieRating:", error);
+    log.error("Error inesperado", {}, error as Error);
     return { success: false, error: "Error inesperado al guardar" };
   }
 }
