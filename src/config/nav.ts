@@ -6,10 +6,7 @@ import {
   Sparkles,
   User,
   Library,
-  TrendingUp,
-  Gamepad2,
-  Users,
-  ClipboardCheck,
+  History,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { APP_ROUTES, SECONDARY_ROUTES } from "./routes";
@@ -63,23 +60,8 @@ export const SECONDARY_NAV_ITEMS: NavItem[] = [
     icon: Library,
   },
   {
-    label: "Insights",
-    href: SECONDARY_ROUTES.INSIGHTS,
-    icon: TrendingUp,
-  },
-  {
-    label: "Juegos",
-    href: SECONDARY_ROUTES.GAMES,
-    icon: Gamepad2,
-  },
-  {
-    label: "Comunidad",
-    href: SECONDARY_ROUTES.COMMUNITY,
-    icon: Users,
-  },
-  {
-    label: "Cualificación",
-    href: SECONDARY_ROUTES.QUALIFICATION,
-    icon: ClipboardCheck,
+    label: "Historial",
+    href: SECONDARY_ROUTES.IMPORTS,
+    icon: History,
   },
 ];

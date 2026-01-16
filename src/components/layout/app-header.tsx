@@ -5,6 +5,7 @@ import { useTransition } from "react";
 import { User, LogOut } from "lucide-react";
 
 import { APP_ROUTES } from "@/config/routes";
+import { SECONDARY_NAV_ITEMS } from "@/config/nav";
 import { signout } from "@/features/auth/actions";
 import { useAuth } from "@/lib/providers/auth-provider";
 
@@ -90,6 +91,24 @@ export function AppHeader() {
                     </div>
                   </Link>
                 </DropdownMenuItem>
+
+                <DropdownMenuSeparator className="my-2" />
+
+                {/* Secondary Navigation Items */}
+                {SECONDARY_NAV_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link
+                        href={item.href}
+                        className="flex cursor-pointer items-center gap-2 rounded-md p-2 transition-colors hover:bg-muted"
+                      >
+                        <Icon className="size-4 text-muted-foreground" />
+                        <span>{item.label}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
 
                 <DropdownMenuSeparator className="my-2" />
 

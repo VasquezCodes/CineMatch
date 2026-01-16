@@ -197,11 +197,8 @@ export async function deleteImport(importId: string) {
         console.log(`Eliminando import ${importId}. Huérfanos: ${orphanedMovieIds.length}. Protegidos: ${protectedMovieIds.size}`);
 
         if (orphanedMovieIds.length > 0) {
-            // Eliminar huérfanos de Watchlist y Reviews (Cleaning)
-            await Promise.all([
-                supabase.from('watchlists').delete().in('movie_id', orphanedMovieIds).eq('user_id', user.id),
-                supabase.from('reviews').delete().in('movie_id', orphanedMovieIds).eq('user_id', user.id)
-            ]);
+            // Eliminar huérfanos de Watchlist
+            await supabase.from('watchlists').delete().in('movie_id', orphanedMovieIds).eq('user_id', user.id);
         }
     }
 
@@ -211,6 +208,6 @@ export async function deleteImport(importId: string) {
     if (error) throw error;
 
     revalidatePath('/app/library');
-    revalidatePath('/app/settings/imports');
+    revalidatePath('/app/imports');
     return { success: true };
 }

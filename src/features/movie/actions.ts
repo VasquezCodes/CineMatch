@@ -278,27 +278,17 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
     }
 
     // 2. Obtener interacciones del usuario si está logueado
-    let userReview = null;
     let userWatchlist = null;
 
     if (user) {
-        const [reviewRes, watchlistRes] = await Promise.all([
-            supabase
-                .from('reviews')
-                .select('rating')
-                .eq('movie_id', movieId)
-                .eq('user_id', user.id)
-                .maybeSingle(),
-            supabase
-                .from('watchlists')
-                .select('added_at, user_rating')
-                .eq('movie_id', movieId)
-                .eq('user_id', user.id)
-                .maybeSingle()
-        ]);
+        const { data } = await supabase
+            .from('watchlists')
+            .select('updated_at, user_rating')
+            .eq('movie_id', movieId)
+            .eq('user_id', user.id)
+            .maybeSingle();
 
-        userReview = reviewRes.data;
-        userWatchlist = watchlistRes.data;
+        userWatchlist = data;
     }
 
     // 3. Armar respuesta
@@ -311,13 +301,13 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
         director: movie.director,
         genres: movie.genres || [],
         synopsis: movie.synopsis,
-        imdb_rating: movie.imdb_rating || null, // Pasar calificación IMDb
+        imdb_rating: movie.imdb_rating || null,
         extended_data: movie.extended_data || {},
-        rating: userReview?.rating,
-        personalRating: userWatchlist?.user_rating ?? userReview?.rating,
+        rating: userWatchlist?.user_rating,
+        personalRating: userWatchlist?.user_rating,
         watchlist: userWatchlist ? {
             status: 'listed',
-            added_at: userWatchlist.added_at!
+            added_at: userWatchlist.updated_at!
         } : null
     };
 }

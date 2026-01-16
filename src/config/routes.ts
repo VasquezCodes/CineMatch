@@ -7,10 +7,10 @@
 export const APP_ROUTES = {
   // Marketing
   HOME: "/",
-  
+
   // Auth
   LOGIN: "/login",
-  
+
   // App - Flujo principal
   DASHBOARD: "/app",
   UPLOAD: "/app/upload",
@@ -23,6 +23,7 @@ export const APP_ROUTES = {
 // Rutas secundarias (features adicionales)
 export const SECONDARY_ROUTES = {
   LIBRARY: "/app/library",
+  IMPORTS: "/app/imports",
   INSIGHTS: "/app/insights",
   GAMES: "/app/games",
   COMMUNITY: "/app/community",

@@ -188,28 +188,15 @@ async function processQueueItem(supabase: any, userId: string, movie: any) {
 
     if (movieError || !savedMovie) throw new Error(`Movie Save Error: ${movieError?.message}`);
 
-    // 2. Insertar Reseña
-    if (movie.user_rating) {
-        await supabase.from('reviews').upsert({
-            user_id: userId,
-            movie_id: savedMovie.id,
-            rating: movie.user_rating,
-            created_at: movie.date_rated ? new Date(movie.date_rated).toISOString() : new Date().toISOString(),
-        }, { onConflict: 'user_id, movie_id' });
-    }
+    // 2. Watchlist (Calificación)
+    const watchlistData: any = {
+        user_id: userId,
+        movie_id: savedMovie.id,
+        updated_at: new Date().toISOString(),
+    };
+    if (movie.user_rating) watchlistData.user_rating = movie.user_rating;
 
-    // 3. Watchlist (Posición y Calificación)
-    if (movie.position || movie.user_rating) {
-        const watchlistData: any = {
-            user_id: userId,
-            movie_id: savedMovie.id,
-            updated_at: new Date().toISOString(),
-        };
-        if (movie.position) watchlistData.position = movie.position;
-        if (movie.user_rating) watchlistData.user_rating = movie.user_rating;
-
-        await supabase.from('watchlists').upsert(watchlistData, { onConflict: 'user_id, movie_id' });
-    }
+    await supabase.from('watchlists').upsert(watchlistData, { onConflict: 'user_id, movie_id' });
 
     // 4. Enriquecimiento de datos
     // Optimización: Si ya tenemos extended_data, runtime y fotos, evitamos llamar a TMDB.

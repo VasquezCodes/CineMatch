@@ -27,26 +27,17 @@ export async function getWatchlistAnalysis(): Promise<{
       };
     }
 
-    // Consultar watchlists con JOIN a movies y reviews en paralelo para eficiencia
-    const [watchlistsResponse, reviewsResponse] = await Promise.all([
-      supabase
-        .from("watchlists")
-        .select(
-          `
+    // Consultar watchlists con JOIN a movies
+    const { data: watchlists, error: watchlistsError } = await supabase
+      .from("watchlists")
+      .select(
+        `
         *,
         movie:movies (*)
       `
-        )
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false }),
-      supabase
-        .from("reviews")
-        .select("movie_id, rating")
-        .eq("user_id", user.id),
-    ]);
-
-    const { data: watchlists, error: watchlistsError } = watchlistsResponse;
-    const { data: reviews } = reviewsResponse;
+      )
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false });
 
     if (watchlistsError) {
       console.error("Error fetching watchlists:", watchlistsError);
@@ -63,29 +54,17 @@ export async function getWatchlistAnalysis(): Promise<{
       };
     }
 
-    // Mapa de ratings para acceso O(1)
-    const ratingsMap = new Map<string, number>();
-    reviews?.forEach((r) => {
-      if (r.rating) ratingsMap.set(r.movie_id, r.rating);
-    });
-
     // Transformar los datos para cumplir con el tipo WatchlistAnalysisItem
     const analysisData: WatchlistAnalysisItem[] = watchlists
       .map((item) => {
         // Extraemos la película y dejamos el resto como watchlist
         const { movie, ...watchlistData } = item;
 
-        // Verificación de seguridad por si la relación no trae datos (integridad referencial rota)
+        // Verificación de seguridad por si la relación no trae datos
         if (!movie) return null;
 
-        const rating = ratingsMap.get(movie.id);
-        const watchlistWithRating: WatchlistAnalysisItem["watchlist"] = {
-          ...(watchlistData as unknown as WatchlistAnalysisItem["watchlist"]),
-          user_rating: rating ?? null,
-        };
-
         return {
-          watchlist: watchlistWithRating,
+          watchlist: watchlistData as unknown as WatchlistAnalysisItem["watchlist"],
           movie: movie as unknown as WatchlistAnalysisItem["movie"],
         };
       })

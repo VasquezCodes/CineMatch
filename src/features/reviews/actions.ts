@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import type { TablesUpdate } from "@/types/database.types";
 import { revalidatePath } from "next/cache";
 
 /**
@@ -31,7 +30,7 @@ export async function updateMovieRating(
       return { success: false, error: "Usuario no autenticado" };
     }
 
-    // 1. Obtener el watchlist para saber el movie_id
+    // Obtener el watchlist para saber el movie_id
     const { data: watchlist, error: fetchError } = await supabase
       .from("watchlists")
       .select("movie_id")
@@ -45,8 +44,8 @@ export async function updateMovieRating(
 
     const movieId = watchlist.movie_id;
 
-    // 2. Actualizar el rating en la tabla watchlists
-    const updateWatchlistPromise = supabase
+    // Actualizar el rating en la tabla watchlists
+    const { error: updateError } = await supabase
       .from("watchlists")
       .update({
         user_rating: rating,
@@ -55,38 +54,15 @@ export async function updateMovieRating(
       .eq("id", watchlistId)
       .eq("user_id", user.id);
 
-    // 3. Sincronizar rating en la tabla reviews
-    const upsertReviewPromise = supabase
-      .from("reviews")
-      .upsert(
-        {
-          user_id: user.id,
-          movie_id: movieId,
-          rating: rating,
-          created_at: new Date().toISOString(), // Actualizamos timestamp
-        },
-        { onConflict: "user_id, movie_id" }
-      );
-
-    const [watchlistResult, reviewResult] = await Promise.all([
-      updateWatchlistPromise,
-      upsertReviewPromise,
-    ]);
-
-    if (watchlistResult.error) {
-      console.error("Error updating watchlist:", watchlistResult.error);
-      return { success: false, error: "Error al guardar en watchlist" };
-    }
-
-    if (reviewResult.error) {
-      console.error("Error updating review:", reviewResult.error);
-      // No fallamos toda la operación si falla el review, pero logueamos
+    if (updateError) {
+      console.error("Error updating watchlist:", updateError);
+      return { success: false, error: "Error al guardar calificación" };
     }
 
     // Revalidar páginas relacionadas
     revalidatePath("/app/rate-movies");
     revalidatePath("/app/analysis");
-    revalidatePath(`/app/movies/${movieId}`); // Revalidar la página de la película específica
+    revalidatePath(`/app/movies/${movieId}`);
 
     return { success: true };
   } catch (error) {
