@@ -58,55 +58,59 @@ export default async function MovieDetailPage({ params }: PageProps) {
         </div>
 
         {/* Contenido del lado derecho */}
-        <div className="flex flex-col space-y-8">
-          {/* Título, Año y Badges */}
-          <div className="pb-6 border-b border-border/50">
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
-                {movie.title}
-              </h1>
-              <div className="flex flex-col gap-2 shrink-0">
-                {movie.rating && (
-                  <Badge
-                    variant="outline"
-                    className="text-sm px-3 py-1.5 gap-1.5"
-                    title="Tu valoración (review)"
-                  >
-                    <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-                    <span className="font-semibold">{movie.rating}</span>
-                  </Badge>
-                )}
-                {movie.watchlist && (
-                  <Badge
-                    variant="outline"
-                    className="text-xs px-2 py-1 gap-1"
-                    title="En tu lista"
-                  >
-                    <Bookmark className="h-3 w-3 fill-current" />
-                    <span>En lista</span>
-                  </Badge>
-                )}
-              </div>
-            </div>
+        <div className="flex flex-col space-y-6">
+          {/* Título */}
+          <div className="pb-4 border-b border-border/50">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight mb-4">
+              {movie.title}
+            </h1>
 
-            <div className="flex items-center gap-4 mb-4 flex-wrap">
-              <div className="flex items-center gap-2 text-muted-foreground">
+            {/* Año y Estado */}
+            <div className="flex items-center gap-4 mb-4 flex-wrap text-muted-foreground">
+              <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                <span className="text-lg font-medium">{movie.year}</span>
+                <span className="text-base font-medium">{movie.year}</span>
               </div>
 
-              {movie.imdb_rating && (
-                <Badge
-                  variant="outline"
-                  className="text-sm px-2.5 py-1 gap-1 text-star-yellow border-star-yellow/30"
-                  title="IMDb Rating"
-                >
-                  <Star className="h-3 w-3 fill-star-yellow text-star-yellow" />
-                  <span className="font-medium">{movie.imdb_rating.toFixed(1)}</span>
-                  <span className="text-xs opacity-70">IMDb</span>
-                </Badge>
+              {movie.watchlist && (
+                <>
+                  <span className="text-muted-foreground/40">•</span>
+                  <div className="flex items-center gap-2">
+                    <Bookmark className="h-4 w-4 fill-current" />
+                    <span className="text-base font-medium">En tu lista</span>
+                  </div>
+                </>
               )}
             </div>
+
+            {/* Card de valoraciones */}
+            {(movie.rating || movie.imdb_rating) && (
+              <div className="bg-muted/40 border border-border/60 rounded-lg p-4 mb-4">
+                <div className="flex flex-wrap gap-x-6 gap-y-3">
+                  {movie.rating && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Tu valoración:</span>
+                      <div className="flex items-center gap-1.5">
+                        <Star className="h-4 w-4 fill-accent text-accent" />
+                        <span className="font-semibold text-base">{movie.rating}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {movie.imdb_rating && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">IMDb:</span>
+                      <div className="flex items-center gap-1.5">
+                        <Star className="h-4 w-4 fill-star-yellow text-star-yellow" />
+                        <span className="font-semibold text-base text-star-yellow">
+                          {movie.imdb_rating.toFixed(1)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Director */}
             {movie.director && (
@@ -136,18 +140,18 @@ export default async function MovieDetailPage({ params }: PageProps) {
               </p>
             </div>
           )}
+
+          {/* Reparto y Equipo */}
+          {(cast.length > 0 || crewDetails.length > 0) && (
+            <MovieCast cast={cast} crew={crewDetails} />
+          )}
+
+          {/* Recomendaciones */}
+          {recommendations.length > 0 && (
+            <MovieRecommendations recommendations={recommendations} />
+          )}
         </div>
       </div>
-
-      {/* Reparto y Equipo */}
-      {(cast.length > 0 || crewDetails.length > 0) && (
-        <MovieCast cast={cast} crew={crewDetails} />
-      )}
-
-      {/* Recomendaciones */}
-      {recommendations.length > 0 && (
-        <MovieRecommendations recommendations={recommendations} />
-      )}
     </div>
   );
 }

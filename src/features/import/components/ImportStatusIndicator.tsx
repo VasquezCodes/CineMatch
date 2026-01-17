@@ -9,6 +9,20 @@ import { cn } from '@/lib/utils';
 
 type ImportState = 'idle' | 'processing' | 'calculating_stats' | 'completed' | 'error';
 
+// Hook para detectar si es móvil
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < breakpoint);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [breakpoint]);
+
+  return isMobile;
+}
+
 /**
  * Toast flotante con progreso de importación en tiempo real via Supabase Realtime.
  */
@@ -17,6 +31,7 @@ export function ImportStatusIndicator() {
   const [totalCount, setTotalCount] = useState(0);
   const [importState, setImportState] = useState<ImportState>('idle');
   const [isVisible, setIsVisible] = useState(false);
+  const isMobile = useIsMobile();
 
   const router = useRouter();
 
@@ -207,11 +222,16 @@ export function ImportStatusIndicator() {
   // No renderizar si no está visible
   if (!isVisible) return null;
 
+  // Clases de posicionamiento según dispositivo
+  const positionClasses = isMobile
+    ? "fixed bottom-20 left-1/2 -translate-x-1/2 max-w-[calc(100vw-2rem)]"
+    : "fixed bottom-4 right-4";
+
   // Estado: PROCESANDO IMPORTACIÓN
   if (importState === 'processing') {
     const progress = totalCount > 0 ? Math.round(((totalCount - pendingCount) / totalCount) * 100) : 0;
     return (
-      <div className="fixed bottom-4 right-4 bg-card border border-border px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5">
+      <div className={cn(positionClasses, "bg-card border border-border px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5")}>
         <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
         <div className="flex flex-col min-w-[180px]">
           <span className="font-semibold text-sm text-foreground">Importando películas...</span>
@@ -227,7 +247,7 @@ export function ImportStatusIndicator() {
   // Estado: CALCULANDO ESTADÍSTICAS (Nuevo estado intermedio)
   if (importState === 'calculating_stats') {
     return (
-      <div className="fixed bottom-4 right-4 bg-card border border-border px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5">
+      <div className={cn(positionClasses, "bg-card border border-border px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5")}>
         <div className="animate-pulse h-5 w-5 rounded-full bg-primary/50" />
         <div className="flex flex-col min-w-[180px]">
           <span className="font-semibold text-sm text-foreground">Generando Rankings...</span>
@@ -240,7 +260,7 @@ export function ImportStatusIndicator() {
   // Estado: COMPLETADO (Solo cuando stats terminaron)
   if (importState === 'completed') {
     return (
-      <div className="fixed bottom-4 right-4 bg-card border border-green-500/30 px-4 py-4 rounded-lg shadow-lg z-50 animate-in slide-in-from-bottom-5">
+      <div className={cn(positionClasses, "bg-card border border-green-500/30 px-4 py-4 rounded-lg shadow-lg z-50 animate-in slide-in-from-bottom-5")}>
         <div className="flex items-start gap-3">
           <div className="rounded-full bg-green-500/10 p-1.5">
             <CheckCircle2 className="h-5 w-5 text-green-600" />
@@ -270,7 +290,7 @@ export function ImportStatusIndicator() {
   // Estado de error
   if (importState === 'error') {
     return (
-      <div className="fixed bottom-4 right-4 bg-destructive/10 border border-destructive/30 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5">
+      <div className={cn(positionClasses, "bg-destructive/10 border border-destructive/30 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5")}>
         <div className="flex flex-col">
           <span className="font-semibold text-sm text-destructive">Error en la importación</span>
           <span className="text-xs text-muted-foreground">Algunas películas no pudieron procesarse</span>

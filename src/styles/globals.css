@@ -123,3 +123,40 @@
 body {
   overflow-x: hidden;
 }
+
+/* 🎨 Decorative blur effects - Background ambient */
+@layer components {
+  .blur-decoration {
+    position: fixed;
+    border-radius: 9999px;
+    filter: blur(150px);
+    pointer-events: none;
+    z-index: -1;
+    will-change: opacity;
+  }
+
+  .blur-decoration-1 {
+    background: hsl(var(--chart-1) / 0.15);
+    width: 500px;
+    height: 500px;
+    top: -250px;
+    left: -150px;
+  }
+
+  .blur-decoration-2 {
+    background: hsl(var(--chart-4) / 0.18);
+    width: 400px;
+    height: 400px;
+    top: 40%;
+    right: -100px;
+  }
+
+  /* Dark mode - más visibles */
+  .dark .blur-decoration-1 {
+    background: hsl(var(--chart-1) / 0.15);
+  }
+
+  .dark .blur-decoration-2 {
+    background: hsl(var(--chart-4) / 0.18);
+  }
+}

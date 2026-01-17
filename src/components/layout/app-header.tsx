@@ -36,7 +36,7 @@ export function AppHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 w-full border-b border-border/50 bg-background/70 backdrop-blur-md supports-[backdrop-filter]:bg-background/50">
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
         {/* SECCIÓN IZQUIERDA: Logo */}
         <div className="flex flex-1 items-center justify-start">

@@ -4,6 +4,7 @@ export { AppHeader } from "./app-header";
 export { AppNav } from "./app-nav";
 export { MobileTabs } from "./mobile-tabs";
 export { ThemeToggle } from "./theme-toggle";
+export { BackgroundBlurs } from "./background-blurs";
 
 // Page layout components
 export { Container } from "./container";

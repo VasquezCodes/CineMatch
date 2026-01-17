@@ -108,7 +108,7 @@ export function RankingPieChart({ data, selectedIndex, onSelectItem }: RankingPi
   };
 
   const pieConfig = isMobile
-    ? { cx: "50%", cy: "40%", innerRadius: 40, outerRadius: 80 }
+    ? { cx: "50%", cy: "35%", innerRadius: 40, outerRadius: 70 }
     : { cx: "50%", cy: "50%", innerRadius: 60, outerRadius: 120 };
 
   const legendConfig = isMobile
@@ -116,7 +116,7 @@ export function RankingPieChart({ data, selectedIndex, onSelectItem }: RankingPi
     : { layout: "vertical" as const, align: "right" as const, verticalAlign: "middle" as const };
 
   return (
-    <ChartContainer config={chartConfig} className={isMobile ? "h-[450px] w-full" : "h-full max-h-[400px] w-full"}>
+    <ChartContainer config={chartConfig} className={isMobile ? "h-[450px] w-full aspect-auto" : "h-full max-h-[400px] w-full"}>
       <PieChart>
         <ChartTooltip
           content={

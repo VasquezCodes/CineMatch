@@ -1,6 +1,7 @@
 import { AppHeader } from './app-header';
 import { MobileTabs } from './mobile-tabs';
 import { Container } from './container';
+import { BackgroundBlurs } from './background-blurs';
 import { ImportStatusIndicator } from '@/features/import';
 
 interface AppShellProps {
@@ -16,6 +17,9 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   return (
     <div className="relative flex min-h-screen flex-col">
+      {/* Efectos decorativos de fondo */}
+      <BackgroundBlurs />
+
       {/* Header sticky */}
       <AppHeader />
 

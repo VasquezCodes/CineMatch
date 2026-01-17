@@ -15,7 +15,7 @@ export function MobileTabs() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card md:hidden"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-border/50 bg-background/70 backdrop-blur-md supports-[backdrop-filter]:bg-background/50 md:hidden"
       role="navigation"
       aria-label="Navegación móvil"
     >

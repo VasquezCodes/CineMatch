@@ -86,7 +86,7 @@ export function RankingChartSection({
     <div className="space-y-4">
       <ChartSelector value={chartType} onValueChange={onChartTypeChange} />
 
-      <div className="border border-border/50 rounded-xl bg-card/30 p-4 md:p-6">
+      <div className="border border-border/50 rounded-xl bg-card/30 p-4 md:p-6 overflow-x-hidden">
         <header className="mb-4">
           <h3 className="text-lg font-semibold">
             {chartType === "bar" && "Comparación por cantidad de películas"}
