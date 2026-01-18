@@ -68,7 +68,7 @@ export type TmdbMovieDetails = {
     };
     images: {
         posters: Array<{ file_path: string; iso_639_1: string | null; aspect_ratio: number; width: number; height: number }>;
-        backdrops: Array<{ file_path: string; iso_639_1: string | null; aspect_ratio: number; width: number; height: number }>;
+        backdrops: Array<{ file_path: string; iso_639_1: string | null; aspect_ratio: number; width: number; height: number; vote_average: number; vote_count: number }>;
     };
     belongs_to_collection?: {
         id: number;
@@ -179,6 +179,35 @@ export class TmdbClient {
     static getImageUrl(path: string | null, size: TmdbImageSize = 'w500'): string | null {
         if (!path) return null;
         return `${TMDB_IMAGE_BASE_URL}/${size}${path}`;
+    }
+
+    /**
+     * Selects the best backdrop from the images array.
+     * Priority: 1920x1080 textless images sorted by vote_count (popularity).
+     * Falls back to backdrop_path if no matching images available.
+     */
+    static getBestBackdropUrl(
+        images: TmdbMovieDetails['images'] | undefined,
+        fallbackPath: string | null
+    ): string | null {
+        if (images?.backdrops && images.backdrops.length > 0) {
+            // Filter for 1920x1080 resolution only
+            const hdBackdrops = images.backdrops.filter(b => b.width === 1920 && b.height === 1080);
+
+            // Prefer textless images (null or 'xx' = No Language)
+            const textlessHd = hdBackdrops.filter(b => b.iso_639_1 === null || b.iso_639_1 === 'xx');
+
+            // Sort by vote_count descending (popularity, like Letterboxd)
+            const sorted = (textlessHd.length > 0 ? textlessHd : hdBackdrops)
+                .sort((a, b) => b.vote_count - a.vote_count);
+
+            if (sorted[0]?.file_path) {
+                return `${TMDB_IMAGE_BASE_URL}/w1280${sorted[0].file_path}`;
+            }
+        }
+
+        // Fallback to default backdrop_path
+        return fallbackPath ? `${TMDB_IMAGE_BASE_URL}/w1280${fallbackPath}` : null;
     }
 
     /**

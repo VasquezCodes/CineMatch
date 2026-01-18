@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { syncMoviePeople } from '@/features/rankings/people-sync';
+import { TmdbClient } from '@/lib/tmdb';
 
 // Tipos auxiliares para mappings de TMDB
 type TmdbCrew = { id: number; name: string; job: string; profile_path: string | null };
@@ -112,7 +113,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                         imdb_id: tmdbMovie.imdb_id,
                         tmdb_id: tmdbMovie.id, // Asegurar que guardamos el TMDB ID
                         poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
-                        backdrop_url: tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${tmdbMovie.backdrop_path}` : null,
+                        backdrop_url: TmdbClient.getBestBackdropUrl(tmdbMovie.images, tmdbMovie.backdrop_path),
                         director: tmdbMovie.credits?.crew?.find((c: TmdbCrew) => c.job === 'Director')?.name || null,
                         synopsis: tmdbMovie.overview,
                         imdb_rating: tmdbMovie.vote_average,
@@ -231,7 +232,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                     imdb_id: tmdbMovie.imdb_id,
                     tmdb_id: tmdbMovie.id,
                     poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
-                    backdrop_url: tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${tmdbMovie.backdrop_path}` : null,
+                    backdrop_url: TmdbClient.getBestBackdropUrl(tmdbMovie.images, tmdbMovie.backdrop_path),
                     director: tmdbMovie.credits?.crew?.find((c: TmdbCrew) => c.job === 'Director')?.name || null,
                     synopsis: tmdbMovie.overview,
                     imdb_rating: tmdbMovie.vote_average,

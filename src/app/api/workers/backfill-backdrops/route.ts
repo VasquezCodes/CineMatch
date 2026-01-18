@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { tmdb } from '@/lib/tmdb';
+import { tmdb, TmdbClient } from '@/lib/tmdb';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const maxDuration = 60;
@@ -68,13 +68,17 @@ export async function POST(request: NextRequest) {
             const details = await tmdb.getMovieDetails(movie.tmdb_id);
 
             if (!details) {
+                // Marcar como procesado aunque falle (evita loop infinito)
+                await supabase
+                    .from('movies')
+                    .update({ backdrop_url: '' })
+                    .eq('id', movie.id);
                 return { status: 'skipped' as const, movie };
             }
 
-            const backdropPath = details.backdrop_path;
+            const backdropUrl = TmdbClient.getBestBackdropUrl(details.images, details.backdrop_path);
 
-            if (backdropPath) {
-                const backdropUrl = `https://image.tmdb.org/t/p/w1280${backdropPath}`;
+            if (backdropUrl) {
                 await supabase
                     .from('movies')
                     .update({ backdrop_url: backdropUrl })
