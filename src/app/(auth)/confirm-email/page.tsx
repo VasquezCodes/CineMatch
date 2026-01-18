@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { ConfirmEmailView } from "@/features/auth/components/ConfirmEmailView";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { ThemeToggle } from "@/components/theme";
 
 function ConfirmEmailContent() {
   const searchParams = useSearchParams();

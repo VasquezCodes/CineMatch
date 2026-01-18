@@ -11,7 +11,7 @@ import { useAuth } from "@/lib/providers/auth-provider";
 import { cn } from "@/lib/utils";
 
 import { AppNav } from "./app-nav";
-import { ThemeToggle } from "./theme-toggle";
+import { ThemeToggle } from "@/components/theme";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

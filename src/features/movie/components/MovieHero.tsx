@@ -22,7 +22,7 @@ export function MovieBackdrop({
   children,
 }: MovieBackdropProps) {
   return (
-    <div className="relative w-full min-h-[500px] sm:min-h-[550px] md:min-h-[600px] -mt-14">
+    <div className="relative w-full min-h-screen -mt-14 overflow-x-hidden">
       {/* Backdrop absoluto full-width (escapa del container) */}
       {backdropUrl && backdropUrl !== "" && (
         <div className="absolute inset-0 w-screen left-1/2 -translate-x-1/2 overflow-hidden">
@@ -42,8 +42,8 @@ export function MovieBackdrop({
           {/* Gradientes cinematográficos adaptativos según tema */}
           {/* Bottom fade - fundido hacia el fondo */}
           <div className="absolute inset-0 z-[1] 
-                         dark:bg-gradient-to-b dark:from-transparent dark:via-black/40 dark:to-background
-                         bg-gradient-to-b from-transparent via-black/20 to-background" />
+                         dark:bg-gradient-to-b dark:from-transparent dark:via-black/20 dark:to-black/60
+                         bg-gradient-to-b from-transparent via-black/10 to-transparent" />
 
           {/* Top vignette - oscurecimiento superior para navbar legible */}
           <div className="absolute inset-0 z-[1] 

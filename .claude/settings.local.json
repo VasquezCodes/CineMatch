@@ -8,7 +8,9 @@
       "Bash(npx tsc:*)",
       "Bash(pnpm list:*)",
       "Bash(dir:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm install)"
     ]
   }
 }

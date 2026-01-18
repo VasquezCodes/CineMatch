@@ -1,5 +1,5 @@
 import { AuthCard } from "@/features/auth/components/AuthCard";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { ThemeToggle } from "@/components/theme";
 
 export default function LoginPage() {
   return (

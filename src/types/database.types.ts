@@ -217,6 +217,13 @@ export type Database = {
                     vote_average: number | null
                     vote_count: number | null
                     year: number | null
+                    extended_data: Json | null
+                    synopsis: string | null
+                    plot: string | null
+                    runtime: number | null
+                    director: string | null
+                    tagline: string | null
+                    video: boolean | null
                 }
                 Insert: {
                     backdrop_url?: string | null
@@ -238,6 +245,13 @@ export type Database = {
                     vote_average?: number | null
                     vote_count?: number | null
                     year?: number | null
+                    extended_data?: Json | null
+                    synopsis?: string | null
+                    plot?: string | null
+                    runtime?: number | null
+                    director?: string | null
+                    tagline?: string | null
+                    video?: boolean | null
                 }
                 Update: {
                     backdrop_url?: string | null
@@ -259,6 +273,13 @@ export type Database = {
                     vote_average?: number | null
                     vote_count?: number | null
                     year?: number | null
+                    extended_data?: Json | null
+                    synopsis?: string | null
+                    plot?: string | null
+                    runtime?: number | null
+                    director?: string | null
+                    tagline?: string | null
+                    video?: boolean | null
                 }
                 Relationships: []
             }
@@ -471,18 +492,24 @@ export type Database = {
                     id: string
                     movie_id: string
                     user_id: string
+                    created_at: string | null
+                    status: string | null
                 }
                 Insert: {
                     added_at?: string | null
                     id?: string
                     movie_id: string
                     user_id: string
+                    created_at?: string | null
+                    status?: string | null
                 }
                 Update: {
                     added_at?: string | null
                     id?: string
                     movie_id?: string
                     user_id?: string
+                    created_at?: string | null
+                    status?: string | null
                 }
                 Relationships: [
                     {
@@ -526,6 +553,7 @@ export type Database = {
                     vote_average: number | null
                     watch_date: string | null
                     year: number | null
+                    extended_data: Json | null
                 }
                 Insert: {
                     backdrop_url?: string | null
@@ -542,6 +570,7 @@ export type Database = {
                     vote_average?: number | null
                     watch_date?: string | null
                     year?: number | null
+                    extended_data?: Json | null
                 }
                 Update: {
                     backdrop_url?: string | null
@@ -558,6 +587,7 @@ export type Database = {
                     vote_average?: number | null
                     watch_date?: string | null
                     year?: number | null
+                    extended_data?: Json | null
                 }
                 Relationships: [
                     {
