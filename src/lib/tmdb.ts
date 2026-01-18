@@ -1,10 +1,11 @@
+// Configuración y credenciales
 const TMDB_READ_TOKEN = process.env.TMDB_READ_TOKEN;
-const TMDB_API_KEY = process.env.TMDB_API_KEY; // Alternativa si no hay token
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
 
-// Rate limiting: TMDB permite ~40 requests/10s
-const RATE_LIMIT_DELAY_MS = 250; // 4 req/s = 40 req/10s
+// Control de tasa: TMDB permite ~40 req/10s
+const RATE_LIMIT_DELAY_MS = 250;
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 1000;
 
@@ -91,7 +92,7 @@ export type TmdbMovieDetails = {
     };
 };
 
-// Simple rate limiter
+// Control de tasa simple para evitar 429
 let lastRequestTime = 0;
 
 async function rateLimitedDelay(): Promise<void> {
@@ -182,22 +183,22 @@ export class TmdbClient {
     }
 
     /**
-     * Selects the best backdrop from the images array.
-     * Priority: 1920x1080 textless images sorted by vote_count (popularity).
-     * Falls back to backdrop_path if no matching images available.
+     * Selecciona el mejor backdrop de las imágenes disponibles.
+     * Prioridad: 1920x1080, sin idioma (null), ordenado por votos.
+     * Fallback: backdrop_path por defecto si no hay match.
      */
     static getBestBackdropUrl(
         images: TmdbMovieDetails['images'] | undefined,
         fallbackPath: string | null
     ): string | null {
         if (images?.backdrops && images.backdrops.length > 0) {
-            // Filter for 1920x1080 resolution only
+            // Solo resolución 1920x1080
             const hdBackdrops = images.backdrops.filter(b => b.width === 1920 && b.height === 1080);
 
-            // Prefer textless images (null = no language tag, per TMDB docs)
+            // Priorizar imágenes sin idioma (null según docs TMDB)
             const textlessHd = hdBackdrops.filter(b => b.iso_639_1 === null);
 
-            // Sort by vote_count descending (popularity, like Letterboxd)
+            // Ordenar por popularidad (votos), estilo Letterboxd
             const sorted = (textlessHd.length > 0 ? textlessHd : hdBackdrops)
                 .sort((a, b) => b.vote_count - a.vote_count);
 
@@ -206,7 +207,7 @@ export class TmdbClient {
             }
         }
 
-        // Fallback to default backdrop_path
+        // Si no hay match, usar backdrop_path por defecto
         return fallbackPath ? `${TMDB_IMAGE_BASE_URL}/w1280${fallbackPath}` : null;
     }
 
