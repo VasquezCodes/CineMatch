@@ -234,11 +234,12 @@ export class TmdbClient {
 
     /**
      * Obtener detalles completos de una película por su TMDb ID.
-     * Incluye créditos, videos, fechas de estreno (para certificación), imágenes y palabras clave.
+     * Incluye créditos, videos, fechas de estreno, imágenes (sin idioma) y recomendaciones.
      */
     async getMovieDetails(tmdbId: number): Promise<TmdbMovieDetails | null> {
         return this.fetch<TmdbMovieDetails>(`/movie/${tmdbId}`, {
-            append_to_response: 'credits,videos,release_dates,images,keywords,recommendations'
+            append_to_response: 'credits,videos,release_dates,images,keywords,recommendations',
+            include_image_language: 'null' // Incluir imágenes sin idioma (textless)
         });
     }
 

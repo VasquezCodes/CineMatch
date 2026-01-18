@@ -282,8 +282,11 @@ async function enrichMovieData(supabase: any, movieId: string, imdbId: string) {
         };
 
         await supabase.from('movies').update({
+            title: details.title, // Force update title from TMDB for consistency
+            year: details.release_date ? parseInt(details.release_date.split('-')[0]) : undefined,
             extended_data: extendedData,
             poster_url: TmdbClient.getImageUrl(details.poster_path, 'w500'),
+            backdrop_url: TmdbClient.getBestBackdropUrl(details.images, details.backdrop_path),
             synopsis: details.overview,
             director: extendedData.crew.director,
             genres: extendedData.technical.genres,
