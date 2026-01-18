@@ -24,10 +24,10 @@ export function AppNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+              'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
               'hover:bg-accent/80 dark:hover:bg-accent hover:text-accent-foreground',
               isActive
-                ? 'bg-muted text-primary'
+                ? 'bg-card/15 backdrop-blur-md border border-border/30 text-primary'
                 : 'text-foreground'
             )}
             aria-current={isActive ? 'page' : undefined}

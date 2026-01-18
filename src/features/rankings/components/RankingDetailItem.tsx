@@ -34,11 +34,11 @@ export function RankingDetailItem({
       ref={itemRef}
       onClick={onSelect}
       className={cn(
-        "w-full flex items-center gap-2 p-2 rounded-lg transition-all text-left",
+        "w-full flex items-center gap-2 p-2 rounded-lg transition-all text-left backdrop-blur-xl",
         "hover:bg-muted/60",
         isSelected
           ? "bg-primary/10 border border-primary/30 shadow-sm"
-          : "bg-card/30 border border-transparent"
+          : "bg-card/20 border border-border/40"
       )}
     >
       <div

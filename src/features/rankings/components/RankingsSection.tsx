@@ -129,12 +129,12 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
         >
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as RankingType)}>
             {/* Lista de tabs responsive */}
-            <TabsList className="w-full justify-start overflow-x-auto flex-nowrap h-auto p-1 bg-muted/50">
+            <TabsList className="w-full justify-start overflow-x-auto flex-nowrap h-auto p-1 bg-card/10 backdrop-blur-md border border-border/30">
               {RANKING_TYPES.map((type) => (
                 <TabsTrigger
                   key={type.value}
                   value={type.value}
-                  className="shrink-0 data-[state=active]:bg-background text-xs md:text-sm"
+                  className="shrink-0 data-[state=active]:bg-background/80 data-[state=active]:backdrop-blur-sm text-xs md:text-sm transition-all duration-200"
                 >
                   {type.label}
                 </TabsTrigger>

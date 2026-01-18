@@ -23,14 +23,14 @@ export function ChartSelector({ value, onValueChange }: ChartSelectorProps) {
         type="single"
         value={value}
         onValueChange={(v) => v && onValueChange(v as ChartType)}
-        className="bg-muted/50 p-1 rounded-lg"
+        className="bg-card/10 backdrop-blur-md border border-border/30 p-1 rounded-lg transition-[background-color,border-color] duration-200"
       >
         {CHART_OPTIONS.map((option) => (
           <ToggleGroupItem
             key={option.value}
             value={option.value}
             aria-label={option.label}
-            className="gap-2 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
+            className="gap-2 data-[state=on]:bg-background/80 data-[state=on]:backdrop-blur-sm data-[state=on]:shadow-sm px-3 transition-all duration-200"
           >
             {option.icon}
             <span className="hidden sm:inline text-sm">{option.label}</span>

@@ -36,7 +36,7 @@ export function AppHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/50 bg-background/70 backdrop-blur-md supports-[backdrop-filter]:bg-background/50">
+    <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40 transition-[background-color,border-color] duration-200">
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
         {/* SECCIÓN IZQUIERDA: Logo */}
         <div className="flex flex-1 items-center justify-start">
@@ -63,7 +63,7 @@ export function AppHeader() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative size-9 rounded-full border border-border/40 bg-background shadow-sm"
+                  className="relative size-9 rounded-full border border-border/40 bg-card/20 backdrop-blur-md shadow-sm transition-all duration-200 hover:bg-card/30"
                 >
                   <User className="size-4" />
                   <span className="sr-only">Menú de usuario</span>

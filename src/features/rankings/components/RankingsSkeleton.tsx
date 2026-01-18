@@ -6,7 +6,7 @@ export function RankingsSkeleton() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="rounded-xl border border-border/40 p-4 bg-card/30">
+        <div key={i} className="rounded-xl border border-border/40 p-4 bg-card/20 backdrop-blur-xl">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <Skeleton className="h-5 w-5 rounded-full" />

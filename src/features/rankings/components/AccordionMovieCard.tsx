@@ -23,7 +23,7 @@ export function AccordionMovieCard({
 }: AccordionMovieCardProps) {
   return (
     <div className="group relative flex flex-col">
-      <div className="relative aspect-[2/3] overflow-hidden rounded-md border border-slate-200/50 bg-slate-100">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-md border border-border/40 bg-card/20 backdrop-blur-xl transition-[background-color,border-color] duration-200 hover:bg-card/30 hover:border-border/60">
         {posterUrl ? (
           <motion.div
             whileHover={{ scale: 1.05 }}
@@ -39,8 +39,8 @@ export function AccordionMovieCard({
             />
           </motion.div>
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-slate-100">
-            <span className="text-xs text-slate-400">Sin poster</span>
+          <div className="flex h-full w-full items-center justify-center bg-muted/50">
+            <span className="text-xs text-muted-foreground">Sin poster</span>
           </div>
         )}
         {userRating && userRating > 0 && (
@@ -51,12 +51,12 @@ export function AccordionMovieCard({
       </div>
 
       <div className="mt-2 space-y-0.5">
-        <h4 className="line-clamp-2 text-xs font-medium leading-tight text-slate-900">
+        <h4 className="line-clamp-2 text-xs font-medium leading-tight text-foreground">
           {title}
         </h4>
-        <p className="text-xs text-slate-500">{year}</p>
+        <p className="text-xs text-muted-foreground">{year}</p>
         {showDirector && director && (
-          <p className="text-xs text-slate-400">{director}</p>
+          <p className="text-xs text-muted-foreground/70">{director}</p>
         )}
       </div>
     </div>

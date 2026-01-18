@@ -44,17 +44,17 @@ export function RankingAccordionRow({
   }, [movies]);
 
   return (
-    <div className="border-b border-slate-200/50 last:border-b-0">
+    <div className="border-b border-border/40 last:border-b-0">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-all duration-200 bg-card/10 backdrop-blur-md hover:bg-card/20"
       >
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-medium text-slate-600">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
           {rank}
         </span>
 
         {imageUrl && (
-          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-slate-200/50 bg-slate-100">
+          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border/40 bg-muted">
             <img
               src={imageUrl}
               alt={name}
@@ -64,8 +64,8 @@ export function RankingAccordionRow({
         )}
 
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-sm font-medium text-slate-900">{name}</h3>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+          <h3 className="truncate text-sm font-medium text-foreground">{name}</h3>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>{count} {count === 1 ? "película" : "películas"}</span>
             {averageRating > 0 && (
               <>
@@ -84,7 +84,7 @@ export function RankingAccordionRow({
           transition={{ duration: 0.2 }}
           className="shrink-0"
         >
-          <ChevronDown className="h-4 w-4 text-slate-400" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </motion.div>
       </button>
 
@@ -97,7 +97,7 @@ export function RankingAccordionRow({
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <div className="border-t border-slate-200/50 bg-slate-50/50 px-4 py-4">
+            <div className="border-t border-border/40 bg-card/10 backdrop-blur-md px-4 py-4">
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {movies.map((movie) => (
                   <AccordionMovieCard

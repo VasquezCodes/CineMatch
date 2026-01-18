@@ -9,7 +9,7 @@ interface StatCardProps {
 
 function StatCard({ label, value, suffix, prefix }: StatCardProps) {
   return (
-    <div className="p-3 rounded-lg border border-border/50 bg-card/30">
+    <div className="p-3 rounded-lg border border-border/40 bg-card/20 backdrop-blur-xl transition-[background-color,border-color] duration-200 hover:bg-card/30 hover:border-border/60">
       <p className="text-xs text-muted-foreground mb-1">{label}</p>
       <p className="font-semibold truncate">
         {prefix && <span className="text-star-yellow mr-1">{prefix}</span>}

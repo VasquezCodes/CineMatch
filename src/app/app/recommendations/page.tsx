@@ -103,7 +103,7 @@ export default async function RecommendationsPage({
           {demoMovies.map((movie) => (
             <Card
               key={movie.title}
-              className="transition-colors hover:border-primary/50"
+              className="transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
             >
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">

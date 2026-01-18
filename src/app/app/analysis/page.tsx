@@ -98,7 +98,7 @@ export default async function AnalysisPage() {
 
       {hasUnratedMovies && (
         <Section>
-          <Card className="border-primary/20 bg-primary/5 transition-colors duration-300">
+          <Card className="border-primary/30 bg-primary/10 backdrop-blur-xl transition-colors duration-300">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-start gap-3 sm:gap-4">
                 <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">

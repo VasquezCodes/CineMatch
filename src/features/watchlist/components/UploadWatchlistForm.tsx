@@ -101,7 +101,7 @@ export function UploadWatchlistForm({
 
   return (
     <div className={cn("w-full max-w-4xl mx-auto space-y-8", className)}>
-      <Card className="overflow-hidden border-border/50 shadow-sm">
+      <Card className="overflow-hidden border-border/40 shadow-sm">
         <CardContent className="p-0">
           <div
             onDrop={(e) => {

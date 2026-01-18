@@ -17,7 +17,7 @@ export function MovieCard({ item }: MovieCardProps) {
 
   return (
     <Link href={`/app/movies/${movie.id}`} className="block group">
-      <Card className="relative overflow-hidden border-border/40 bg-card hover:bg-accent/5 transition-all duration-300 shadow-sm hover:shadow-md">
+      <Card className="relative overflow-hidden border-border/40 transition-all duration-300 shadow-sm hover:shadow-md">
         <div className="flex h-44 sm:h-48">
           <div className="relative w-28 sm:w-32 flex-shrink-0 overflow-hidden bg-muted">
             {movie.poster_url ? (

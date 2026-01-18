@@ -75,7 +75,7 @@ export function RankingCard({
 
   return (
     <div
-      className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/30 p-4 transition-[background-color,box-shadow] duration-200 hover:bg-card/50 hover:shadow-sm"
+      className="group relative overflow-hidden rounded-xl border border-border/40 bg-card/20 backdrop-blur-xl p-4 transition-[background-color,box-shadow,border-color] duration-200 hover:bg-card/30 hover:border-border/60 hover:shadow-lg hover:shadow-primary/5"
       data-theme-transition
     >
       {/* Background decoration for the rank - optional but adds to Vercel/Linear aesthetic */}

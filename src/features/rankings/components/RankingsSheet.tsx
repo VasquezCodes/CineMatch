@@ -109,7 +109,7 @@ export function RankingsSheet({
         </SheetTitle>
 
         {/* Header Fijo */}
-        <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border p-6 pb-4" data-theme-transition>
+        <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/40 p-6 pb-4 transition-[background-color,border-color] duration-200" data-theme-transition>
           <div className="flex items-start justify-between mb-6">
             <div className="space-y-1">
               <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-foreground leading-none">
@@ -119,14 +119,14 @@ export function RankingsSheet({
                 Top del ranking basado en tus calificaciones
               </p>
             </div>
-            <SheetClose className="rounded-full h-8 w-8 flex items-center justify-center bg-muted/50 border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus:outline-none">
+            <SheetClose className="rounded-full h-8 w-8 flex items-center justify-center bg-card/20 backdrop-blur-md border border-border/40 text-muted-foreground hover:text-foreground hover:bg-card/30 hover:border-border/60 transition-all duration-200 focus:outline-none">
               <X className="h-4 w-4" />
             </SheetClose>
           </div>
 
           {/* Quick Stats (Bento Style) */}
-          <div className="grid grid-cols-2 gap-px bg-border border border-border rounded-xl overflow-hidden shadow-2xl" data-theme-transition>
-            <div className="bg-card/40 p-4 flex flex-col items-center justify-center group transition-colors hover:bg-card/60" data-theme-transition>
+          <div className="grid grid-cols-2 gap-px bg-border border border-border/40 rounded-xl overflow-hidden shadow-2xl" data-theme-transition>
+            <div className="bg-card/20 backdrop-blur-xl p-4 flex flex-col items-center justify-center group transition-colors hover:bg-card/30" data-theme-transition>
               <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-1">
                 Total Películas
               </span>
@@ -134,7 +134,7 @@ export function RankingsSheet({
                 {loading ? "..." : totalMovies}
               </span>
             </div>
-            <div className="bg-card/40 p-4 flex flex-col items-center justify-center group transition-colors hover:bg-card/60" data-theme-transition>
+            <div className="bg-card/20 backdrop-blur-xl p-4 flex flex-col items-center justify-center group transition-colors hover:bg-card/30" data-theme-transition>
               <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-1">
                 Promedio Rating
               </span>
@@ -197,7 +197,7 @@ export function RankingsSheet({
                       )}
                     </div>
                   </div>
-                  <Badge className="bg-muted/50 hover:bg-muted text-muted-foreground border-border text-[10px] px-2 py-0" data-theme-transition>
+                  <Badge className="bg-card/20 backdrop-blur-md hover:bg-card/30 text-muted-foreground border-border/40 text-[10px] px-2 py-0 transition-all duration-200" data-theme-transition>
                     {item.count} títulos
                   </Badge>
                 </div>
@@ -207,12 +207,12 @@ export function RankingsSheet({
                   {(item.data.movies || []).map((movie: any) => (
                     <div
                       key={movie.id}
-                      className="group/movie flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50 transition-all cursor-pointer border border-transparent hover:border-border"
+                      className="group/movie flex items-center gap-4 p-2 rounded-lg bg-card/10 backdrop-blur-md hover:bg-card/20 transition-all cursor-pointer border border-border/30 hover:border-border/50"
                       data-theme-transition
                       onClick={() => handleMovieClick(movie)}
                     >
                       {/* Thumbnail 2:3 */}
-                      <div className="relative aspect-[2/3] w-12 flex-shrink-0 overflow-hidden rounded-md bg-muted border border-border group-hover/movie:border-primary/50 transition-colors" data-theme-transition>
+                      <div className="relative aspect-[2/3] w-12 flex-shrink-0 overflow-hidden rounded-md bg-card/20 backdrop-blur-md border border-border/40 group-hover/movie:border-primary/50 group-hover/movie:bg-card/30 transition-[border-color,background-color] duration-200" data-theme-transition>
                         {movie.poster_url ? (
                           <Image
                             src={movie.poster_url}
