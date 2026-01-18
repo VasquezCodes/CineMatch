@@ -194,8 +194,8 @@ export class TmdbClient {
             // Filter for 1920x1080 resolution only
             const hdBackdrops = images.backdrops.filter(b => b.width === 1920 && b.height === 1080);
 
-            // Prefer textless images (null or 'xx' = No Language)
-            const textlessHd = hdBackdrops.filter(b => b.iso_639_1 === null || b.iso_639_1 === 'xx');
+            // Prefer textless images (null = no language tag, per TMDB docs)
+            const textlessHd = hdBackdrops.filter(b => b.iso_639_1 === null);
 
             // Sort by vote_count descending (popularity, like Letterboxd)
             const sorted = (textlessHd.length > 0 ? textlessHd : hdBackdrops)
