@@ -15,6 +15,7 @@ export type MovieDetail = {
     title: string;
     year: number;
     poster_url: string | null;
+    backdrop_url: string | null;
     director: string | null;
     genres: string[];
     synopsis: string | null;
@@ -111,6 +112,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                         imdb_id: tmdbMovie.imdb_id,
                         tmdb_id: tmdbMovie.id, // Asegurar que guardamos el TMDB ID
                         poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
+                        backdrop_url: tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${tmdbMovie.backdrop_path}` : null,
                         director: tmdbMovie.credits?.crew?.find((c: TmdbCrew) => c.job === 'Director')?.name || null,
                         synopsis: tmdbMovie.overview,
                         imdb_rating: tmdbMovie.vote_average,
@@ -229,6 +231,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                     imdb_id: tmdbMovie.imdb_id,
                     tmdb_id: tmdbMovie.id,
                     poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
+                    backdrop_url: tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${tmdbMovie.backdrop_path}` : null,
                     director: tmdbMovie.credits?.crew?.find((c: TmdbCrew) => c.job === 'Director')?.name || null,
                     synopsis: tmdbMovie.overview,
                     imdb_rating: tmdbMovie.vote_average,
@@ -298,6 +301,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
         title: movie.title,
         year: movie.year,
         poster_url: movie.poster_url,
+        backdrop_url: movie.backdrop_url,
         director: movie.director,
         genres: movie.genres || [],
         synopsis: movie.synopsis,
