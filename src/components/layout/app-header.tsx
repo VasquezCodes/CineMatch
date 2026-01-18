@@ -34,7 +34,7 @@ interface AppHeaderProps {
  * @param variant - "default" para navbar estándar, "cinematic" para navbar sobre backdrops
  */
 export function AppHeader({ variant = "default" }: AppHeaderProps) {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const [isPending, startTransition] = useTransition();
   const isCinematic = variant === "cinematic";
 
@@ -58,8 +58,8 @@ export function AppHeader({ variant = "default" }: AppHeaderProps) {
             href={APP_ROUTES.HOME}
             className={cn(
               "font-heading text-xl font-bold tracking-tight transition-opacity hover:opacity-80",
-              isCinematic 
-                ? "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]" 
+              isCinematic
+                ? "text-white"
                 : "text-foreground"
             )}
           >
@@ -73,13 +73,20 @@ export function AppHeader({ variant = "default" }: AppHeaderProps) {
         </div>
 
         {/* SECCIÓN DERECHA: Acciones y Perfil */}
-        <div className={cn(
-          "flex flex-1 items-center justify-end gap-3",
-          isCinematic && "drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
-        )}>
+        <div className="flex flex-1 items-center justify-end gap-3">
           <ThemeToggle variant={variant} />
 
-          {user ? (
+          {isLoading ? (
+            // Skeleton mientras carga el estado de autenticación
+            <div
+              className={cn(
+                "size-9 rounded-full border animate-pulse",
+                isCinematic
+                  ? "border-white/30 bg-white/10"
+                  : "border-border/40 bg-card/20"
+              )}
+            />
+          ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -87,8 +94,8 @@ export function AppHeader({ variant = "default" }: AppHeaderProps) {
                   size="icon"
                   className={cn(
                     "relative size-9 rounded-full border backdrop-blur-md shadow-sm transition-all duration-200",
-                    isCinematic 
-                      ? "border-white/30 bg-white/10 hover:bg-white/20 text-white" 
+                    isCinematic
+                      ? "border-white/30 bg-white/10 hover:bg-white/20 text-white"
                       : "border-border/40 bg-card/20 hover:bg-card/30"
                   )}
                 >
