@@ -9,6 +9,7 @@ import { ChevronLeft, Star } from "lucide-react";
 import type { RankingStatConfig, RankingType } from "../actions";
 import { calculateItemAverageRating } from "../hooks/useRankingCalculations";
 
+
 interface RankingItemMoviesProps {
   item: RankingStatConfig;
   index: number;
@@ -46,7 +47,7 @@ export function RankingItemMovies({
   };
 
   return (
-    <div className="space-y-6 border border-border/40 rounded-xl bg-card/20 backdrop-blur-xl p-6 transition-[background-color,border-color] duration-200">
+    <div className="space-y-6 border border-border/50 rounded-xl bg-card/30 p-6">
       {/* Botón Volver */}
       <Button
         variant="ghost"
@@ -126,7 +127,7 @@ export function RankingItemMovies({
               onClick={() => handleMovieClick(movie)}
             >
               {/* Poster */}
-              <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-card/20 backdrop-blur-xl border border-border/40 group-hover/movie:border-primary/50 group-hover/movie:bg-card/30 transition-[border-color,background-color] duration-200" data-theme-transition>
+              <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-muted border border-border group-hover/movie:border-primary/50 transition-colors" data-theme-transition>
                 {movie.poster_url ? (
                   <Image
                     src={movie.poster_url}
