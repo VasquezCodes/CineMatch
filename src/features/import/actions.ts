@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { tmdb, TmdbClient } from '@/lib/tmdb';
+import { tmdb } from '@/lib/tmdb';
 import { revalidatePath } from 'next/cache';
 
 export type CsvMovieImport = {

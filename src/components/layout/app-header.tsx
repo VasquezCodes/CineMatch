@@ -8,6 +8,7 @@ import { APP_ROUTES } from "@/config/routes";
 import { SECONDARY_NAV_ITEMS } from "@/config/nav";
 import { signout } from "@/features/auth/actions";
 import { useAuth } from "@/lib/providers/auth-provider";
+import { cn } from "@/lib/utils";
 
 import { AppNav } from "./app-nav";
 import { ThemeToggle } from "./theme-toggle";
@@ -19,15 +20,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { NavbarVariant } from "./app-shell";
+
+interface AppHeaderProps {
+  variant?: NavbarVariant;
+}
 
 /**
  * AppHeader
  * Header con arquitectura de tres columnas:
  * Izquierda (Logo), Centro (Nav), Derecha (Acciones).
+ * 
+ * @param variant - "default" para navbar estándar, "cinematic" para navbar sobre backdrops
  */
-export function AppHeader() {
+export function AppHeader({ variant = "default" }: AppHeaderProps) {
   const { user } = useAuth();
   const [isPending, startTransition] = useTransition();
+  const isCinematic = variant === "cinematic";
 
   const handleSignOut = () => {
     startTransition(async () => {
@@ -36,13 +45,23 @@ export function AppHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40 transition-[background-color,border-color] duration-200">
+    <header className={cn(
+      "sticky top-0 z-40 w-full border-b transition-all duration-200",
+      isCinematic 
+        ? "border-white/10 bg-transparent backdrop-blur-sm" 
+        : "border-border/40 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40"
+    )}>
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
         {/* SECCIÓN IZQUIERDA: Logo */}
         <div className="flex flex-1 items-center justify-start">
           <Link
             href={APP_ROUTES.HOME}
-            className="font-heading text-xl font-bold tracking-tight text-foreground transition-opacity hover:opacity-80"
+            className={cn(
+              "font-heading text-xl font-bold tracking-tight transition-opacity hover:opacity-80",
+              isCinematic 
+                ? "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]" 
+                : "text-foreground"
+            )}
           >
             CineMatch
           </Link>
@@ -50,12 +69,15 @@ export function AppHeader() {
 
         {/* SECCIÓN CENTRAL: Navegación (Solo Desktop) */}
         <div className="hidden md:flex items-center justify-center">
-          <AppNav />
+          <AppNav variant={variant} />
         </div>
 
         {/* SECCIÓN DERECHA: Acciones y Perfil */}
-        <div className="flex flex-1 items-center justify-end gap-3">
-          <ThemeToggle />
+        <div className={cn(
+          "flex flex-1 items-center justify-end gap-3",
+          isCinematic && "drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
+        )}>
+          <ThemeToggle variant={variant} />
 
           {user ? (
             <DropdownMenu>
@@ -63,7 +85,12 @@ export function AppHeader() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative size-9 rounded-full border border-border/40 bg-card/20 backdrop-blur-md shadow-sm transition-all duration-200 hover:bg-card/30"
+                  className={cn(
+                    "relative size-9 rounded-full border backdrop-blur-md shadow-sm transition-all duration-200",
+                    isCinematic 
+                      ? "border-white/30 bg-white/10 hover:bg-white/20 text-white" 
+                      : "border-border/40 bg-card/20 hover:bg-card/30"
+                  )}
                 >
                   <User className="size-4" />
                   <span className="sr-only">Menú de usuario</span>

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PageHeader, Section, SectionGrid } from "@/components/layout";
+import { PageHeader, Section, SectionGrid, Container } from "@/components/layout";
 import { APP_ROUTES, SECONDARY_ROUTES } from "@/config/routes";
 
 export default function AppPage() {
@@ -18,7 +18,7 @@ export default function AppPage() {
   const isQualified = true;
 
   return (
-    <div className="space-y-8">
+    <Container className="py-6 space-y-8">
       <PageHeader
         title="Tu espacio"
         description="Gestioná tu perfil y descubrí nuevas películas que se alinean con tu criterio cinéfilo."
@@ -105,6 +105,6 @@ export default function AppPage() {
           </Card>
         </SectionGrid>
       </Section>
-    </div>
+    </Container>
   );
 }

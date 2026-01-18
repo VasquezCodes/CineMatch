@@ -4,9 +4,7 @@ import * as React from "react";
 import {
   Upload,
   FileText,
-  X,
   CheckCircle2,
-  AlertCircle,
   BarChart3,
   Info,
 } from "lucide-react";

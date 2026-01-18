@@ -1,5 +1,3 @@
-import type { Tables } from "@/types/database.types";
-
 /**
  * Película sin calificar que necesita rating del usuario
  */

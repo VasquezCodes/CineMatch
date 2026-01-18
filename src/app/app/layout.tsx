@@ -1,7 +1,7 @@
-import { AppShell } from "@/components/layout";
+import { AppShellWrapper } from "@/components/layout/app-shell-wrapper";
 
 export default function AppLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return <AppShell>{children}</AppShell>;
+  return <AppShellWrapper>{children}</AppShellWrapper>;
 }

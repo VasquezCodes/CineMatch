@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { PageHeader, Section } from "@/components/layout";
+import { PageHeader, Section, Container } from "@/components/layout";
 import { ErrorState } from "@/components/ui/error-state";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -49,7 +49,7 @@ export default async function RateMoviesPage() {
   // Estado de error
   if (error) {
     return (
-      <div className="space-y-8">
+      <Container className="py-6 space-y-8">
         <PageHeader
           title="Califica tus películas"
           description="Algo salió mal al cargar las películas."
@@ -65,19 +65,19 @@ export default async function RateMoviesPage() {
             }
           />
         </Section>
-      </div>
+      </Container>
     );
   }
 
   // Render principal
   return (
-    <div className="space-y-8 pb-20">
+    <Container className="py-6 space-y-8 pb-20">
       <PageHeader
         title="Modo Rápido de Calificación"
         description="Califica tu colección con un solo clic para generar tu perfil cinéfilo."
       />
 
       <FastRankingGrid movies={unratedMovies} />
-    </div>
+    </Container>
   );
 }

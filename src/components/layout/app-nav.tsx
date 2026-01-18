@@ -4,14 +4,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { APP_NAV_ITEMS } from '@/config/nav';
 import { cn } from '@/lib/utils';
+import type { NavbarVariant } from './app-shell';
+
+interface AppNavProps {
+  variant?: NavbarVariant;
+}
 
 /**
  * AppNav
  * Navegación principal horizontal para desktop.
  * Muestra links con estado activo basado en pathname.
  */
-export function AppNav() {
+export function AppNav({ variant = "default" }: AppNavProps) {
   const pathname = usePathname();
+  const isCinematic = variant === "cinematic";
 
   return (
     <nav className="hidden md:flex md:items-center md:gap-1" role="navigation">
@@ -25,10 +31,18 @@ export function AppNav() {
             href={item.href}
             className={cn(
               'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
-              'hover:bg-accent/80 dark:hover:bg-accent hover:text-accent-foreground',
-              isActive
-                ? 'bg-card/15 backdrop-blur-md border border-border/30 text-primary'
-                : 'text-foreground'
+              isCinematic 
+                ? [
+                    'text-white hover:bg-white/15 hover:text-white',
+                    'drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]',
+                    isActive ? 'bg-white/15 backdrop-blur-md border border-white/20' : ''
+                  ]
+                : [
+                    'hover:bg-accent/80 dark:hover:bg-accent hover:text-accent-foreground',
+                    isActive 
+                      ? 'bg-card/15 backdrop-blur-md border border-border/30 text-primary' 
+                      : 'text-foreground'
+                  ]
             )}
             aria-current={isActive ? 'page' : undefined}
           >

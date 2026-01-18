@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PageHeader, Section, SectionGrid } from "@/components/layout";
+import { PageHeader, Section, SectionGrid, Container } from "@/components/layout";
 
 interface RecommendationsPageProps {
   searchParams: Promise<{ demo?: string }>;
@@ -24,7 +24,7 @@ export default async function RecommendationsPage({
 
   if (!isDemo) {
     return (
-      <div className="space-y-8">
+      <Container className="py-6 space-y-8">
         <PageHeader
           title="Recomendaciones"
           description="Explorá sugerencias no lineales según tus cualidades."
@@ -44,7 +44,7 @@ export default async function RecommendationsPage({
             }
           />
         </Section>
-      </div>
+      </Container>
     );
   }
 
@@ -89,7 +89,7 @@ export default async function RecommendationsPage({
   ];
 
   return (
-    <div className="space-y-8">
+    <Container className="py-6 space-y-8">
       <PageHeader
         title="Recomendaciones"
         description="Explorá sugerencias no lineales según tus cualidades."
@@ -139,6 +139,6 @@ export default async function RecommendationsPage({
           </Button>
         </div>
       </Section>
-    </div>
+    </Container>
   );
 }

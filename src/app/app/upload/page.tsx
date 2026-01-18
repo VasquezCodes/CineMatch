@@ -1,6 +1,6 @@
 "use client";
 
-import { PageHeader, Section } from "@/components/layout";
+import { PageHeader, Section, Container } from "@/components/layout";
 import { UploadWatchlistForm } from "@/features/watchlist";
 import Papa from "papaparse";
 import { processImport, type CsvMovieImport } from "@/features/import/actions";
@@ -66,7 +66,7 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <Container className="py-6 space-y-8">
       <PageHeader
         title="Subida de Watchlist"
         description="Importá tu lista para enriquecer datos y empezar el análisis."
@@ -75,6 +75,6 @@ export default function UploadPage() {
       <Section>
         <UploadWatchlistForm onUpload={handleUpload} maxSizeMB={10} />
       </Section>
-    </div>
+    </Container>
   );
 }

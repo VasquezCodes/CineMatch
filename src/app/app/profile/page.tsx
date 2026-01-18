@@ -9,7 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { User, Settings, Heart, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PageHeader, Section, SectionGrid } from "@/components/layout";
+import { PageHeader, Section, SectionGrid, Container } from "@/components/layout";
 import { SECONDARY_ROUTES } from "@/config/routes";
 
 export default function ProfilePage() {
@@ -25,7 +25,7 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <Container className="py-6 space-y-8">
       <PageHeader
         title="Perfil"
         description="Preferencias y ajustes de tu experiencia."
@@ -159,6 +159,6 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
       </Section>
-    </div>
+    </Container>
   );
 }

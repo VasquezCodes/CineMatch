@@ -1,7 +1,6 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { Database } from '@/types/database.types';
 
 export type RankingType = 'director' | 'actor' | 'genre' | 'year' | 'screenplay' | 'photography' | 'music';
 

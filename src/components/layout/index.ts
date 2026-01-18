@@ -1,5 +1,6 @@
 // Layout components barrel export
 export { AppShell } from "./app-shell";
+export type { NavbarVariant } from "./app-shell";
 export { AppHeader } from "./app-header";
 export { AppNav } from "./app-nav";
 export { MobileTabs } from "./mobile-tabs";

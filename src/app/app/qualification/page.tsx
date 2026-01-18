@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PageHeader, Section } from "@/components/layout";
+import { PageHeader, Section, Container } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -138,7 +138,7 @@ export default function QualificationPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <Container className="py-6 space-y-8">
       <PageHeader
         title="Definí tu perfil cinéfilo"
         description="Esto nos ayuda a recomendarte películas alineadas a cómo mirás cine, no solo por género o popularidad."
@@ -309,6 +309,6 @@ export default function QualificationPage() {
           </div>
         </div>
       </Section>
-    </div>
+    </Container>
   );
 }

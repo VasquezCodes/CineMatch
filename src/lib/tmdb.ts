@@ -1,5 +1,3 @@
-import { env } from 'process';
-
 const TMDB_READ_TOKEN = process.env.TMDB_READ_TOKEN;
 const TMDB_API_KEY = process.env.TMDB_API_KEY; // Alternativa si no hay token
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';

@@ -4,7 +4,7 @@ import { APP_ROUTES, SECONDARY_ROUTES } from "@/config/routes";
 import { getAnalysisData } from "@/features/insights/actions";
 import { AnalysisStats } from "@/features/collection/components/AnalysisStats";
 import { RankingsSection } from "@/features/collection/components/RankingsSection";
-import { PageHeader, Section } from "@/components/layout";
+import { PageHeader, Section, Container } from "@/components/layout";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
@@ -58,39 +58,43 @@ export default async function AnalysisPage() {
 
   if (globalError) {
     return (
-      <Section>
-        <ErrorState
-          title="Error al cargar el análisis"
-          description={globalError}
-          action={
-            <Button asChild>
-              <Link href={APP_ROUTES.ANALYSIS}>Reintentar</Link>
-            </Button>
-          }
-        />
-      </Section>
+      <Container className="py-6">
+        <Section>
+          <ErrorState
+            title="Error al cargar el análisis"
+            description={globalError}
+            action={
+              <Button asChild>
+                <Link href={APP_ROUTES.ANALYSIS}>Reintentar</Link>
+              </Button>
+            }
+          />
+        </Section>
+      </Container>
     );
   }
 
   if (isEmpty) {
     return (
-      <Section>
-        <EmptyState
-          icon={<Upload className="h-12 w-12 text-muted-foreground" />}
-          title="No hay datos para analizar"
-          description="Sube tu archivo CSV para generar un análisis detallado de tu cinefilia."
-          action={
-            <Button asChild>
-              <Link href={APP_ROUTES.UPLOAD}>Subir CSV</Link>
-            </Button>
-          }
-        />
-      </Section>
+      <Container className="py-6">
+        <Section>
+          <EmptyState
+            icon={<Upload className="h-12 w-12 text-muted-foreground" />}
+            title="No hay datos para analizar"
+            description="Sube tu archivo CSV para generar un análisis detallado de tu cinefilia."
+            action={
+              <Button asChild>
+                <Link href={APP_ROUTES.UPLOAD}>Subir CSV</Link>
+              </Button>
+            }
+          />
+        </Section>
+      </Container>
     );
   }
 
   return (
-    <div className="space-y-10">
+    <Container className="py-6 space-y-10">
       <PageHeader
         title="Análisis de cinefilia"
         description="Visualiza y explora las tendencias de tu colección de cine."
@@ -186,6 +190,6 @@ export default async function AnalysisPage() {
           </Card>
         </Section>
       )}
-    </div>
+    </Container>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Upload } from "lucide-react";
-import { PageHeader, Section } from "@/components/layout";
+import { PageHeader, Section, Container } from "@/components/layout";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,7 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
 
   if (error || !data) {
     return (
-      <div className="space-y-8">
+      <Container className="py-6 space-y-8">
         <PageHeader
           title="Mi Biblioteca"
           description="Tu colección completa de películas"
@@ -50,13 +50,13 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
             }
           />
         </Section>
-      </div>
+      </Container>
     );
   }
 
   if (data.totalCount === 0 && !search && !rating) {
     return (
-      <div className="space-y-8">
+      <Container className="py-6 space-y-8">
         <PageHeader
           title="Mi Biblioteca"
           description="Tu colección completa de películas"
@@ -73,12 +73,12 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
             }
           />
         </Section>
-      </div>
+      </Container>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <Container className="py-6 space-y-8">
       <PageHeader
         title="Mi Biblioteca"
         description={`Tu colección completa de ${data.totalCount} ${data.totalCount === 1 ? "película" : "películas"}`}
@@ -87,6 +87,6 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
       <Section>
         <LibraryGrid initialData={data} totalMovies={data.totalCount} />
       </Section>
-    </div>
+    </Container>
   );
 }

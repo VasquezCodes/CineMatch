@@ -6,7 +6,9 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm lint:*)",
       "Bash(npx tsc:*)",
-      "Bash(pnpm list:*)"
+      "Bash(pnpm list:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)"
     ]
   }
 }

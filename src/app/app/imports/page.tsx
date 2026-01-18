@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Upload } from "lucide-react";
-import { PageHeader, Section } from "@/components/layout";
+import { PageHeader, Section, Container } from "@/components/layout";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { APP_ROUTES } from "@/config/routes";
@@ -12,7 +12,7 @@ export default async function ImportsPage() {
 
     if (imports.length === 0) {
         return (
-            <div className="space-y-8">
+            <Container className="py-6 space-y-8">
                 <PageHeader
                     title="Historial de Importaciones"
                     description="Revisa tus importaciones anteriores"
@@ -29,12 +29,12 @@ export default async function ImportsPage() {
                         }
                     />
                 </Section>
-            </div>
+            </Container>
         );
     }
 
     return (
-        <div className="space-y-8">
+        <Container className="py-6 space-y-8">
             <PageHeader
                 title="Historial de Importaciones"
                 description={`${imports.length} ${imports.length === 1 ? "importación" : "importaciones"} realizadas`}
@@ -43,6 +43,6 @@ export default async function ImportsPage() {
             <Section>
                 <ImportHistoryList imports={imports} />
             </Section>
-        </div>
+        </Container>
     );
 }
