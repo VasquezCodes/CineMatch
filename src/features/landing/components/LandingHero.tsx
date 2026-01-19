@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import CloudinaryImage from '@/components/CloudinaryImage';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/layout';
 import { APP_ROUTES } from '@/config/routes';
@@ -36,7 +36,7 @@ export function LandingHero() {
 
         const interval = setInterval(() => {
             setCurrentIndex((prev) => (prev + 4) % movies.length);
-        }, 3000);
+        }, 5000);
 
         return () => clearInterval(interval);
     }, [movies.length]);
@@ -94,7 +94,7 @@ export function LandingHero() {
                                 key={`${movie.id}-${currentIndex}-${index}`}
                                 className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-xl animate-fade-in"
                             >
-                                <Image
+                                <CloudinaryImage
                                     src={movie.posterUrl}
                                     alt={movie.title}
                                     fill
