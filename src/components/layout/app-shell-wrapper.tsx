@@ -14,11 +14,18 @@ interface AppShellWrapperProps {
  */
 export function AppShellWrapper({ children }: AppShellWrapperProps) {
   const pathname = usePathname();
-  
+
   // Determinar la variante del navbar basándose en la ruta
-  const navbarVariant: NavbarVariant = pathname?.startsWith("/app/movies") 
-    ? "cinematic" 
+  const navbarVariant: NavbarVariant = pathname?.startsWith("/app/movies")
+    ? "cinematic"
     : "default";
 
-  return <AppShell navbarVariant={navbarVariant}>{children}</AppShell>;
+  // Determinar si es la página de landing (sin padding bottom)
+  const isLandingPage = pathname === "/app";
+
+  return (
+    <AppShell navbarVariant={navbarVariant} isLandingPage={isLandingPage}>
+      {children}
+    </AppShell>
+  );
 }

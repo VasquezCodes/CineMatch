@@ -30,40 +30,66 @@ export function MovieBackdrop({
       {/* Backdrop absoluto full-width (escapa del container) */}
       {backdropUrl && backdropUrl !== "" && (
         <div className="absolute inset-0 w-screen left-1/2 -translate-x-1/2 overflow-hidden">
-          {/* Imagen de backdrop - colores vibrantes en ambos modos */}
-          <div className="absolute inset-0 z-0">
+          {/* Imagen de backdrop con máscara de transparencia pura */}
+          <div 
+            className="absolute inset-0 z-0 overflow-hidden"
+            style={{
+              WebkitMaskImage: `
+                linear-gradient(to bottom, 
+                  black 0%, 
+                  black 65%, 
+                  transparent 100%
+                ),
+                linear-gradient(to right, 
+                  transparent 0%, 
+                  black 10%, 
+                  black 90%, 
+                  transparent 100%
+                )
+              `,
+              maskImage: `
+                linear-gradient(to bottom, 
+                  black 0%, 
+                  black 65%, 
+                  transparent 100%
+                ),
+                linear-gradient(to right, 
+                  transparent 0%, 
+                  black 10%, 
+                  black 90%, 
+                  transparent 100%
+                )
+              `,
+              WebkitMaskComposite: "source-in",
+              maskComposite: "intersect",
+            }}
+          >
             <Image
               src={backdropUrl}
               alt={`Backdrop de ${title}`}
               fill
-              className="object-cover object-center brightness-100 saturate-100"
+              className="object-cover object-center brightness-[0.7] saturate-[1.1] dark:brightness-[0.6] dark:saturate-100 transition-all duration-700"
               sizes="100vw"
               priority
               quality={90}
             />
           </div>
 
-          {/* Gradientes cinematográficos adaptativos según tema */}
-          {/* Bottom fade - fundido hacia el fondo */}
-          <div className="absolute inset-0 z-[1] 
-                         dark:bg-gradient-to-b dark:from-transparent dark:via-black/20 dark:to-black/60
-                         bg-gradient-to-b from-transparent via-black/10 to-transparent" />
+          {/* Viñeta superior sutil para legibilidad del Navbar */}
+          <div className="absolute inset-0 z-[1] pointer-events-none
+                         bg-gradient-to-b from-black/60 via-transparent to-transparent dark:from-black/80" />
 
-          {/* Top vignette - oscurecimiento superior para navbar legible */}
-          <div className="absolute inset-0 z-[1] 
-                         bg-gradient-to-t from-transparent via-transparent to-black/40" />
-
-          {/* Lateral vignette - funciona en ambos modos */}
-          <div
-            className="absolute inset-0 z-[1]"
+          {/* Content Scrim - Oscurecimiento y desenfoque para legibilidad máxima */}
+          <div 
+            className="absolute inset-0 z-[1] pointer-events-none backdrop-blur-[2px]"
             style={{
-              background:
-                "radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(0,0,0,0.2) 70%, rgba(0,0,0,0.5) 100%)",
+              background: `linear-gradient(to right, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%)`,
             }}
           />
 
-          {/* Overlay sutil para contraste del texto - solo dark mode */}
-          <div className="absolute inset-0 z-[1] dark:bg-black/20 bg-transparent" />
+          {/* Gradiente inferior para transición con el contenido */}
+          <div className="absolute inset-0 z-[1] pointer-events-none 
+                         bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
         </div>
       )}
 

@@ -197,18 +197,18 @@ export default async function MovieDetailPage({ params }: PageProps) {
           </div>
 
           {/* Información principal + Sinopsis sobre el backdrop */}
-          <div className="flex flex-col space-y-8 text-white dark">
+          <div className="flex flex-col space-y-8 text-white drop-shadow-md">
             <div className="space-y-4">
               {/* Título */}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight drop-shadow-lg">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight drop-shadow-2xl">
                 {movie.title}
               </h1>
 
               {/* Año y Estado */}
-              <div className="flex items-center gap-4 flex-wrap text-white/90">
+              <div className="flex items-center gap-4 flex-wrap text-white font-medium drop-shadow-lg">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  <span className="text-base font-medium">{movie.year}</span>
+                  <span className="text-base">{movie.year}</span>
                 </div>
 
                 {movie.watchlist && (
@@ -224,10 +224,10 @@ export default async function MovieDetailPage({ params }: PageProps) {
 
               {/* Valoraciones */}
               {(movie.rating || movie.imdb_rating) && (
-                <div className="flex flex-wrap gap-x-6 gap-y-3">
+                <div className="flex flex-wrap gap-x-6 gap-y-3 drop-shadow-lg">
                   {movie.rating && (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-white/80">Tu valoración:</span>
+                      <span className="text-sm text-white/90 font-medium">Tu valoración:</span>
                       <div className="flex items-center gap-1.5">
                         <Star className="h-5 w-5 fill-accent text-accent" />
                         <span className="font-semibold text-lg">{movie.rating}</span>
@@ -237,7 +237,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
 
                   {movie.imdb_rating && (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-white/80">IMDb:</span>
+                      <span className="text-sm text-white/90 font-medium">IMDb:</span>
                       <div className="flex items-center gap-1.5">
                         <Star className="h-5 w-5 fill-star-yellow text-star-yellow" />
                         <span className="font-semibold text-lg text-star-yellow">
@@ -250,35 +250,35 @@ export default async function MovieDetailPage({ params }: PageProps) {
               )}
 
               {/* Director y duración */}
-              <div className="flex flex-wrap items-center gap-4 text-base text-white/90">
+              <div className="flex flex-wrap items-center gap-4 text-base text-white/95 font-medium drop-shadow-lg">
                 {movie.director && (
                   <div>
-                    <span className="font-medium">Dirigida por:</span>{" "}
+                    <span className="opacity-90">Dirigida por:</span>{" "}
                     <PersonLink
                       name={movie.director}
-                      className="text-white font-semibold hover:text-white/80"
+                      className="text-white font-bold hover:underline"
                     />
                   </div>
                 )}
 
                 {movie.director && technical?.runtime && (
-                  <span className="text-white/40">•</span>
+                  <span className="text-white/60">•</span>
                 )}
 
                 {technical?.runtime && (
-                  <span className="font-medium">{technical.runtime} minutos</span>
+                  <span>{technical.runtime} minutos</span>
                 )}
               </div>
 
               {/* Géneros */}
               {movie.genres.length > 0 && (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 drop-shadow-lg">
                   {movie.genres.map((genre) => (
                     <span
                       key={genre}
-                      className="px-3 py-1 rounded-full text-sm font-medium 
-                                  bg-white/20 border-white/30 text-white
-                                  backdrop-blur-sm border"
+                      className="px-3 py-1 rounded-full text-sm font-semibold 
+                                  bg-white/20 border-white/40 text-white
+                                  backdrop-blur-md border shadow-sm"
                     >
                       {genre}
                     </span>
@@ -288,7 +288,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
 
               {/* Tagline */}
               {technical?.tagline && (
-                <p className="text-base italic text-white/80 border-white/30 border-l-2 pl-4">
+                <p className="text-base italic text-white/90 border-white/40 border-l-2 pl-4 drop-shadow-lg font-medium">
                   &quot;{technical.tagline}&quot;
                 </p>
               )}
@@ -296,9 +296,9 @@ export default async function MovieDetailPage({ params }: PageProps) {
 
             {/* Sinopsis integrada en el grid para permitir el sticky del póster */}
             {movie.synopsis && (
-              <div className="pt-4 border-t border-white/10">
-                <h2 className="text-xl font-bold mb-3 text-white/90">Sinopsis</h2>
-                <p className="text-lg text-white/80 leading-relaxed max-w-4xl">
+              <div className="pt-4 border-t border-white/10 drop-shadow-lg">
+                <h2 className="text-xl font-bold mb-3 text-white">Sinopsis</h2>
+                <p className="text-lg text-white font-medium leading-relaxed max-w-4xl opacity-95">
                   {movie.synopsis}
                 </p>
               </div>
