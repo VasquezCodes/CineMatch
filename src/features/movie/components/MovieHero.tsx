@@ -2,10 +2,13 @@ import Image from "@/components/CloudinaryImage";
 import { ReactNode } from "react";
 import { Container } from "@/components/layout";
 
+import { cn } from "@/lib/utils";
+
 type MovieBackdropProps = {
   backdropUrl: string | null;
   title: string;
   children: ReactNode;
+  className?: string;
 };
 
 /**
@@ -20,9 +23,10 @@ export function MovieBackdrop({
   backdropUrl,
   title,
   children,
+  className,
 }: MovieBackdropProps) {
   return (
-    <div className="relative w-full min-h-screen -mt-14 overflow-x-hidden">
+    <div className={cn("relative w-full h-auto min-h-[600px] -mt-14 overflow-x-hidden", className)}>
       {/* Backdrop absoluto full-width (escapa del container) */}
       {backdropUrl && backdropUrl !== "" && (
         <div className="absolute inset-0 w-screen left-1/2 -translate-x-1/2 overflow-hidden">

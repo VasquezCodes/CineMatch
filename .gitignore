@@ -50,3 +50,9 @@ CLAUDE.md
 *.log
 build_log*.txt
 tsc_output.txt
+
+# ai tools
+.agent/
+.codex/
+.gemini/
+.cursor/

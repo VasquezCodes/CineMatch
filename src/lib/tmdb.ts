@@ -92,6 +92,20 @@ export type TmdbMovieDetails = {
     };
 };
 
+export type TmdbTrendingResponse = {
+    page: number;
+    results: Array<{
+        id: number;
+        title: string;
+        poster_path: string | null;
+        backdrop_path: string | null;
+        vote_average: number;
+        release_date: string;
+    }>;
+    total_pages: number;
+    total_results: number;
+};
+
 // Control de tasa simple para evitar 429
 let lastRequestTime = 0;
 
@@ -275,6 +289,16 @@ export class TmdbClient {
     async getRecommendations(tmdbId: number): Promise<any[]> {
         const res = await this.fetch<{ results: any[] }>(`/movie/${tmdbId}/recommendations`);
         return res?.results || [];
+    }
+
+    /**
+     * Obtener películas trending del día
+     * Endpoint: /trending/movie/day
+     */
+    async getTrendingMovies(page: number = 1): Promise<TmdbTrendingResponse | null> {
+        return this.fetch<TmdbTrendingResponse>('/trending/movie/day', {
+            page: page.toString()
+        });
     }
 }
 
