@@ -25,6 +25,11 @@ export interface PageHeaderProps {
    * Clases adicionales
    */
   className?: string;
+  /**
+   * Deshabilitar animaciones para mejor LCP en páginas críticas
+   * Cuando es true, el título aparece inmediatamente sin animación
+   */
+  disableAnimations?: boolean;
 }
 
 /**
@@ -47,22 +52,36 @@ export function PageHeader({
   actions,
   breadcrumb,
   className,
+  disableAnimations = false,
 }: PageHeaderProps) {
+  // Contenido del header (título y descripción)
+  const headerContent = (
+    <>
+      <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
+        {title}
+      </h1>
+      {description && (
+        <p className="text-base text-muted-foreground max-w-2xl leading-relaxed">
+          {description}
+        </p>
+      )}
+    </>
+  );
+
   return (
     <header className={cn("space-y-4", className)}>
       {breadcrumb && <div className="mb-2">{breadcrumb}</div>}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <TextRevealGroup as="div" className="space-y-2 flex-1">
-          <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
-            {title}
-          </h1>
-          {description && (
-            <p className="text-base text-muted-foreground max-w-2xl leading-relaxed">
-              {description}
-            </p>
-          )}
-        </TextRevealGroup>
+        {disableAnimations ? (
+          // Sin animaciones - render inmediato para mejor LCP
+          <div className="space-y-2 flex-1">{headerContent}</div>
+        ) : (
+          // Con animaciones de reveal
+          <TextRevealGroup as="div" className="space-y-2 flex-1">
+            {headerContent}
+          </TextRevealGroup>
+        )}
 
         {actions && (
           <div className="flex items-center gap-2 sm:flex-shrink-0">
@@ -73,3 +92,4 @@ export function PageHeader({
     </header>
   );
 }
+
