@@ -92,24 +92,82 @@ const testPanels: Panel[] = [
 export function HeroLoopedPanels() {
   const containerRef = useRef<HTMLDivElement>(null);
   const panelsRef = useRef<HTMLElement[]>([]);
+  const panelInnersRef = useRef<HTMLDivElement[]>([]);
 
   useLayoutEffect(() => {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) return;
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+    if (prefersReducedMotion || isMobile) return;
 
     const container = containerRef.current;
     const panels = panelsRef.current.filter(Boolean);
-    if (!container || panels.length === 0) return;
+    const panelInners = panelInnersRef.current.filter(Boolean);
+
+    if (!container || panels.length === 0 || panelInners.length === 0) return;
 
     const ctx = gsap.context(() => {
-      panels.forEach((panel) => {
-        ScrollTrigger.create({
-          trigger: panel,
+      const steps = panels.length - 1;
+
+      const tl = gsap.timeline({
+        defaults: { ease: "none" },
+        scrollTrigger: {
+          trigger: container,
           start: "top top",
+          end: () => `+=${steps * window.innerHeight}`,
+          scrub: 1,
           pin: true,
-          pinSpacing: false,
-        });
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          snap: {
+            snapTo: (value) => Math.round(value * steps) / steps,
+            duration: { min: 0.18, max: 0.38 },
+            delay: 0.03,
+            ease: "power2.out",
+          },
+        },
       });
+
+      // Configurar estado inicial para todos los panels excepto el primero
+      panelInners.forEach((inner, index) => {
+        if (index > 0) {
+          gsap.set(inner, {
+            opacity: 0,
+            y: 16,
+            scale: 0.98,
+          });
+        }
+      });
+
+      // Animaciones de transición entre panels
+      panelInners.forEach((inner, index) => {
+        if (index < panelInners.length - 1) {
+          const nextInner = panelInners[index + 1];
+
+          // Duración de transición ajustada para que la última termine exactamente en 'steps'
+          const transitionDuration = 0.5;
+          const transitionEnd = index + 1;
+          const transitionStart = transitionEnd - transitionDuration;
+
+          // Salida del panel actual
+          tl.to(inner, {
+            opacity: 0,
+            y: -16,
+            scale: 0.98,
+            duration: transitionDuration,
+          }, transitionStart);
+
+          // Entrada del siguiente panel
+          tl.to(nextInner, {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: transitionDuration,
+          }, transitionStart);
+        }
+      });
+
+      ScrollTrigger.refresh();
     }, container);
 
     const onResize = () => {
@@ -125,7 +183,7 @@ export function HeroLoopedPanels() {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative z-0">
+    <div ref={containerRef} className="relative z-0 h-screen overflow-hidden">
       {testPanels.map((panel, index) => {
         const Icon = panel.icon;
         return (
@@ -135,7 +193,7 @@ export function HeroLoopedPanels() {
               if (el) panelsRef.current[index] = el;
             }}
             className={cn(
-              "h-[calc(100svh-56px)] w-full flex items-center justify-center relative overflow-hidden",
+              "absolute inset-0 h-full w-full flex items-center justify-center overflow-hidden",
               panel.className
             )}
           >
@@ -144,12 +202,17 @@ export function HeroLoopedPanels() {
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
             )}
 
-            <div className="max-w-4xl w-full px-6 relative z-10">
+            <div
+              ref={(el) => {
+                if (el) panelInnersRef.current[index] = el;
+              }}
+              className="panel-inner max-w-4xl w-full px-6 relative z-10 will-change-transform"
+            >
               <div className="flex flex-col items-center text-center space-y-6">
                 <div className="p-4 bg-primary/10 rounded-full ring-1 ring-primary/20 backdrop-blur-sm">
                   <Icon className="w-10 h-10 text-primary" />
                 </div>
-                
+
                 <div className="space-y-4 max-w-2xl">
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
                     {panel.title}

@@ -26,77 +26,56 @@ export function MovieBackdrop({
   className,
 }: MovieBackdropProps) {
   return (
-    <div className={cn("relative w-full h-auto min-h-[600px] -mt-14 overflow-x-hidden", className)}>
-      {/* Backdrop absoluto full-width (escapa del container) */}
+    <div className={cn(
+      "relative w-full h-[350px] md:h-[550px] overflow-hidden bg-background",
+      className
+    )}>
+      {/* Backdrop Image Container */}
       {backdropUrl && backdropUrl !== "" && (
-        <div className="absolute inset-0 w-screen left-1/2 -translate-x-1/2 overflow-hidden">
-          {/* Imagen de backdrop con máscara de transparencia pura */}
-          <div 
-            className="absolute inset-0 z-0 overflow-hidden"
-            style={{
-              WebkitMaskImage: `
-                linear-gradient(to bottom, 
-                  black 0%, 
-                  black 65%, 
-                  transparent 100%
-                ),
-                linear-gradient(to right, 
-                  transparent 0%, 
-                  black 10%, 
-                  black 90%, 
-                  transparent 100%
-                )
-              `,
-              maskImage: `
-                linear-gradient(to bottom, 
-                  black 0%, 
-                  black 65%, 
-                  transparent 100%
-                ),
-                linear-gradient(to right, 
-                  transparent 0%, 
-                  black 10%, 
-                  black 90%, 
-                  transparent 100%
-                )
-              `,
-              WebkitMaskComposite: "source-in",
-              maskComposite: "intersect",
-            }}
-          >
+        <>
+          {/* Layer 1: Ambient Glow (The immersive "Pro" background) - Now much larger/spread out */}
+          <div className="absolute inset-0 z-0 overflow-hidden">
             <Image
               src={backdropUrl}
-              alt={`Backdrop de ${title}`}
+              alt=""
               fill
-              className="object-cover object-center brightness-[0.7] saturate-[1.1] dark:brightness-[0.6] dark:saturate-100 transition-all duration-700"
-              sizes="100vw"
+              className="object-cover blur-[80px] md:blur-[120px] opacity-60 scale-110 saturate-[1.5] brightness-[0.6] dark:brightness-[0.3]"
               priority
-              quality={90}
             />
           </div>
 
-          {/* Viñeta superior sutil para legibilidad del Navbar */}
-          <div className="absolute inset-0 z-[1] pointer-events-none
-                         bg-gradient-to-b from-black/60 via-transparent to-transparent dark:from-black/80" />
-
-          {/* Content Scrim - Oscurecimiento y desenfoque para legibilidad máxima */}
-          <div 
-            className="absolute inset-0 z-[1] pointer-events-none backdrop-blur-[2px]"
-            style={{
-              background: `linear-gradient(to right, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%)`,
-            }}
-          />
-
-          {/* Gradiente inferior para transición con el contenido */}
-          <div className="absolute inset-0 z-[1] pointer-events-none 
-                         bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
-        </div>
+          {/* Layer 2: Main sharp image with cinematic fade edges & Grain */}
+          <div className="absolute inset-0 z-[1] flex items-center justify-center">
+            <div className="relative w-full h-full max-w-[1400px] mx-auto bg-noise">
+              <Image
+                src={backdropUrl}
+                alt={`Backdrop de ${title}`}
+                fill
+                className="object-cover object-top md:object-center brightness-[0.9] saturate-[1.1] dark:brightness-[0.8] dark:saturate-100 transition-all duration-1000"
+                style={{
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 40%, transparent 100%), linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 40%, transparent 100%), linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)',
+                  maskComposite: 'intersect',
+                  WebkitMaskComposite: 'source-in'
+                }}
+                priority
+                quality={100}
+              />
+              
+              {/* Extra gradient overlay for text readability on top of image */}
+               <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-90" />
+               <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-background/80 md:from-background/50 md:to-background/50" />
+            </div>
+          </div>
+        </>
       )}
 
-      {/* Contenido dentro de Container - con padding superior compensado */}
-      <Container className="relative z-10 pt-20 pb-6 md:pt-22 md:pb-8">
-        {children}
-      </Container>
+      {/* Contenido dentro de la caja */}
+      <div className="relative z-10 w-full h-full pt-24 md:pt-28 pb-4">
+        <Container>
+          {children}
+        </Container>
+      </div>
     </div>
   );
 }
