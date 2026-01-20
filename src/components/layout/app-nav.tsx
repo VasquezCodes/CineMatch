@@ -18,6 +18,7 @@ interface AppNavProps {
 export function AppNav({ variant = "default" }: AppNavProps) {
   const pathname = usePathname();
   const isCinematic = variant === "cinematic";
+  const isCinematicMobileVisible = variant === "cinematic-mobile-visible";
 
   return (
     <nav className="hidden md:flex md:items-center md:gap-1" role="navigation">
@@ -35,6 +36,13 @@ export function AppNav({ variant = "default" }: AppNavProps) {
                 ? [
                     'text-white hover:bg-white/15 hover:text-white',
                     isActive ? 'bg-white/15 backdrop-blur-md border border-white/20' : ''
+                  ]
+                : isCinematicMobileVisible
+                ? [
+                    'hover:bg-accent/80 dark:hover:bg-accent hover:text-accent-foreground',
+                    isActive
+                      ? 'bg-card/15 backdrop-blur-md border border-border/30 text-primary'
+                      : 'text-foreground'
                   ]
                 : [
                     'hover:bg-accent/80 dark:hover:bg-accent hover:text-accent-foreground',

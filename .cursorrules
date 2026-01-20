@@ -140,16 +140,17 @@ All components, hooks, and utilities that interact with these entities MUST resp
 
 ### Design System & Color System (MANDATORY)
 - **`src/styles/globals.css` is the SINGLE SOURCE OF TRUTH for colors and design tokens.**
+  - **CRITICAL: Design tokens (colors, paddings, spacing, radius, etc.) are IRREPLACEABLE.**
   - **NEVER** override, modify, or bypass the CSS variables defined in `globals.css`.
-  - **NEVER** hardcode color values (hex, rgb, etc.) in components. Always use CSS variables or Tailwind classes that reference the design tokens.
-  - **NEVER** add new color tokens without explicit approval and updating `globals.css` first.
-  - If a color is needed, check `globals.css` first and use the existing tokens (e.g., `var(--cm-accent)`, `var(--background)`, etc.).
-  - Using colors outside the system will break visual consistency and must be avoided at all costs.
+  - **NEVER** hardcode color values (hex, rgb, etc.) or spacing values (paddings, margins) in components. Always use CSS variables or Tailwind classes that reference the design tokens.
+  - **NEVER** add new color or spacing tokens without explicit approval and updating `globals.css` first.
+  - If a color or spacing is needed, check `globals.css` first and use the existing tokens (e.g., `var(--cm-accent)`, `var(--background)`, `p-4` referencing system scale, etc.).
+  - Using values outside the system will break visual consistency and MUST be avoided at all costs.
 - **`designSystem.md` is the reference guide for all design decisions.**
   - Consult `designSystem.md` before implementing new UI patterns, components, or layouts.
   - Follow the naming conventions, spacing scale, typography scale, and layout patterns defined there.
   - When in doubt about design decisions, refer to `designSystem.md` first.
-- Both files (`globals.css` and `designSystem.md`) must be respected in every implementation.
+- Both files (`globals.css` and `designSystem.md`) must be respected in every implementation WITHOUT EXCEPTION.
 
 ### Accessibility (mandatory)
 - Use semantic HTML and correct headings order.

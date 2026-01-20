@@ -47,12 +47,12 @@ export function AppHeader({ variant = "default" }: AppHeaderProps) {
 
   return (
     <header className={cn(
-      "top-0 z-40 w-full transition-all duration-200",
+      "fixed md:sticky top-0 z-40 w-full transition-all duration-200",
       isCinematic
         ? "absolute border-none bg-transparent"
         : isCinematicMobileVisible
-        ? "sticky md:absolute border-b md:border-none border-border/40 bg-background/60 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none supports-[backdrop-filter]:bg-background/40"
-        : "sticky border-b border-border/40 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40"
+        ? "border-none bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 md:sticky md:border-b md:border-border/20 md:bg-background/70 md:backdrop-blur-xl md:supports-[backdrop-filter]:bg-background/70"
+        : "border-b border-border/40 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 md:bg-background/70 md:backdrop-blur-xl"
     )}>
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
         {/* SECCIÓN IZQUIERDA: Logo */}
@@ -61,8 +61,10 @@ export function AppHeader({ variant = "default" }: AppHeaderProps) {
             href={APP_ROUTES.HOME}
             className={cn(
               "font-heading text-xl font-bold tracking-tight transition-opacity hover:opacity-80",
-              isCinematic || isCinematicMobileVisible
-                ? "text-foreground md:text-white"
+              isCinematic
+                ? "text-white"
+                : isCinematicMobileVisible
+                ? "text-foreground md:text-foreground"
                 : "text-foreground"
             )}
           >
@@ -77,15 +79,17 @@ export function AppHeader({ variant = "default" }: AppHeaderProps) {
 
         {/* SECCIÓN DERECHA: Acciones y Perfil */}
         <div className="flex flex-1 items-center justify-end gap-3">
-          <ThemeToggle variant={isCinematic || isCinematicMobileVisible ? "cinematic" : "default"} />
+          <ThemeToggle variant={isCinematic ? "cinematic" : "default"} />
 
           {isLoading ? (
             // Skeleton mientras carga el estado de autenticación
             <div
               className={cn(
                 "size-9 rounded-full border animate-pulse",
-                isCinematic || isCinematicMobileVisible
-                  ? "border-border/40 md:border-white/30 bg-card/20 md:bg-white/10"
+                isCinematic
+                  ? "border-white/30 bg-white/10"
+                  : isCinematicMobileVisible
+                  ? "border-border/40 md:border-border/40 bg-card/20 md:bg-card/20"
                   : "border-border/40 bg-card/20"
               )}
             />
@@ -97,8 +101,10 @@ export function AppHeader({ variant = "default" }: AppHeaderProps) {
                   size="icon"
                   className={cn(
                     "relative size-9 rounded-full border backdrop-blur-md shadow-sm transition-all duration-200",
-                    isCinematic || isCinematicMobileVisible
-                      ? "border-border/40 md:border-white/30 bg-card/20 md:bg-white/10 hover:bg-card/30 md:hover:bg-white/20 md:text-white"
+                    isCinematic
+                      ? "border-white/30 bg-white/10 hover:bg-white/20 text-white"
+                      : isCinematicMobileVisible
+                      ? "border-border/40 md:border-border/40 bg-card/20 md:bg-card/20 hover:bg-card/30 md:hover:bg-card/30 text-foreground md:text-foreground"
                       : "border-border/40 bg-card/20 hover:bg-card/30"
                   )}
                 >

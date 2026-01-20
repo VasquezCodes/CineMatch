@@ -5,3 +5,4 @@ export { MovieHero as MovieBackdrop } from "./components/MovieHero";
 export { MovieTechnicalInfo } from "./components/MovieTechnicalInfo";
 export { MovieCast } from "./components/MovieCast";
 export { MovieRecommendations } from "./components/MovieRecommendations";
+export { MovieMobileDetail } from "./components/MovieMobileDetail";

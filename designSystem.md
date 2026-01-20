@@ -19,10 +19,14 @@ Documento vivo para mantener coherencia de diseño y UX entre **Web** y **Mobile
 
 ---
 
-## Regla de oro del sistema
+## Reglas de oro del sistema
 
-**Una pantalla = un patrón principal.**
+1. **Una pantalla = un patrón principal.**
 No mezclar “wizard” con “dashboard” en la misma vista.
+
+2. **Los tokens de diseño son IRREEMPLAZABLES.**
+   > [!IMPORTANT]
+   > Colores, paddings, márgenes, bordes y tipografía definidos en el sistema deben respetarse **sin falta**. NO se deben usar valores "hardcoded" ni sobreescribir tokens globales en componentes locales. La consistencia visual depende de la adherencia estricta a estos tokens.
 
 ---
 

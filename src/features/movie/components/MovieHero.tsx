@@ -63,7 +63,12 @@ export function MovieBackdrop({
               />
               
               {/* Extra gradient overlays for seamless integration and readability */}
-               <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-100" />
+               <div
+                 className="absolute inset-0"
+                 style={{
+                   background: 'linear-gradient(to bottom, transparent 0%, transparent 50%, hsl(var(--background) / 0.3) 75%, hsl(var(--background) / 0.7) 90%, hsl(var(--background)) 100%)'
+                 }}
+               />
                <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-transparent" />
             </div>
           </div>
