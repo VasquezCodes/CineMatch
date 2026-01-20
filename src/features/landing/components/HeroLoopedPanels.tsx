@@ -9,12 +9,10 @@ import { heroPanels } from "../data/heroPanels";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const PANEL_SNAP_EASE = "power1.inOut";
-const PANEL_DURATION = 1;
-
 export function HeroLoopedPanels() {
   const containerRef = useRef<HTMLDivElement>(null);
   const panelsRef = useRef<HTMLElement[]>([]);
+  const panelInnersRef = useRef<HTMLDivElement[]>([]);
 
   useLayoutEffect(() => {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -23,93 +21,72 @@ export function HeroLoopedPanels() {
 
     const container = containerRef.current;
     const panels = panelsRef.current.filter(Boolean);
-    if (!container || panels.length === 0) return;
+    const panelInners = panelInnersRef.current.filter(Boolean);
+    if (!container || panels.length === 0 || panelInners.length === 0) return;
 
     const ctx = gsap.context(() => {
+      const steps = Math.max(1, panels.length - 1);
       const timeline = gsap.timeline({
-        defaults: { ease: "power2.out" },
+        defaults: { ease: "none" },
         scrollTrigger: {
           trigger: container,
           start: "top top",
-          end: () => `+=${Math.max(1, panels.length) * window.innerHeight}`,
-          scrub: 0.6,
+          end: () => `+=${steps * window.innerHeight}`,
+          scrub: 1,
           pin: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
           snap: {
-            snapTo: "labels",
-            duration: { min: 0.2, max: 0.6 },
-            delay: 0.05,
-            ease: PANEL_SNAP_EASE,
+            snapTo: (value) => Math.round(value * steps) / steps,
+            duration: { min: 0.18, max: 0.38 },
+            delay: 0.03,
+            ease: "power2.out",
           },
         },
       });
 
-      panels.forEach((panel, index) => {
-        const icon = panel.querySelector("[data-hero-icon]");
-        const title = panel.querySelector("[data-hero-title]");
-        const description = panel.querySelector("[data-hero-description]");
-        const extra = panel.querySelector("[data-hero-extra]");
-        const content = panel.querySelector("[data-hero-content]");
-        const label = `panel-${index + 1}`;
-        const startTime = index * PANEL_DURATION;
-
-        timeline.addLabel(label, startTime);
-
-        if (content) {
-          timeline.fromTo(
-            content,
-            { opacity: 0 },
-            { opacity: 1, duration: 0.2 },
-            startTime
-          );
+      panelInners.forEach((inner, index) => {
+        if (index > 0) {
+          gsap.set(inner, {
+            opacity: 0,
+            y: 16,
+            scale: 0.98,
+          });
         }
+      });
 
-        if (icon) {
-          timeline.fromTo(
-            icon,
-            { opacity: 0, y: 24, scale: 0.9 },
-            { opacity: 1, y: 0, scale: 1, duration: 0.4 },
-            startTime + 0.05
-          );
-        }
+      panelInners.forEach((inner, index) => {
+        if (index < panelInners.length - 1) {
+          const nextInner = panelInners[index + 1];
+          const transitionDuration = 0.5;
+          const transitionEnd = index + 1;
+          const transitionStart = transitionEnd - transitionDuration;
 
-        if (title) {
-          timeline.fromTo(
-            title,
-            { opacity: 0, y: 18 },
-            { opacity: 1, y: 0, duration: 0.35 },
-            startTime + 0.12
-          );
-        }
-
-        if (description) {
-          timeline.fromTo(
-            description,
-            { opacity: 0, y: 16 },
-            { opacity: 1, y: 0, duration: 0.3 },
-            startTime + 0.18
-          );
-        }
-
-        if (extra) {
-          timeline.fromTo(
-            extra,
-            { opacity: 0, y: 14 },
-            { opacity: 1, y: 0, duration: 0.35 },
-            startTime + 0.25
-          );
-        }
-
-        const exitTargets = [content, icon, title, description, extra].filter(Boolean);
-        if (exitTargets.length > 0) {
           timeline.to(
-            exitTargets,
-            { opacity: 0, y: -20, duration: 0.3 },
-            startTime + PANEL_DURATION - 0.15
+            inner,
+            {
+              opacity: 0,
+              y: -16,
+              scale: 0.98,
+              duration: transitionDuration,
+            },
+            transitionStart
+          );
+
+          timeline.to(
+            nextInner,
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: transitionDuration,
+            },
+            transitionStart
           );
         }
       });
+
+      ScrollTrigger.refresh();
     }, container);
 
     const onResize = () => {
@@ -125,7 +102,7 @@ export function HeroLoopedPanels() {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative z-0">
+    <div ref={containerRef} className="relative z-0 h-screen overflow-hidden">
       {heroPanels.map((panel, index) => {
         const Icon = panel.icon;
         return (
@@ -135,7 +112,7 @@ export function HeroLoopedPanels() {
               if (el) panelsRef.current[index] = el;
             }}
             className={cn(
-              "h-[calc(100svh-56px)] w-full flex items-center justify-center relative overflow-hidden",
+              "absolute inset-0 h-full w-full flex items-center justify-center overflow-hidden",
               panel.className
             )}
           >
@@ -144,34 +121,27 @@ export function HeroLoopedPanels() {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
             )}
 
-            <div className="max-w-4xl w-full px-6 relative z-10">
-              <div
-                className="flex flex-col items-center text-center space-y-6"
-                data-hero-content
-              >
-                <div
-                  className="p-4 bg-primary/10 rounded-full ring-1 ring-primary/20 backdrop-blur-sm"
-                  data-hero-icon
-                >
+            <div
+              ref={(el) => {
+                if (el) panelInnersRef.current[index] = el;
+              }}
+              className="max-w-4xl w-full px-6 relative z-10 will-change-transform"
+            >
+              <div className="flex flex-col items-center text-center space-y-6">
+                <div className="p-4 bg-primary/10 rounded-full ring-1 ring-primary/20 backdrop-blur-sm">
                   <Icon className="w-10 h-10 text-primary" />
                 </div>
 
                 <div className="space-y-4 max-w-2xl">
-                  <h2
-                    className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight"
-                    data-hero-title
-                  >
+                  <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
                     {panel.title}
                   </h2>
-                  <p
-                    className="text-xl text-muted-foreground leading-relaxed"
-                    data-hero-description
-                  >
+                  <p className="text-xl text-muted-foreground leading-relaxed">
                     {panel.description}
                   </p>
                 </div>
 
-                <div className="w-full" data-hero-extra>
+                <div className="w-full">
                   {panel.content.type === "cta" && (
                     <div className="mt-8 flex justify-center">
                       <Button
