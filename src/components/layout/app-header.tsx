@@ -31,12 +31,13 @@ interface AppHeaderProps {
  * Header con arquitectura de tres columnas:
  * Izquierda (Logo), Centro (Nav), Derecha (Acciones).
  * 
- * @param variant - "default" para navbar estándar, "cinematic" para navbar sobre backdrops
+ * @param variant - "default" para navbar estándar, "cinematic" para navbar sobre backdrops, "cinematic-mobile-visible" para navbar visible en mobile y transparente en desktop
  */
 export function AppHeader({ variant = "default" }: AppHeaderProps) {
   const { user, isLoading } = useAuth();
   const [isPending, startTransition] = useTransition();
   const isCinematic = variant === "cinematic";
+  const isCinematicMobileVisible = variant === "cinematic-mobile-visible";
 
   const handleSignOut = () => {
     startTransition(async () => {
@@ -46,10 +47,12 @@ export function AppHeader({ variant = "default" }: AppHeaderProps) {
 
   return (
     <header className={cn(
-      "sticky top-0 z-40 w-full border-b transition-all duration-200",
-      isCinematic 
-        ? "border-white/10 bg-transparent backdrop-blur-sm" 
-        : "border-border/40 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40"
+      "top-0 z-40 w-full transition-all duration-200",
+      isCinematic
+        ? "absolute border-none bg-transparent"
+        : isCinematicMobileVisible
+        ? "sticky md:absolute border-b md:border-none border-border/40 bg-background/60 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none supports-[backdrop-filter]:bg-background/40"
+        : "sticky border-b border-border/40 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40"
     )}>
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
         {/* SECCIÓN IZQUIERDA: Logo */}
@@ -58,8 +61,8 @@ export function AppHeader({ variant = "default" }: AppHeaderProps) {
             href={APP_ROUTES.HOME}
             className={cn(
               "font-heading text-xl font-bold tracking-tight transition-opacity hover:opacity-80",
-              isCinematic
-                ? "text-white"
+              isCinematic || isCinematicMobileVisible
+                ? "text-foreground md:text-white"
                 : "text-foreground"
             )}
           >
@@ -74,15 +77,15 @@ export function AppHeader({ variant = "default" }: AppHeaderProps) {
 
         {/* SECCIÓN DERECHA: Acciones y Perfil */}
         <div className="flex flex-1 items-center justify-end gap-3">
-          <ThemeToggle variant={variant} />
+          <ThemeToggle variant={isCinematic || isCinematicMobileVisible ? "cinematic" : "default"} />
 
           {isLoading ? (
             // Skeleton mientras carga el estado de autenticación
             <div
               className={cn(
                 "size-9 rounded-full border animate-pulse",
-                isCinematic
-                  ? "border-white/30 bg-white/10"
+                isCinematic || isCinematicMobileVisible
+                  ? "border-border/40 md:border-white/30 bg-card/20 md:bg-white/10"
                   : "border-border/40 bg-card/20"
               )}
             />
@@ -94,8 +97,8 @@ export function AppHeader({ variant = "default" }: AppHeaderProps) {
                   size="icon"
                   className={cn(
                     "relative size-9 rounded-full border backdrop-blur-md shadow-sm transition-all duration-200",
-                    isCinematic
-                      ? "border-white/30 bg-white/10 hover:bg-white/20 text-white"
+                    isCinematic || isCinematicMobileVisible
+                      ? "border-border/40 md:border-white/30 bg-card/20 md:bg-white/10 hover:bg-card/30 md:hover:bg-white/20 md:text-white"
                       : "border-border/40 bg-card/20 hover:bg-card/30"
                   )}
                 >

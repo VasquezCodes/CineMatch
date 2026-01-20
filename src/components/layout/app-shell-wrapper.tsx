@@ -17,7 +17,7 @@ export function AppShellWrapper({ children }: AppShellWrapperProps) {
 
   // Determinar la variante del navbar basándose en la ruta
   const navbarVariant: NavbarVariant = pathname?.startsWith("/app/movies")
-    ? "cinematic"
+    ? "cinematic-mobile-visible"
     : "default";
 
   // Determinar si es la página de landing (sin padding bottom)

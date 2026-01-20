@@ -3,7 +3,7 @@ import { MobileTabs } from './mobile-tabs';
 import { BackgroundBlurs } from './background-blurs';
 import { ImportStatusIndicator } from '@/features/import';
 
-export type NavbarVariant = "default" | "cinematic";
+export type NavbarVariant = "default" | "cinematic" | "cinematic-mobile-visible";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -17,7 +17,7 @@ interface AppShellProps {
  * Composición de header sticky + main + mobile tabs + indicador de importación.
  * Server Component por defecto.
  *
- * @param navbarVariant - "default" para navbar estándar, "cinematic" para navbar transparente sobre backdrops
+ * @param navbarVariant - "default" para navbar estándar, "cinematic" para navbar transparente sobre backdrops, "cinematic-mobile-visible" para navbar visible en mobile y transparente en desktop
  * @param isLandingPage - true si es la página de landing (sin padding bottom)
  */
 export function AppShell({ children, navbarVariant = "default", isLandingPage = false }: AppShellProps) {

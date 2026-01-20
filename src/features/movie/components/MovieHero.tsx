@@ -27,51 +27,51 @@ export function MovieBackdrop({
 }: MovieBackdropProps) {
   return (
     <div className={cn(
-      "relative w-full h-[350px] md:h-[550px] overflow-hidden bg-background",
+      // En mobile: sin altura fija, solo muestra el botón "Volver"
+      // En desktop/tablet: altura fija con backdrop hero
+      "relative w-full md:h-[650px] overflow-hidden bg-background",
       className
     )}>
-      {/* Backdrop Image Container */}
+      {/* Backdrop Image Container - SOLO EN DESKTOP/TABLET */}
       {backdropUrl && backdropUrl !== "" && (
         <>
-          {/* Layer 1: Ambient Glow (The immersive "Pro" background) - Now much larger/spread out */}
-          <div className="absolute inset-0 z-0 overflow-hidden">
+          {/* Layer 1: Ambient Glow (The immersive "Pro" background) */}
+          <div className="hidden md:block absolute inset-0 z-0 overflow-hidden">
             <Image
               src={backdropUrl}
               alt=""
               fill
-              className="object-cover blur-[80px] md:blur-[120px] opacity-60 scale-110 saturate-[1.5] brightness-[0.6] dark:brightness-[0.3]"
+              className="object-cover blur-[100px] md:blur-[150px] opacity-50 scale-110 saturate-[1.6] brightness-[0.7] dark:brightness-[0.4]"
               priority
             />
           </div>
 
-          {/* Layer 2: Main sharp image with cinematic fade edges & Grain */}
-          <div className="absolute inset-0 z-[1] flex items-center justify-center">
-            <div className="relative w-full h-full max-w-[1400px] mx-auto bg-noise">
+          {/* Layer 2: Main sharp image with immersive fade edges & Grain */}
+          <div className="hidden md:flex absolute inset-0 z-[1] items-center justify-center">
+            <div className="relative w-full h-full bg-noise">
               <Image
                 src={backdropUrl}
                 alt={`Backdrop de ${title}`}
                 fill
-                className="object-cover object-top md:object-center brightness-[0.9] saturate-[1.1] dark:brightness-[0.8] dark:saturate-100 transition-all duration-1000"
+                className="object-cover object-top md:object-center brightness-[1] saturate-[1.1] dark:brightness-[0.85] dark:saturate-100 transition-all duration-1000"
                 style={{
-                  maskImage: 'linear-gradient(to bottom, black 0%, black 40%, transparent 100%), linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 40%, transparent 100%), linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)',
-                  maskComposite: 'intersect',
-                  WebkitMaskComposite: 'source-in'
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
                 }}
                 priority
                 quality={100}
               />
               
-              {/* Extra gradient overlay for text readability on top of image */}
-               <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-90" />
-               <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-background/80 md:from-background/50 md:to-background/50" />
+              {/* Extra gradient overlays for seamless integration and readability */}
+               <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-100" />
+               <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-transparent" />
             </div>
           </div>
         </>
       )}
 
       {/* Contenido dentro de la caja */}
-      <div className="relative z-10 w-full h-full pt-24 md:pt-28 pb-4">
+      <div className="relative z-10 w-full h-full pt-4 md:pt-16 pb-4">
         <Container>
           {children}
         </Container>
