@@ -3,91 +3,11 @@
 import { useLayoutEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Upload, BarChart3, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { heroPanels } from "../data/heroPanels";
 
 gsap.registerPlugin(ScrollTrigger);
-
-interface Panel {
-  id: number;
-  className: string;
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  content: React.ReactNode;
-}
-
-const testPanels: Panel[] = [
-  {
-    id: 1,
-    className: "bg-background text-foreground",
-    title: "Importa tu historial",
-    description: "Sube tu archivo CSV de Letterboxd y comienza tu viaje.",
-    icon: Upload,
-    content: (
-      <div className="mt-8 flex justify-center">
-        <Button
-          size="lg"
-          className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-lg hover:shadow-primary/25 transition-all"
-        >
-          <Upload className="w-5 h-5 mr-2" />
-          Comenzar Importación
-        </Button>
-      </div>
-    ),
-  },
-  {
-    id: 2,
-    className: "bg-muted text-foreground",
-    title: "Analiza tus gustos",
-    description: "Descubre patrones ocultos en tus hábitos de visualización.",
-    icon: BarChart3,
-    content: (
-      <div className="mt-8 grid grid-cols-2 gap-4 w-full max-w-sm mx-auto opacity-80">
-        <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm">
-          <div className="h-2 w-12 bg-primary/20 rounded mb-2" />
-          <div className="h-16 w-full bg-muted rounded-md animate-pulse" />
-        </div>
-        <div className="bg-card border border-border/50 p-4 rounded-xl shadow-sm">
-          <div className="h-2 w-12 bg-chart-2/20 rounded mb-2" />
-          <div className="h-16 w-full bg-muted rounded-md animate-pulse" />
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: 3,
-    className: "bg-background text-foreground",
-    title: "Descubre joyas ocultas",
-    description: "Recomendaciones personalizadas basadas en lo que amas.",
-    icon: Sparkles,
-    content: (
-      <div className="mt-8 flex gap-4 overflow-hidden justify-center opacity-80">
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="w-24 h-36 bg-muted rounded-lg border border-border/50 shadow-sm relative overflow-hidden"
-          >
-             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-background to-transparent" />
-          </div>
-        ))}
-      </div>
-    ),
-  },
-  {
-    id: 4,
-    className: "bg-card text-card-foreground border-t border-border",
-    title: "Únete a CineMatch",
-    description: "Tu compañero definitivo para el descubrimiento de películas.",
-    icon: Sparkles,
-    content: (
-        <div className="mt-8 text-sm text-muted-foreground">
-            © 2026 CineMatch. Todos los derechos reservados.
-        </div>
-    ),
-  },
-];
 
 export function HeroLoopedPanels() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -97,19 +17,16 @@ export function HeroLoopedPanels() {
   useLayoutEffect(() => {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
-
     if (prefersReducedMotion || isMobile) return;
 
     const container = containerRef.current;
     const panels = panelsRef.current.filter(Boolean);
     const panelInners = panelInnersRef.current.filter(Boolean);
-
     if (!container || panels.length === 0 || panelInners.length === 0) return;
 
     const ctx = gsap.context(() => {
-      const steps = panels.length - 1;
-
-      const tl = gsap.timeline({
+      const steps = Math.max(1, panels.length - 1);
+      const timeline = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
           trigger: container,
@@ -128,7 +45,6 @@ export function HeroLoopedPanels() {
         },
       });
 
-      // Configurar estado inicial para todos los panels excepto el primero
       panelInners.forEach((inner, index) => {
         if (index > 0) {
           gsap.set(inner, {
@@ -139,31 +55,34 @@ export function HeroLoopedPanels() {
         }
       });
 
-      // Animaciones de transición entre panels
       panelInners.forEach((inner, index) => {
         if (index < panelInners.length - 1) {
           const nextInner = panelInners[index + 1];
-
-          // Duración de transición ajustada para que la última termine exactamente en 'steps'
           const transitionDuration = 0.5;
           const transitionEnd = index + 1;
           const transitionStart = transitionEnd - transitionDuration;
 
-          // Salida del panel actual
-          tl.to(inner, {
-            opacity: 0,
-            y: -16,
-            scale: 0.98,
-            duration: transitionDuration,
-          }, transitionStart);
+          timeline.to(
+            inner,
+            {
+              opacity: 0,
+              y: -16,
+              scale: 0.98,
+              duration: transitionDuration,
+            },
+            transitionStart
+          );
 
-          // Entrada del siguiente panel
-          tl.to(nextInner, {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            duration: transitionDuration,
-          }, transitionStart);
+          timeline.to(
+            nextInner,
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: transitionDuration,
+            },
+            transitionStart
+          );
         }
       });
 
@@ -184,7 +103,7 @@ export function HeroLoopedPanels() {
 
   return (
     <div ref={containerRef} className="relative z-0 h-screen overflow-hidden">
-      {testPanels.map((panel, index) => {
+      {heroPanels.map((panel, index) => {
         const Icon = panel.icon;
         return (
           <section
@@ -199,14 +118,14 @@ export function HeroLoopedPanels() {
           >
             {/* Background Decorations (Optional per panel) */}
             {index % 2 === 0 && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
             )}
 
             <div
               ref={(el) => {
                 if (el) panelInnersRef.current[index] = el;
               }}
-              className="panel-inner max-w-4xl w-full px-6 relative z-10 will-change-transform"
+              className="max-w-4xl w-full px-6 relative z-10 will-change-transform"
             >
               <div className="flex flex-col items-center text-center space-y-6">
                 <div className="p-4 bg-primary/10 rounded-full ring-1 ring-primary/20 backdrop-blur-sm">
@@ -214,15 +133,96 @@ export function HeroLoopedPanels() {
                 </div>
 
                 <div className="space-y-4 max-w-2xl">
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+                  <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
                     {panel.title}
-                    </h2>
-                    <p className="text-xl text-muted-foreground leading-relaxed">
+                  </h2>
+                  <p className="text-xl text-muted-foreground leading-relaxed">
                     {panel.description}
-                    </p>
+                  </p>
                 </div>
 
-                {panel.content}
+                <div className="w-full">
+                  {panel.content.type === "cta" && (
+                    <div className="mt-8 flex justify-center">
+                      <Button
+                        size="lg"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-lg hover:shadow-primary/25 transition-all"
+                      >
+                        <Icon className="w-5 h-5 mr-2" />
+                        {panel.content.buttonLabel}
+                      </Button>
+                    </div>
+                  )}
+                  {panel.content.type === "insights" && (
+                    <div className="mt-8 grid gap-4 w-full max-w-xl mx-auto">
+                      <div className="grid grid-cols-2 gap-4">
+                        {panel.content.stats.map((stat) => (
+                          <div
+                            key={stat.label}
+                            className="bg-card border border-border/50 p-4 rounded-xl shadow-sm"
+                          >
+                            <p className="text-sm text-muted-foreground">{stat.label}</p>
+                            <div className="mt-2 flex items-baseline justify-between">
+                              <span className="text-2xl font-semibold text-foreground">
+                                {stat.value}
+                              </span>
+                              <span className="text-xs font-medium text-emerald-500">
+                                {stat.trend}
+                              </span>
+                            </div>
+                            <div className="mt-3 h-1 w-full rounded-full bg-muted">
+                              <div className="h-full w-3/5 rounded-full bg-primary/60" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="bg-card border border-border/50 p-5 rounded-xl shadow-sm">
+                        <p className="text-sm text-muted-foreground">Resumen semanal</p>
+                        <div className="mt-3 flex items-center justify-between">
+                          <div>
+                            <p className="text-lg font-semibold">48 películas</p>
+                            <p className="text-sm text-muted-foreground">Últimos 30 días</p>
+                          </div>
+                          <div className="h-10 w-24 rounded-lg bg-primary/10 flex items-end gap-1 p-2">
+                            {["h-4", "h-6", "h-3", "h-7", "h-5"].map((height) => (
+                              <span
+                                key={height}
+                                className={cn("w-2 rounded-full bg-primary/60", height)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {panel.content.type === "recommendations" && (
+                    <div className="mt-8 grid gap-4 sm:grid-cols-3 max-w-4xl mx-auto">
+                      {panel.content.items.map((item) => (
+                        <div
+                          key={item.title}
+                          className="bg-card border border-border/50 rounded-2xl overflow-hidden shadow-sm"
+                        >
+                          <div className="h-36 bg-gradient-to-br from-primary/20 via-muted to-background" />
+                          <div className="p-4 text-left space-y-2">
+                            <p className="text-sm text-muted-foreground">{item.genre}</p>
+                            <p className="text-lg font-semibold">{item.title}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">CineMatch Score</span>
+                              <span className="text-sm font-semibold text-primary">
+                                {item.rating}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {panel.content.type === "footer" && (
+                    <div className="mt-8 text-sm text-muted-foreground">
+                      {panel.content.text}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </section>
