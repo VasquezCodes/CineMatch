@@ -1,38 +1,38 @@
 import type { ComponentType } from "react";
-import { BarChart3, Sparkles, Upload } from "lucide-react";
+import { BarChart3, Sparkles, Upload, type LucideIcon } from "lucide-react";
 
 export type HeroPanelContent =
   | {
-      type: "cta";
-      buttonLabel: string;
-    }
+    type: "cta";
+    buttonLabel: string;
+  }
   | {
-      type: "insights";
-      stats: Array<{
-        label: string;
-        value: string;
-        trend: string;
-      }>;
-    }
+    type: "insights";
+    stats: Array<{
+      label: string;
+      value: string;
+      trend: string;
+    }>;
+  }
   | {
-      type: "recommendations";
-      items: Array<{
-        title: string;
-        genre: string;
-        rating: string;
-      }>;
-    }
+    type: "recommendations";
+    items: Array<{
+      title: string;
+      genre: string;
+      rating: string;
+    }>;
+  }
   | {
-      type: "footer";
-      text: string;
-    };
+    type: "footer";
+    text: string;
+  };
 
 export interface HeroPanelData {
   id: number;
   className: string;
   title: string;
   description: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: LucideIcon;
   content: HeroPanelContent;
 }
 

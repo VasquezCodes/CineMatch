@@ -43,9 +43,9 @@ export default async function MovieDetailPage({ params }: PageProps) {
         </MovieBackdrop>
       </div>
 
-      {/* Main Content Container */}
-      <div className="relative">
-        <Container className="relative pt-0 md:pt-12 pb-16">
+      {/* Main Content Container - sube para superponerse al backdrop */}
+      <div className="relative md:-mt-48 lg:-mt-56">
+        <Container className="relative pt-0 pb-16">
           <div className="grid grid-cols-1 gap-8 items-start">
             {/* MOBILE ONLY: Extracted to MovieMobileDetail component */}
             <MovieMobileDetail movie={movie} />
