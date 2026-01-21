@@ -1,8 +1,6 @@
-"use client";
-
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { TextRevealGroup } from "@/components/animations/TextRevealGroup";
+import { PageHeaderAnimated } from "./page-header-animated";
 
 export interface PageHeaderProps {
   /**
@@ -78,9 +76,9 @@ export function PageHeader({
           <div className="space-y-2 flex-1">{headerContent}</div>
         ) : (
           // Con animaciones de reveal
-          <TextRevealGroup as="div" className="space-y-2 flex-1">
+          <PageHeaderAnimated className="space-y-2 flex-1">
             {headerContent}
-          </TextRevealGroup>
+          </PageHeaderAnimated>
         )}
 
         {actions && (

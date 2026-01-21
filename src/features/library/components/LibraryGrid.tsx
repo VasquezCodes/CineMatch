@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -32,15 +32,15 @@ export function LibraryGrid({ initialData, totalMovies }: LibraryGridProps) {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  // Estado de filtros
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "recent");
-  const [filterRating, setFilterRating] = useState(searchParams.get("rating") || "all");
+  // Leer valores directamente de URL (single source of truth)
+  const searchQuery = searchParams.get("search") || "";
+  const sortBy = searchParams.get("sort") || "recent";
+  const filterRating = searchParams.get("rating") || "all";
 
   // Función para actualizar URL con nuevos parámetros
   const updateFilters = (params: Record<string, string>) => {
     const newParams = new URLSearchParams(searchParams.toString());
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (value && value !== "all") {
         newParams.set(key, value);
@@ -58,17 +58,14 @@ export function LibraryGrid({ initialData, totalMovies }: LibraryGridProps) {
   };
 
   const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
     updateFilters({ search: value, sort: sortBy, rating: filterRating });
   };
 
   const handleSortChange = (value: string) => {
-    setSortBy(value);
     updateFilters({ search: searchQuery, sort: value, rating: filterRating });
   };
 
   const handleRatingFilterChange = (value: string) => {
-    setFilterRating(value);
     updateFilters({ search: searchQuery, sort: sortBy, rating: value });
   };
 

@@ -25,7 +25,7 @@ interface AnalysisTableProps {
 
 type SortOption = "title" | "year" | "rating" | "recent";
 
-export function AnalysisTable({ data }: AnalysisTableProps) {
+export const AnalysisTable = React.memo(function AnalysisTable({ data }: AnalysisTableProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [sortBy, setSortBy] = React.useState<SortOption>("recent");
@@ -192,9 +192,9 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
       </div>
     </div>
   );
-}
+});
 
-function MovieCard({ item }: { item: WatchlistAnalysisItem }) {
+const MovieCard = React.memo(function MovieCard({ item }: { item: WatchlistAnalysisItem }) {
   const { movie, watchlist } = item;
 
   return (
@@ -268,4 +268,4 @@ function MovieCard({ item }: { item: WatchlistAnalysisItem }) {
       </Card>
     </Link>
   );
-}
+});

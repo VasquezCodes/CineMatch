@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { FastMovieCard } from "./FastMovieCard";
@@ -14,6 +15,7 @@ interface FastRankingGridProps {
 type FilterStatus = "pendientes" | "calificados" | "todos";
 
 export function FastRankingGrid({ movies }: FastRankingGridProps) {
+  const router = useRouter();
   const [filter, setFilter] = React.useState<FilterStatus>("pendientes");
   const [ratedMap, setRatedMap] = React.useState<Record<string, number>>(() => {
     const initialMap: Record<string, number> = {};
@@ -120,7 +122,7 @@ export function FastRankingGrid({ movies }: FastRankingGridProps) {
           <Button
             size="lg"
             className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 h-auto text-lg font-bold rounded-2xl shadow-[0_0_20px_hsl(var(--primary)/0.3)] transition-all hover:scale-105"
-            onClick={() => (window.location.href = "/app/analysis")}
+            onClick={() => router.push("/app/analysis")}
           >
             Ver Mi Análisis Completo
           </Button>
