@@ -57,8 +57,6 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        console.log(`Processing ${movies.length} movies for backdrop backfill...`);
-
         // Configuración de paralelización
         const BATCH_SIZE = 5; // Peticiones concurrentes
         const BATCH_DELAY = 150; // ms entre lotes (TMDB ~40 req/s)
@@ -98,7 +96,6 @@ export async function POST(request: NextRequest) {
         for (let i = 0; i < movies.length; i += BATCH_SIZE) {
             const elapsed = Date.now() - startTime;
             if (elapsed > 50000) {
-                console.log('Time limit approaching, stopping batch.');
                 break;
             }
 
@@ -111,7 +108,6 @@ export async function POST(request: NextRequest) {
                 if (result.status === 'fulfilled') {
                     if (result.value.status === 'updated') {
                         totalUpdated++;
-                        console.log(`Updated backdrop: ${result.value.movie.title}`);
                     } else {
                         totalSkipped++;
                     }
@@ -139,7 +135,6 @@ export async function POST(request: NextRequest) {
         // Trigger recursivo si hay más
         if (hasMore && totalProcessed > 0) {
             const workerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/workers/backfill-backdrops`;
-            console.log(`Triggering recursion. Movies remaining: ${count}`);
 
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 1000);
@@ -151,10 +146,7 @@ export async function POST(request: NextRequest) {
                     signal: controller.signal
                 });
             } catch (err: unknown) {
-                const errorName = err instanceof Error && 'name' in err ? err.name : 'Unknown';
-                if (errorName === 'AbortError') {
-                    console.log('Recursive trigger sent.');
-                }
+                // Ignore abort errors
             } finally {
                 clearTimeout(timeoutId);
             }

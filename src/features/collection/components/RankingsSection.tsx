@@ -7,8 +7,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ChevronDown, ChevronUp, TrendingUp, LayoutGrid, BarChart3 } from "lucide-react";
-import { RankingCard } from "./RankingCard";
-import { RankingsSheet } from "./RankingsSheet";
+import { RankingCard } from "@/components/shared/RankingCard";
+import { RankingsSheet } from "@/components/shared/RankingsSheet";
 import { RankingsChartsView } from "@/features/rankings/components/RankingsChartsView";
 import { getRanking, type RankingType } from "@/features/rankings/actions";
 import { cn } from "@/lib/utils";
@@ -217,6 +217,7 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
                               type={type.value}
                               onViewMore={() => handleViewMore(type.value)}
                               compact
+                              variant="collection"
                             />
                           ))}
                         </div>
@@ -250,6 +251,7 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
         userId={userId}
         rankingType={sheetRankingType}
         rankingLabel={currentLabel}
+        variant="collection"
       />
     </>
   );

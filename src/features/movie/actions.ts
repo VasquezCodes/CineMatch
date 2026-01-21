@@ -79,8 +79,6 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
             .maybeSingle();
 
         if (localMovie) {
-            // Cache HIT - usamos ID local
-            // console.log(`[Cache Hit] Movie ${id} found in DB as ${localMovie.id}`);
             movieId = localMovie.id;
         } else {
             // Cache MISS - fetch desde TMDB
@@ -176,9 +174,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
 
     // 1. Obtener datos básicos de la película (ahora en paralelo con la autenticación)
 
-    // Validar UUID: si no logramos resolverlo, retornar null
     if (isTmdbId && movieId === id) {
-        // console.warn(`[getMovie] Could not resolve TMDB ID ${id} to a valid UUID. Returning null.`);
         return null;
     }
 
@@ -205,7 +201,6 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
 
     if (isIncomplete && (movie.tmdb_id || movie.imdb_id)) {
         try {
-            // console.log(`[Action] Repairing/Enriching movie ${movie.title} (${movie.id})`);
             const { tmdb } = await import('@/lib/tmdb');
             let tmdbMovie = null;
 

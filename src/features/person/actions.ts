@@ -106,8 +106,6 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
 
         // 2. HIT: Retornar desde DB si existe y es reciente
         if (dbPerson && isFresh && dbPerson.biography) {
-            // console.log(`[Cache Hit] Sirviendo ${name} desde DB`);
-
             // Obtener créditos desde las relaciones en la DB (`movie_people`)
             const { data: creditsData } = await supabase
                 .from('movie_people')
@@ -182,11 +180,9 @@ export async function getPersonProfile(name: string): Promise<PersonProfile | { 
                     source: 'db'
                 };
             }
-            // console.log(`[Cache Hit] Sin créditos para ${name}. Fallback a TMDB.`);
         }
 
         // 3. MISS or STALE: Fetch desde TMDB
-        // console.log(`[Cache Miss] Obteniendo ${name} de TMDB`);
 
         // Resolver TMDB ID si no lo tenemos
         let tmdbId = dbPerson?.tmdb_id;

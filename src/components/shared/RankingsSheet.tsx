@@ -22,6 +22,7 @@ interface RankingsSheetProps {
   userId: string;
   rankingType: RankingType;
   rankingLabel: string;
+  variant?: 'rankings' | 'collection';
 }
 
 export function RankingsSheet({
@@ -30,16 +31,15 @@ export function RankingsSheet({
   userId,
   rankingType,
   rankingLabel,
+  variant = 'rankings',
 }: RankingsSheetProps) {
   const router = useRouter();
   const [data, setData] = React.useState<RankingStatConfig[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Solo mostrar avatar para directores y actores
   const showAvatar = rankingType === "director" || rankingType === "actor";
 
-  // Helper para obtener iniciales del nombre
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -49,7 +49,6 @@ export function RankingsSheet({
       .join("");
   };
 
-  // Helper para formatear URL de imagen de TMDb
   const getImageUrl = (path: string | undefined) => {
     if (!path) return null;
     if (path.startsWith("http")) return path;
@@ -66,11 +65,10 @@ export function RankingsSheet({
       try {
         const result = await getRanking(userId, rankingType, {
           minRating: 1,
-          limit: 20, // Aumentamos el límite para el drawer
+          limit: 20,
         });
         setData(result);
       } catch (err) {
-        console.error("Error loading full ranking:", err);
         setError("Error al cargar el ranking completo");
       } finally {
         setLoading(false);
@@ -80,10 +78,8 @@ export function RankingsSheet({
     loadFullRanking();
   }, [open, userId, rankingType]);
 
-  // Cálculos para Quick Stats
   const allMovies = React.useMemo(() => {
     const movies = data.flatMap((item) => item.data.movies || []);
-    // Eliminar duplicados por ID
     return Array.from(new Map(movies.map((m) => [m.id, m])).values());
   }, [data]);
 
@@ -97,19 +93,41 @@ export function RankingsSheet({
     router.push(`/app/movies/${movie.id}`);
   };
 
+  const headerClassName = variant === 'rankings'
+    ? "sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/40 p-6 pb-4 transition-[background-color,border-color] duration-200"
+    : "sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border p-6 pb-4";
+
+  const closeButtonClassName = variant === 'rankings'
+    ? "rounded-full h-8 w-8 flex items-center justify-center bg-card/20 backdrop-blur-md border border-border/40 text-muted-foreground hover:text-foreground hover:bg-card/30 hover:border-border/60 transition-all duration-200 focus:outline-none"
+    : "rounded-full h-8 w-8 flex items-center justify-center bg-muted/50 border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus:outline-none";
+
+  const statCardClassName = variant === 'rankings'
+    ? "bg-card/20 backdrop-blur-xl p-4 flex flex-col items-center justify-center group transition-colors hover:bg-card/30"
+    : "bg-card/40 p-4 flex flex-col items-center justify-center group transition-colors hover:bg-card/60";
+
+  const badgeClassName = variant === 'rankings'
+    ? "bg-card/20 backdrop-blur-md hover:bg-card/30 text-muted-foreground border-border/40 text-[10px] px-2 py-0 transition-all duration-200"
+    : "bg-muted/50 hover:bg-muted text-muted-foreground border-border text-[10px] px-2 py-0";
+
+  const movieItemClassName = variant === 'rankings'
+    ? "group/movie flex items-center gap-4 p-2 rounded-lg bg-card/10 backdrop-blur-md hover:bg-card/20 transition-all cursor-pointer border border-border/30 hover:border-border/50"
+    : "group/movie flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50 transition-all cursor-pointer border border-transparent hover:border-border";
+
+  const thumbnailClassName = variant === 'rankings'
+    ? "relative aspect-[2/3] w-12 flex-shrink-0 overflow-hidden rounded-md bg-card/20 backdrop-blur-md border border-border/40 group-hover/movie:border-primary/50 group-hover/movie:bg-card/30 transition-[border-color,background-color] duration-200"
+    : "relative aspect-[2/3] w-12 flex-shrink-0 overflow-hidden rounded-md bg-muted border border-border group-hover/movie:border-primary/50 transition-colors";
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
         className="w-full sm:max-w-xl bg-background border-l border-border p-0 flex flex-col h-full gap-0"
       >
-        {/* Título oculto para accesibilidad */}
         <SheetTitle className="sr-only">
           Ranking completo: {rankingLabel}
         </SheetTitle>
 
-        {/* Header Fijo */}
-        <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/40 p-6 pb-4 transition-[background-color,border-color] duration-200" data-theme-transition>
+        <div className={headerClassName} data-theme-transition>
           <div className="flex items-start justify-between mb-6">
             <div className="space-y-1">
               <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-foreground leading-none">
@@ -119,14 +137,13 @@ export function RankingsSheet({
                 Top del ranking basado en tus calificaciones
               </p>
             </div>
-            <SheetClose className="rounded-full h-8 w-8 flex items-center justify-center bg-card/20 backdrop-blur-md border border-border/40 text-muted-foreground hover:text-foreground hover:bg-card/30 hover:border-border/60 transition-all duration-200 focus:outline-none">
+            <SheetClose className={closeButtonClassName}>
               <X className="h-4 w-4" />
             </SheetClose>
           </div>
 
-          {/* Quick Stats (Bento Style) */}
           <div className="grid grid-cols-2 gap-px bg-border border border-border/40 rounded-xl overflow-hidden shadow-2xl" data-theme-transition>
-            <div className="bg-card/20 backdrop-blur-xl p-4 flex flex-col items-center justify-center group transition-colors hover:bg-card/30" data-theme-transition>
+            <div className={statCardClassName} data-theme-transition>
               <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-1">
                 Total Películas
               </span>
@@ -134,7 +151,7 @@ export function RankingsSheet({
                 {loading ? "..." : totalMovies}
               </span>
             </div>
-            <div className="bg-card/20 backdrop-blur-xl p-4 flex flex-col items-center justify-center group transition-colors hover:bg-card/30" data-theme-transition>
+            <div className={statCardClassName} data-theme-transition>
               <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-1">
                 Promedio Rating
               </span>
@@ -148,7 +165,6 @@ export function RankingsSheet({
           </div>
         </div>
 
-        {/* Contenido con Scroll */}
         <div className="flex-1 overflow-y-auto p-6 space-y-10 custom-scrollbar">
           {loading ? (
             <SheetSkeleton />
@@ -166,10 +182,8 @@ export function RankingsSheet({
           ) : (
             data.map((item, index) => (
               <div key={item.key} className="space-y-4">
-                {/* Item Header */}
                 <div className="flex items-end justify-between border-b border-border pb-2" data-theme-transition>
                   <div className="flex items-center gap-3">
-                    {/* Avatar del director/actor - Solo para directores y actores */}
                     {showAvatar && (
                       <Avatar className="h-10 w-10 ring-2 ring-border/40">
                         {item.data.image_url && getImageUrl(item.data.image_url) ? (
@@ -197,22 +211,20 @@ export function RankingsSheet({
                       )}
                     </div>
                   </div>
-                  <Badge className="bg-card/20 backdrop-blur-md hover:bg-card/30 text-muted-foreground border-border/40 text-[10px] px-2 py-0 transition-all duration-200" data-theme-transition>
+                  <Badge className={badgeClassName} data-theme-transition>
                     {item.count} títulos
                   </Badge>
                 </div>
 
-                {/* Movie List (Vertical Compact) */}
                 <div className="space-y-2">
                   {(item.data.movies || []).map((movie: any) => (
                     <div
                       key={movie.id}
-                      className="group/movie flex items-center gap-4 p-2 rounded-lg bg-card/10 backdrop-blur-md hover:bg-card/20 transition-all cursor-pointer border border-border/30 hover:border-border/50"
+                      className={movieItemClassName}
                       data-theme-transition
                       onClick={() => handleMovieClick(movie)}
                     >
-                      {/* Thumbnail 2:3 */}
-                      <div className="relative aspect-[2/3] w-12 flex-shrink-0 overflow-hidden rounded-md bg-card/20 backdrop-blur-md border border-border/40 group-hover/movie:border-primary/50 group-hover/movie:bg-card/30 transition-[border-color,background-color] duration-200" data-theme-transition>
+                      <div className={thumbnailClassName} data-theme-transition>
                         {movie.poster_url ? (
                           <Image
                             src={movie.poster_url}
@@ -228,7 +240,6 @@ export function RankingsSheet({
                         )}
                       </div>
 
-                      {/* Info */}
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-bold text-foreground group-hover/movie:text-primary transition-colors truncate">
                           {movie.title}
@@ -245,7 +256,6 @@ export function RankingsSheet({
                         </div>
                       </div>
 
-                      {/* Rating */}
                       {movie.user_rating && (
                         <div className="flex items-center gap-1 shrink-0 bg-accent/5 px-2 py-1 rounded border border-accent/10" data-theme-transition>
                           <span className="text-xs font-black text-accent">

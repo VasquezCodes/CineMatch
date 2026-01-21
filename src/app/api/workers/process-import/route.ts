@@ -40,9 +40,7 @@ export async function POST(request: NextRequest) {
         // Loop de procesamiento: Se mantiene vivo mientras tenga tiempo (< 50s)
         while (keepProcessing) {
             const elapsedTime = Date.now() - startTime;
-            // Límite de 50s para evitar cortes abruptos de Vercel
             if (elapsedTime > 50000) {
-                console.log(`Time limit reached (${elapsedTime}ms). Stopping loop.`);
                 break;
             }
 
@@ -61,10 +59,7 @@ export async function POST(request: NextRequest) {
                 break;
             }
 
-            // Coleccionar IDs de usuarios para verificar si su importación ha finalizado
             queueItems.forEach(item => userIdsEncountered.add(item.user_id));
-
-            console.log(`Processing batch of ${queueItems.length} items... (Elapsed: ${elapsedTime}ms)`);
 
             // 3. Procesar items individualmente
             const results = await Promise.allSettled(queueItems.map(async (item) => {
@@ -114,7 +109,6 @@ export async function POST(request: NextRequest) {
 
         if (hasMore) {
             const workerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/workers/process-import`;
-            console.log(`Triggering recursion. items remaining: ${count}`);
 
             // Disparo "Fire & Forget" con AbortController para no esperar respuesta
             const controller = new AbortController();
@@ -128,8 +122,9 @@ export async function POST(request: NextRequest) {
                 });
             } catch (err: unknown) {
                 const errorName = err instanceof Error ? err.name : 'Unknown';
-                if (errorName === 'AbortError') console.log('Recursive trigger sent.');
-                else console.error('Error triggering recursion:', err);
+                if (errorName !== 'AbortError') {
+                    console.error('Error triggering recursion:', err);
+                }
             } finally {
                 clearTimeout(timeoutId);
             }
@@ -150,8 +145,6 @@ export async function POST(request: NextRequest) {
                         .update({ status: 'completed' })
                         .eq('user_id', userId)
                         .eq('status', 'processing');
-
-                    console.log(`Marked imports as completed for user: ${userId}`);
                 }
             }
         }
@@ -221,10 +214,7 @@ async function processQueueItem(supabase: any, userId: string, movie: any) {
     }
 
     if (!hasExtendedData) {
-        console.log(`Enriching missing data for: ${movie.imdb_id}`);
         await enrichMovieData(supabase, savedMovie.id, movie.imdb_id);
-    } else {
-        // console.log(`Skipping enrichment (already exists): ${movie.imdb_id}`);
     }
 }
 

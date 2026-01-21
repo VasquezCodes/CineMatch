@@ -77,11 +77,7 @@ export async function processImport(movies: CsvMovieImport[], filename: string):
         });
     }
 
-    // Filtrar películas que ya están en cola para evitar re-encolar
     const moviesToInsert = movies.filter(m => !existingImdbIds.has(m.imdb_id));
-    const duplicateCount = movies.length - moviesToInsert.length;
-
-    console.log(`Import: ${movies.length} total, ${duplicateCount} duplicados en cola, ${moviesToInsert.length} a insertar. Import ID: ${importId}`);
 
     // Encolamos todas las películas del CSV para asegurar la vinculación con este Import ID.
     // El worker maneja la idempotencia: si la película ya existe, solo crea el link en 'import_items'.
@@ -126,18 +122,17 @@ function triggerWorker(userId: string) {
     const workerUrl = `${appUrl}/api/workers/process-import`;
 
     try {
-        console.log("Activando worker:", workerUrl);
-        // LLamada asíncrona (Fire & Forget) con timeout corto
         fetch(workerUrl, {
             method: 'POST',
             headers: {
                 'x-cron-secret': process.env.CRON_SECRET || '',
                 'Content-Type': 'application/json'
             },
-            signal: AbortSignal.timeout(500) // 500ms para asegurar que la petición sale sin bloquear
+            signal: AbortSignal.timeout(500)
         }).catch(err => {
-            if (err.name === 'TimeoutError') console.log("Worker activado (timeout esperado)");
-            else console.error("Fallo al activar worker:", err);
+            if (err.name !== 'TimeoutError') {
+                console.error("Fallo al activar worker:", err);
+            }
         });
 
     } catch (e) {
@@ -193,8 +188,6 @@ export async function deleteImport(importId: string) {
 
         const protectedMovieIds = new Set(otherReferences?.map(r => r.movie_id));
         const orphanedMovieIds = movieIdsToCheck.filter(id => !protectedMovieIds.has(id));
-
-        console.log(`Eliminando import ${importId}. Huérfanos: ${orphanedMovieIds.length}. Protegidos: ${protectedMovieIds.size}`);
 
         if (orphanedMovieIds.length > 0) {
             // Eliminar huérfanos de Watchlist

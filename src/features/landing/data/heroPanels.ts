@@ -39,7 +39,7 @@ export interface HeroPanelData {
 export const heroPanels: HeroPanelData[] = [
   {
     id: 1,
-    className: "bg-background text-foreground",
+    className: "bg-transparent text-foreground",
     title: "Importa tu historial",
     description: "Sube tu archivo CSV de Letterboxd y comienza tu viaje.",
     icon: Upload,
@@ -50,7 +50,7 @@ export const heroPanels: HeroPanelData[] = [
   },
   {
     id: 2,
-    className: "bg-muted text-foreground",
+    className: "bg-transparent text-foreground",
     title: "Analiza tus gustos",
     description: "Descubre patrones ocultos en tus hábitos de visualización.",
     icon: BarChart3,
@@ -65,7 +65,7 @@ export const heroPanels: HeroPanelData[] = [
   },
   {
     id: 3,
-    className: "bg-background text-foreground",
+    className: "bg-transparent text-foreground",
     title: "Descubre joyas ocultas",
     description: "Recomendaciones personalizadas basadas en lo que amas.",
     icon: Sparkles,
@@ -80,7 +80,7 @@ export const heroPanels: HeroPanelData[] = [
   },
   {
     id: 4,
-    className: "bg-card text-card-foreground border-t border-border",
+    className: "bg-card/30 backdrop-blur-md text-card-foreground border-t border-border/50",
     title: "Únete a CineMatch",
     description: "Tu compañero definitivo para el descubrimiento de películas.",
     icon: Sparkles,
