@@ -15,7 +15,8 @@
       "Bash(npm run build:*)",
       "Bash(npm install:*)",
       "Bash(wc:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(pnpm exec tsc:*)"
     ]
   }
 }

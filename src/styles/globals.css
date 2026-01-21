@@ -272,4 +272,19 @@ body {
       transform: translateX(0);
     }
   }
+
+  @keyframes slide-in-line {
+    0% {
+      transform: scaleX(0);
+    }
+
+    100% {
+      transform: scaleX(1);
+    }
+  }
+
+  .animate-slide-in-line {
+    animation: slide-in-line 0.8s ease-out forwards;
+    transform-origin: left;
+  }
 }
