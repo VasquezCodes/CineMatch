@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import {
   Upload,
   FileText,
@@ -38,6 +39,7 @@ export function UploadWatchlistForm({
   maxSizeMB = 10,
   className,
 }: UploadWatchlistFormProps) {
+  const router = useRouter();
   const [status, setStatus] = React.useState<UploadStatus>("idle");
   const [file, setFile] = React.useState<File | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -263,7 +265,7 @@ export function UploadWatchlistForm({
             >
               <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:justify-center">
                 <AlertDialogAction
-                  onClick={() => (window.location.href = APP_ROUTES.ANALYSIS)}
+                  onClick={() => router.push(APP_ROUTES.ANALYSIS)}
                 >
                   Ver análisis
                 </AlertDialogAction>

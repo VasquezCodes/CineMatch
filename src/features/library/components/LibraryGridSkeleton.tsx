@@ -27,40 +27,35 @@ export function LibraryGridSkeleton() {
 
       {/* Grid skeleton - matching MovieCard dimensions */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <Card key={i} className="overflow-hidden">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <Card key={i} className="overflow-hidden border-border/40 shadow-sm">
             <div className="flex h-52 sm:h-48">
-              {/* Poster skeleton - matches w-28 sm:w-32 */}
-              <Skeleton className="w-28 sm:w-32 flex-shrink-0 rounded-none" />
+              {/* Poster skeleton */}
+              <Skeleton className="w-28 sm:w-32 h-full shrink-0 rounded-none bg-muted" />
 
-              {/* Content skeleton */}
-              <div className="flex flex-col flex-1 p-4 min-w-0">
-                {/* Year + Rating row */}
+              <div className="flex-1 flex flex-col p-4 min-w-0">
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <div className="flex items-center gap-1.5">
-                    <Skeleton className="h-3 w-10" />
-                    <Skeleton className="h-3 w-8" />
+                    <Skeleton className="h-3 w-8" /> {/* Rating */}
+                    <Skeleton className="h-3 w-10" /> {/* Year */}
                   </div>
+                  <Skeleton className="h-7 w-7 rounded-md" /> {/* Info button */}
                 </div>
 
-                {/* Title */}
-                <Skeleton className="h-5 w-full" />
+                <Skeleton className="h-4 w-[80%] mb-2" /> {/* Title */}
 
-                {/* Synopsis */}
-                <div className="space-y-1 mt-1.5">
-                  <Skeleton className="h-3 w-full" />
-                  <Skeleton className="h-3 w-3/4" />
+                <div className="space-y-1.5 mb-2">
+                  <Skeleton className="h-3 w-full" /> {/* Overview line 1 */}
+                  <Skeleton className="h-3 w-[90%]" /> {/* Overview line 2 */}
                 </div>
 
-                {/* Genres */}
-                <div className="flex gap-1 mt-2">
-                  <Skeleton className="h-4 w-14" />
-                  <Skeleton className="h-4 w-14" />
+                <div className="flex gap-1 mb-2">
+                  <Skeleton className="h-4 w-12 rounded-full" />
+                  <Skeleton className="h-4 w-12 rounded-full" />
                 </div>
 
-                {/* Button */}
                 <div className="mt-auto pt-3">
-                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full rounded-md" /> {/* Cualificar button */}
                 </div>
               </div>
             </div>

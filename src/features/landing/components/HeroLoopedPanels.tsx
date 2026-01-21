@@ -1,13 +1,9 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { heroPanels } from "../data/heroPanels";
-
-gsap.registerPlugin(ScrollTrigger);
 
 export function HeroLoopedPanels() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -24,80 +20,93 @@ export function HeroLoopedPanels() {
     const panelInners = panelInnersRef.current.filter(Boolean);
     if (!container || panels.length === 0 || panelInners.length === 0) return;
 
-    const ctx = gsap.context(() => {
-      const steps = Math.max(1, panels.length - 1);
-      const timeline = gsap.timeline({
-        defaults: { ease: "none" },
-        scrollTrigger: {
-          trigger: container,
-          start: "top top",
-          end: () => `+=${steps * window.innerHeight}`,
-          scrub: 1,
-          pin: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          snap: {
-            snapTo: (value) => Math.round(value * steps) / steps,
-            duration: { min: 0.18, max: 0.38 },
-            delay: 0.03,
-            ease: "power2.out",
-          },
-        },
-      });
+    // Lazy load GSAP solo cuando se necesite (no mobile, no prefers-reduced-motion)
+    let cleanup: (() => void) | null = null;
 
-      panelInners.forEach((inner, index) => {
-        if (index > 0) {
-          gsap.set(inner, {
-            opacity: 0,
-            y: 16,
-            scale: 0.98,
+    import("gsap").then(({ gsap }) => {
+      return import("gsap/ScrollTrigger").then(({ ScrollTrigger }) => {
+        gsap.registerPlugin(ScrollTrigger);
+
+        const ctx = gsap.context(() => {
+          const steps = Math.max(1, panels.length - 1);
+          const timeline = gsap.timeline({
+            defaults: { ease: "none" },
+            scrollTrigger: {
+              trigger: container,
+              start: "top top",
+              end: () => `+=${steps * window.innerHeight}`,
+              scrub: 1,
+              pin: true,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+              snap: {
+                snapTo: (value) => Math.round(value * steps) / steps,
+                duration: { min: 0.18, max: 0.38 },
+                delay: 0.03,
+                ease: "power2.out",
+              },
+            },
           });
-        }
+
+          panelInners.forEach((inner, index) => {
+            if (index > 0) {
+              gsap.set(inner, {
+                opacity: 0,
+                y: 16,
+                scale: 0.98,
+              });
+            }
+          });
+
+          panelInners.forEach((inner, index) => {
+            if (index < panelInners.length - 1) {
+              const nextInner = panelInners[index + 1];
+              const transitionDuration = 0.5;
+              const transitionEnd = index + 1;
+              const transitionStart = transitionEnd - transitionDuration;
+
+              timeline.to(
+                inner,
+                {
+                  opacity: 0,
+                  y: -16,
+                  scale: 0.98,
+                  duration: transitionDuration,
+                },
+                transitionStart
+              );
+
+              timeline.to(
+                nextInner,
+                {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  duration: transitionDuration,
+                },
+                transitionStart
+              );
+            }
+          });
+
+          ScrollTrigger.refresh();
+        }, container);
+
+        const onResize = () => {
+          ScrollTrigger.refresh();
+        };
+
+        window.addEventListener("resize", onResize);
+
+        cleanup = () => {
+          window.removeEventListener("resize", onResize);
+          ctx.revert();
+        };
       });
-
-      panelInners.forEach((inner, index) => {
-        if (index < panelInners.length - 1) {
-          const nextInner = panelInners[index + 1];
-          const transitionDuration = 0.5;
-          const transitionEnd = index + 1;
-          const transitionStart = transitionEnd - transitionDuration;
-
-          timeline.to(
-            inner,
-            {
-              opacity: 0,
-              y: -16,
-              scale: 0.98,
-              duration: transitionDuration,
-            },
-            transitionStart
-          );
-
-          timeline.to(
-            nextInner,
-            {
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              duration: transitionDuration,
-            },
-            transitionStart
-          );
-        }
-      });
-
-      ScrollTrigger.refresh();
-    }, container);
-
-    const onResize = () => {
-      ScrollTrigger.refresh();
-    };
-
-    window.addEventListener("resize", onResize);
+    });
 
     return () => {
-      window.removeEventListener("resize", onResize);
-      ctx.revert();
+      if (cleanup) cleanup();
     };
   }, []);
 

@@ -47,7 +47,7 @@ const motionComponents = {
   header: motion.header,
 } as const;
 
-export function TextRevealGroup({
+export const TextRevealGroup = React.memo(function TextRevealGroup({
   as = "div",
   className,
   children,
@@ -86,4 +86,4 @@ export function TextRevealGroup({
       })}
     </Component>
   );
-}
+});

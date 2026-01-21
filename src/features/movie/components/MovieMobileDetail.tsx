@@ -91,7 +91,7 @@ export function MovieMobileDetail({ movie }: MovieMobileDetailProps) {
                       alt={movie.title}
                       fill
                       className="object-cover"
-                      sizes="130px"
+                      sizes="(max-width: 640px) 110px, 130px"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-muted">
