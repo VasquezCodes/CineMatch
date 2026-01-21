@@ -139,7 +139,8 @@ export async function getLibraryPaginated(
     // 3. Ordenamiento (Columnas planas de la vista)
     switch (filters.sortBy) {
       case "title":
-        query = query.order("title", { ascending: true });
+        // Usamos la columna calculada sort_title para que las letras aparezcan antes que números/símbolos
+        query = query.order("sort_title", { ascending: true });
         break;
       case "year":
         query = query.order("year", { ascending: false });
