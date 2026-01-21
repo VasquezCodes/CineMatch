@@ -44,7 +44,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
       </div>
 
       {/* Main Content Container - sube para superponerse al backdrop */}
-      <div className="relative md:-mt-48 lg:-mt-56">
+      <div className="relative md:-mt-84 lg:-mt-[28rem]">
         <Container className="relative pt-0 pb-16">
           <div className="grid grid-cols-1 gap-8 items-start">
             {/* MOBILE ONLY: Extracted to MovieMobileDetail component */}
@@ -80,8 +80,8 @@ export default async function MovieDetailPage({ params }: PageProps) {
                 )}
               </div>
 
-              {/* Columna Derecha: Información Principal */}
-              <div className="flex flex-col space-y-6">
+              {/* Columna Derecha: Información Principal (Baja respecto al poster) */}
+              <div className="flex flex-col space-y-6 md:mt-28 lg:mt-40">
                 <div className="space-y-4">
                   {/* Título y Año */}
                   <div className="space-y-2">

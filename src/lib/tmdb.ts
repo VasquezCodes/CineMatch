@@ -214,12 +214,12 @@ export class TmdbClient {
                 .sort((a, b) => b.vote_count - a.vote_count);
 
             if (sorted[0]?.file_path) {
-                return `${TMDB_IMAGE_BASE_URL}/w1280${sorted[0].file_path}`;
+                return `${TMDB_IMAGE_BASE_URL}/original${sorted[0].file_path}`;
             }
         }
 
         // Si no hay match, usar backdrop_path por defecto
-        return fallbackPath ? `${TMDB_IMAGE_BASE_URL}/w1280${fallbackPath}` : null;
+        return fallbackPath ? `${TMDB_IMAGE_BASE_URL}/original${fallbackPath}` : null;
     }
 
     /**

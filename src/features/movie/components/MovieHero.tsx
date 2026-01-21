@@ -35,10 +35,10 @@ export function MovieBackdrop({
 
       {/* Backdrop Image - Full width */}
       {backdropUrl && backdropUrl !== "" && (
-        <div className="relative w-full h-[480px] lg:h-[580px] xl:h-[650px]">
+        <div className="relative w-full h-[480px] lg:h-[680px] xl:h-[780px]">
           {/* Imagen principal - llena todo el espacio */}
           <Image
-            src={backdropUrl}
+            src={backdropUrl?.replace('/w1280/', '/original/')}
             alt={`Backdrop de ${title}`}
             fill
             className="object-cover object-center"
