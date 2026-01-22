@@ -3,12 +3,14 @@ import { Film, Bookmark, Star, Clock } from "lucide-react";
 import { PersonLink } from "@/components/shared/PersonLink";
 import { MovieBackButton } from "./MovieBackButton";
 import type { MovieDetail } from "../actions";
-
+import { QualificationSelector } from "@/features/qualifications/components";
+import type { QualityCategoryWithSelection } from "@/features/qualifications/types";
 type MovieMobileDetailProps = {
   movie: MovieDetail;
+  qualifications: QualityCategoryWithSelection[];
 };
 
-export function MovieMobileDetail({ movie }: MovieMobileDetailProps) {
+export function MovieMobileDetail({ movie, qualifications }: MovieMobileDetailProps) {
   const technical = movie.extended_data?.technical;
 
   // Detectar si la película aún no se ha estrenado
@@ -185,6 +187,11 @@ export function MovieMobileDetail({ movie }: MovieMobileDetailProps) {
           </div>
         </div>
       )}
+
+      {/* ==================== CUALIFICACIONES ==================== */}
+      <div className="px-4 sm:px-6 mt-8 pt-6 border-t border-border/30 bg-background">
+        <QualificationSelector movieId={movie.id} categories={qualifications} />
+      </div>
 
       {/* Padding inferior */}
       <div className="h-8 bg-background" />
