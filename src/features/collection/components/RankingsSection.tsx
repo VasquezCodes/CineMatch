@@ -7,10 +7,11 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ChevronDown, ChevronUp, TrendingUp, LayoutGrid, BarChart3 } from "lucide-react";
-import { RankingCard } from "./RankingCard";
-import { RankingsSheet } from "./RankingsSheet";
+import { RankingCard } from "@/components/shared/RankingCard";
+import { RankingsSheet } from "@/components/shared/RankingsSheet";
 import { RankingsChartsView } from "@/features/rankings/components/RankingsChartsView";
-import { getRanking, type RankingType } from "@/features/rankings/actions";
+import { useRankings } from "@/features/rankings/hooks/useRankings";
+import { type RankingType } from "@/features/rankings/actions";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "cards" | "charts";
@@ -36,64 +37,18 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [sheetRankingType, setSheetRankingType] = React.useState<RankingType>("director");
 
-  const [data, setData] = React.useState<Record<RankingType, any[] | undefined>>({
-    director: undefined,
-    actor: undefined,
-    genre: undefined,
-    year: undefined,
-    screenplay: undefined,
-    photography: undefined,
-    music: undefined,
-  });
-  const [loading, setLoading] = React.useState<Record<RankingType, boolean>>({
-    director: false, // Cambiado a false, la lógica manejará la carga inicial
-    actor: false,
-    genre: false,
-    year: false,
-    screenplay: false,
-    photography: false,
-    music: false,
-  });
-  const [error, setError] = React.useState<string | null>(null);
+  // React Query hook - lazy loading + caching automático de 5 minutos
+  const { data: rawData, isLoading, error } = useRankings(
+    userId,
+    activeTab,
+    { minRating: 1, limit: 20 },
+    !isCollapsed // Solo fetch cuando no está colapsado
+  );
 
-
-
-  // Cargar datos del tab activo
-  React.useEffect(() => {
-    if (isCollapsed) return; // No cargar si está colapsado
-
-    const loadRankingData = async () => {
-      // Si ya hay datos o estamos cargando, no recargar
-      if (data[activeTab] !== undefined || loading[activeTab]) return;
-
-      setLoading((prev) => ({ ...prev, [activeTab]: true }));
-      setError(null);
-
-      try {
-        // Siempre cargamos 20 items para garantizar consistencia en el ordenamiento
-        // (ya que el DB puede devolver items diferentes si hay empates en count)
-        const limit = 20;
-        const result = await getRanking(userId, activeTab, {
-          minRating: 1,
-          limit,
-        });
-        setData((prev) => ({ ...prev, [activeTab]: result }));
-      } catch (err) {
-        console.error("Error loading ranking data:", err);
-        setError("Error al cargar los rankings. Intenta nuevamente.");
-      } finally {
-        setLoading((prev) => ({ ...prev, [activeTab]: false }));
-      }
-    };
-
-    loadRankingData();
-  }, [activeTab, userId, data, isCollapsed, loading]);
-
-  const rawData = data[activeTab] || [];
   const displayLimit = viewMode === "charts" ? 10 : 5;
-  const currentData = rawData.slice(0, displayLimit);
-  const isLoading = loading[activeTab];
+  const currentData = (rawData || []).slice(0, displayLimit);
   const currentLabel = RANKING_TYPES.find((t) => t.value === activeTab)?.label || "";
+
 
   const handleViewMore = (type: RankingType) => {
     setSheetRankingType(type);
@@ -189,7 +144,7 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
                     data={currentData}
                     type={type.value}
                     isLoading={isLoading && type.value === activeTab}
-                    error={error}
+                    error={error?.message || null}
                   />
                 ) : (
                   <>
@@ -198,7 +153,7 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
                     ) : error ? (
                       <ErrorState
                         title="Error al cargar rankings"
-                        description={error}
+                        description={error.message}
                       />
                     ) : currentData.length === 0 ? (
                       <EmptyState
@@ -217,6 +172,7 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
                               type={type.value}
                               onViewMore={() => handleViewMore(type.value)}
                               compact
+                              variant="collection"
                             />
                           ))}
                         </div>
@@ -250,6 +206,7 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
         userId={userId}
         rankingType={sheetRankingType}
         rankingLabel={currentLabel}
+        variant="collection"
       />
     </>
   );

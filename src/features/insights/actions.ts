@@ -9,6 +9,8 @@ export type AnalysisData = {
     ratingDistribution: Record<number, number>
 }
 
+// NOTA: No podemos usar unstable_cache aquí porque createClient() usa cookies()
+// internamente. Para caching, usar React Query en el cliente.
 export async function getAnalysisData(): Promise<AnalysisData> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -17,9 +19,7 @@ export async function getAnalysisData(): Promise<AnalysisData> {
         throw new Error('Usuario no autenticado')
     }
 
-    // 1. Obtener Watchlist (Biblioteca) con detalles de las películas y user_rating
-    // OPTIMIZACIÓN: Solo traemos 'genres', ya no 'extended_data' completo.
-    // Esto reduce drásticamente el tamaño de la respuesta y el tiempo de carga.
+    // Obtener Watchlist con géneros
     const { data: library, error: libraryError } = await supabase
         .from('watchlists')
         .select(`
@@ -35,36 +35,26 @@ export async function getAnalysisData(): Promise<AnalysisData> {
         throw new Error('Error al obtener datos de la biblioteca')
     }
 
-    // --- Cálculos Básicos ---
     const totalMovies = library?.length || 0
-
-    // Distribución por Géneros
     const genreDistribution: Record<string, number> = {}
-
-    // Distribución de Ratings y Promedio
     const ratingDistribution: Record<number, number> = {}
     let totalRatingSum = 0
     let totalRatedMovies = 0
 
-    library?.forEach(item => {
-        // 1. Procesar Géneros
+    library?.forEach((item: { user_rating: number | null; movies: { genres: string[] | null } | { genres: string[] | null }[] | null }) => {
         const movieData = item.movies
         const movie = Array.isArray(movieData) ? movieData[0] : movieData
 
         if (movie) {
             let genres: string[] = []
-
             if (movie.genres && Array.isArray(movie.genres)) {
-                // Filtramos strings válidos
-                genres = movie.genres.map((g: any) => typeof g === 'string' ? g : '').filter(Boolean)
+                genres = movie.genres.map((g: unknown) => typeof g === 'string' ? g : '').filter(Boolean)
             }
-
             genres.forEach(genre => {
                 genreDistribution[genre] = (genreDistribution[genre] || 0) + 1
             })
         }
 
-        // 2. Procesar Ratings (usando user_rating del watchlist)
         const rating = item.user_rating
         if (typeof rating === 'number' && rating > 0) {
             const bucket = Math.round(rating)

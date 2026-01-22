@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -16,6 +16,7 @@ import {
 import { MovieCard } from "./MovieCard";
 import { LibraryFilters } from "./LibraryFilters";
 import type { PaginatedLibraryResult } from "../types";
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface LibraryGridProps {
   initialData: PaginatedLibraryResult;
@@ -32,15 +33,41 @@ export function LibraryGrid({ initialData, totalMovies }: LibraryGridProps) {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  // Estado de filtros
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "recent");
-  const [filterRating, setFilterRating] = useState(searchParams.get("rating") || "all");
+  // Leer valores directamente de URL (single source of truth)
+  const queryFromUrl = searchParams.get("search") || "";
+  const sortBy = searchParams.get("sort") || "recent";
+  const filterRating = searchParams.get("rating") || "all";
+
+  // Estado local para el input de búsqueda (inmediato)
+  const [searchTerm, setSearchTerm] = useState(queryFromUrl);
+  // Valor debounced para actualizar la URL
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Referencia para trackear el último término que nosotros empujamos a la URL
+  // Esto ayuda a distinguir cambios externos (back/forward) de nuestros propios cambios
+  const lastPushedTerm = useRef(queryFromUrl);
+
+  // Sincronizar estado local con URL con protecciones contra race conditions
+  useEffect(() => {
+    // 1. Si estamos en medio de una transición (navegación), no sincronizar
+    // Esto evita revertir el input mientras se procesa la búsqueda
+    if (isPending) return;
+
+    // 2. Si el usuario está escribiendo (estado sucio), no sobrescribir
+    // searchTerm != debouncedSearchTerm significa que hay cambios pendientes de debounce
+    if (searchTerm !== debouncedSearchTerm) return;
+
+    // 3. Si la URL coincide con lo que acabamos de empujar, es nuestro propio cambio
+    // No necesitamos actualizar el estado local (ya lo tiene)
+    if (queryFromUrl === lastPushedTerm.current) return;
+
+    setSearchTerm(queryFromUrl);
+  }, [queryFromUrl, debouncedSearchTerm, searchTerm, isPending]);
 
   // Función para actualizar URL con nuevos parámetros
   const updateFilters = (params: Record<string, string>) => {
     const newParams = new URLSearchParams(searchParams.toString());
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (value && value !== "all") {
         newParams.set(key, value);
@@ -57,25 +84,32 @@ export function LibraryGrid({ initialData, totalMovies }: LibraryGridProps) {
     });
   };
 
+  // Efecto para aplicar el filtro de búsqueda cuando cambia el valor debounced
+  useEffect(() => {
+    // Solo actualizar si el valor debounced es diferente al de la URL
+    if (debouncedSearchTerm !== queryFromUrl) {
+      lastPushedTerm.current = debouncedSearchTerm;
+      updateFilters({ search: debouncedSearchTerm, sort: sortBy, rating: filterRating });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchTerm]);
+
   const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    updateFilters({ search: value, sort: sortBy, rating: filterRating });
+    setSearchTerm(value);
   };
 
   const handleSortChange = (value: string) => {
-    setSortBy(value);
-    updateFilters({ search: searchQuery, sort: value, rating: filterRating });
+    updateFilters({ search: debouncedSearchTerm, sort: value, rating: filterRating });
   };
 
   const handleRatingFilterChange = (value: string) => {
-    setFilterRating(value);
-    updateFilters({ search: searchQuery, sort: sortBy, rating: value });
+    updateFilters({ search: debouncedSearchTerm, sort: sortBy, rating: value });
   };
 
   const handlePageChange = (page: number) => {
     const newParams = new URLSearchParams(searchParams.toString());
     newParams.set("page", page.toString());
-    
+
     startTransition(() => {
       router.push(`?${newParams.toString()}`);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -122,7 +156,7 @@ export function LibraryGrid({ initialData, totalMovies }: LibraryGridProps) {
     <div className="space-y-6">
       {/* Filtros */}
       <LibraryFilters
-        searchQuery={searchQuery}
+        searchQuery={searchTerm}
         sortBy={sortBy}
         filterRating={filterRating}
         onSearchChange={handleSearchChange}
@@ -149,7 +183,7 @@ export function LibraryGrid({ initialData, totalMovies }: LibraryGridProps) {
           icon={<Search className="h-12 w-12" />}
           title="No se encontraron películas"
           description={
-            searchQuery || filterRating !== "all"
+            queryFromUrl || filterRating !== "all"
               ? "Intenta ajustar los filtros de búsqueda"
               : "Aún no has importado películas"
           }
@@ -157,9 +191,8 @@ export function LibraryGrid({ initialData, totalMovies }: LibraryGridProps) {
       ) : (
         <>
           <div
-            className={`grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 ${
-              isPending ? "opacity-50 pointer-events-none" : ""
-            }`}
+            className={`grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 ${isPending ? "opacity-50 pointer-events-none" : ""
+              }`}
           >
             {items.map((item) => (
               <MovieCard key={item.watchlist.id} item={item} />

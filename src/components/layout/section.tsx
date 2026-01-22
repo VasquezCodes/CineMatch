@@ -1,8 +1,6 @@
-"use client";
-
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { TextRevealGroup } from "@/components/animations/TextRevealGroup";
+import { PageHeaderAnimated } from "./page-header-animated";
 
 /* ========================================
    Section
@@ -29,6 +27,10 @@ export interface SectionProps {
    * Clases adicionales
    */
   className?: string;
+  /**
+   * Deshabilitar animaciones para mejor performance
+   */
+  disableAnimations?: boolean;
 }
 
 /**
@@ -49,23 +51,34 @@ export function Section({
   actions,
   children,
   className,
+  disableAnimations = false,
 }: SectionProps) {
+  const headerContent = (
+    <>
+      {title && (
+        <h2 className="text-xl font-semibold tracking-tight text-foreground">
+          {title}
+        </h2>
+      )}
+      {description && (
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {description}
+        </p>
+      )}
+    </>
+  );
+
   return (
     <section className={cn("space-y-4", className)}>
       {(title || description || actions) && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <TextRevealGroup as="div" className="space-y-1 flex-1">
-            {title && (
-              <h2 className="text-xl font-semibold tracking-tight text-foreground">
-                {title}
-              </h2>
-            )}
-            {description && (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {description}
-              </p>
-            )}
-          </TextRevealGroup>
+          {disableAnimations ? (
+            <div className="space-y-1 flex-1">{headerContent}</div>
+          ) : (
+            <PageHeaderAnimated className="space-y-1 flex-1">
+              {headerContent}
+            </PageHeaderAnimated>
+          )}
           {actions && (
             <div className="flex items-center gap-2 sm:flex-shrink-0">
               {actions}

@@ -5,6 +5,7 @@ import type { LibraryItem, LibraryFiltersState, PaginatedLibraryResult } from ".
 
 const DEFAULT_PAGE_SIZE = 12;
 
+
 // Tipo para filas de la vista user_library_view
 type UserLibraryViewRow = {
   watchlist_id: string;
@@ -138,7 +139,8 @@ export async function getLibraryPaginated(
     // 3. Ordenamiento (Columnas planas de la vista)
     switch (filters.sortBy) {
       case "title":
-        query = query.order("title", { ascending: true });
+        // Usamos la columna calculada sort_title para que las letras aparezcan antes que números/símbolos
+        query = query.order("sort_title", { ascending: true });
         break;
       case "year":
         query = query.order("year", { ascending: false });
@@ -207,6 +209,7 @@ export async function getLibraryPaginated(
 
 /**
  * Obtiene las películas mejor calificadas del usuario (top N)
+ * NOTA: No usamos unstable_cache porque createClient() usa cookies()
  */
 export async function getTopRatedMovies(
   limit: number = 6
@@ -223,13 +226,9 @@ export async function getTopRatedMovies(
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      return {
-        data: null,
-        error: "Usuario no autenticado",
-      };
+      return { data: null, error: "Usuario no autenticado" };
     }
 
-    // Usamos la VISTA 'user_library_view' para coherencia y acceso a todos los campos
     const { data: viewData, error: viewError } = await supabase
       .from("user_library_view")
       .select("*")
@@ -240,30 +239,17 @@ export async function getTopRatedMovies(
 
     if (viewError) {
       console.error("Error fetching top rated movies from view:", viewError);
-      return {
-        data: null,
-        error: "Error al obtener películas destacadas",
-      };
+      return { data: null, error: "Error al obtener películas destacadas" };
     }
 
     if (!viewData || viewData.length === 0) {
-      return {
-        data: [],
-        error: null,
-      };
+      return { data: [], error: null };
     }
 
     const items: LibraryItem[] = (viewData as UserLibraryViewRow[]).map(mapRowToLibraryItem);
-
-    return {
-      data: items,
-      error: null,
-    };
+    return { data: items, error: null };
   } catch (error) {
     console.error("Error in getTopRatedMovies:", error);
-    return {
-      data: null,
-      error: "Error inesperado al obtener películas destacadas",
-    };
+    return { data: null, error: "Error inesperado al obtener películas destacadas" };
   }
 }

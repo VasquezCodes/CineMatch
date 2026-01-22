@@ -162,7 +162,6 @@ export class TmdbClient {
                 if (res.status === 429) {
                     const retryAfter = parseInt(res.headers.get('Retry-After') || '1', 10);
                     const backoffMs = Math.max(retryAfter * 1000, INITIAL_BACKOFF_MS * Math.pow(2, attempt));
-                    console.warn(`[TMDB] Rate limited. Retry ${attempt + 1}/${MAX_RETRIES} after ${backoffMs}ms`);
                     await sleep(backoffMs);
                     continue;
                 }
@@ -178,9 +177,7 @@ export class TmdbClient {
                     console.error('TMDb Fetch Exception (all retries exhausted):', error);
                     return null;
                 }
-                // Retry on network errors
                 const backoffMs = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
-                console.warn(`[TMDB] Network error. Retry ${attempt + 1}/${MAX_RETRIES} after ${backoffMs}ms`);
                 await sleep(backoffMs);
             }
         }
@@ -217,12 +214,12 @@ export class TmdbClient {
                 .sort((a, b) => b.vote_count - a.vote_count);
 
             if (sorted[0]?.file_path) {
-                return `${TMDB_IMAGE_BASE_URL}/w1280${sorted[0].file_path}`;
+                return `${TMDB_IMAGE_BASE_URL}/original${sorted[0].file_path}`;
             }
         }
 
         // Si no hay match, usar backdrop_path por defecto
-        return fallbackPath ? `${TMDB_IMAGE_BASE_URL}/w1280${fallbackPath}` : null;
+        return fallbackPath ? `${TMDB_IMAGE_BASE_URL}/original${fallbackPath}` : null;
     }
 
     /**
@@ -236,7 +233,6 @@ export class TmdbClient {
         });
 
         if (!findRes || !findRes.movie_results?.[0]) {
-            // console.warn(`Película no encontrada para IMDb ID: ${imdbId}`);
             return null;
         }
 

@@ -13,11 +13,10 @@ type MovieBackdropProps = {
 
 /**
  * MovieBackdrop
- * Componente full-width con backdrop de película estilo Letterboxd.
- * - Altura dinámica basada en el contenido
- * - Backdrop absoluto que escapa del container (100vw)
- * - Gradientes cinematográficos multi-capa con vignette lateral
- * - Contenido interno respeta el Container max-w-7xl
+ * Componente estilo Letterboxd con backdrop de película.
+ * - Imagen full-width con object-cover (llena todo el espacio)
+ * - Vignettes laterales fuertes que ocultan los bordes
+ * - Gradiente inferior para transición al contenido
  */
 export function MovieBackdrop({
   backdropUrl,
@@ -25,58 +24,67 @@ export function MovieBackdrop({
   children,
   className,
 }: MovieBackdropProps) {
+  // Color de fondo igual que la página
+  const bgColor = "hsl(var(--background))";
+
   return (
     <div className={cn(
-      // En mobile: sin altura fija, solo muestra el botón "Volver"
-      // En desktop/tablet: altura fija con backdrop hero
-      "relative w-full md:h-[650px] overflow-hidden bg-background",
+      "relative w-full overflow-hidden bg-background",
       className
     )}>
-      {/* Backdrop Image Container - SOLO EN DESKTOP/TABLET */}
-      {backdropUrl && backdropUrl !== "" && (
-        <>
-          {/* Layer 1: Ambient Glow (The immersive "Pro" background) */}
-          <div className="hidden md:block absolute inset-0 z-0 overflow-hidden">
-            <Image
-              src={backdropUrl}
-              alt=""
-              fill
-              className="object-cover blur-[100px] md:blur-[150px] opacity-50 scale-110 saturate-[1.6] brightness-[0.7] dark:brightness-[0.4]"
-              priority
-            />
-          </div>
 
-          {/* Layer 2: Main sharp image with immersive fade edges & Grain */}
-          <div className="hidden md:flex absolute inset-0 z-[1] items-center justify-center">
-            <div className="relative w-full h-full bg-noise">
-              <Image
-                src={backdropUrl}
-                alt={`Backdrop de ${title}`}
-                fill
-                className="object-cover object-top md:object-center brightness-[1] saturate-[1.1] dark:brightness-[0.85] dark:saturate-100 transition-all duration-1000"
-                style={{
-                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
-                }}
-                priority
-                quality={100}
-              />
-              
-              {/* Extra gradient overlays for seamless integration and readability */}
-               <div
-                 className="absolute inset-0"
-                 style={{
-                   background: 'linear-gradient(to bottom, transparent 0%, transparent 50%, hsl(var(--background) / 0.3) 75%, hsl(var(--background) / 0.7) 90%, hsl(var(--background)) 100%)'
-                 }}
-               />
-               <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-transparent" />
-            </div>
-          </div>
-        </>
+      {/* Backdrop Image - Full width */}
+      {backdropUrl && backdropUrl !== "" && (
+        <div className="relative w-full h-[480px] lg:h-[680px] xl:h-[780px]">
+          {/* Imagen principal - llena todo el espacio */}
+          <Image
+            src={backdropUrl?.replace('/w1280/', '/original/')}
+            alt={`Backdrop de ${title}`}
+            fill
+            className="object-cover object-center"
+            priority
+            quality={90}
+            sizes="100vw"
+          />
+
+          {/* === VIGNETTES FUERTES ESTILO LETTERBOXD === */}
+
+          {/* Vignette izquierdo - más ancho y fuerte */}
+          <div
+            className="absolute inset-y-0 left-0 w-[25%] pointer-events-none"
+            style={{
+              background: `linear-gradient(to right, ${bgColor} 0%, ${bgColor} 20%, transparent 100%)`
+            }}
+          />
+
+          {/* Vignette derecho - más ancho y fuerte */}
+          <div
+            className="absolute inset-y-0 right-0 w-[25%] pointer-events-none"
+            style={{
+              background: `linear-gradient(to left, ${bgColor} 0%, ${bgColor} 20%, transparent 100%)`
+            }}
+          />
+
+          {/* Gradiente inferior - más suave y largo */}
+          <div
+            className="absolute inset-x-0 bottom-0 h-[50%] pointer-events-none"
+            style={{
+              background: `linear-gradient(to top, ${bgColor} 0%, ${bgColor} 30%, transparent 100%)`
+            }}
+          />
+
+          {/* Gradiente superior suave para el navbar */}
+          <div
+            className="absolute inset-x-0 top-0 h-20 pointer-events-none"
+            style={{
+              background: `linear-gradient(to bottom, ${bgColor} 0%, transparent 100%)`
+            }}
+          />
+        </div>
       )}
 
-      {/* Contenido dentro de la caja */}
-      <div className="relative z-10 w-full h-full pt-4 md:pt-16 pb-4">
+      {/* Contenido (botón volver) - posicionado absolutamente sobre el backdrop */}
+      <div className="absolute top-0 left-0 right-0 z-10 pt-4 md:pt-8">
         <Container>
           {children}
         </Container>

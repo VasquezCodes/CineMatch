@@ -6,81 +6,105 @@ import { Container } from '@/components/layout';
  * Replica la estructura y gradientes del componente real para consistencia visual
  */
 function MovieHeroSkeleton() {
+    // Definimos el color de fondo dinámicamente para usar en gradientes manuales
+    const bgColor = "hsl(var(--background))";
+
     return (
         <div className="relative w-full min-h-[500px] sm:min-h-[550px] md:min-h-[600px] -mt-14">
             {/* Fondo simulando backdrop con gradientes cinematográficos adaptativos */}
-            <div className="absolute inset-0 w-screen left-1/2 -translate-x-1/2 overflow-hidden">
-                {/* Fondo base sutil - casi transparente */}
-                <div className="absolute inset-0 z-0 bg-gradient-to-br from-muted/20 via-muted/30 to-muted/40" />
+            <div className="absolute inset-0 w-screen left-1/2 -translate-x-1/2 overflow-hidden bg-background">
+                {/* Fondo base sutil */}
+                <div className="absolute inset-0 z-0 bg-muted/20" />
 
-                {/* Bottom fade - fundido hacia el fondo (igual que MovieBackdrop) */}
-                <div className="absolute inset-0 z-[1]
-                               dark:bg-gradient-to-b dark:from-transparent dark:via-black/40 dark:to-background
-                               bg-gradient-to-b from-transparent via-black/20 to-background" />
+                {/* === VIGNETTES ADAPTATIVAS (Mismo estilo que MovieHero) === */}
 
-                {/* Top vignette - oscurecimiento superior para navbar legible */}
-                <div className="absolute inset-0 z-[1]
-                               bg-gradient-to-t from-transparent via-transparent to-black/40" />
-
-                {/* Lateral vignette - vignette radial para enfoque central */}
+                {/* Vignette superior suave para el navbar */}
                 <div
-                    className="absolute inset-0 z-[1]"
+                    className="absolute inset-x-0 top-0 h-20 z-[1] pointer-events-none"
                     style={{
-                        background:
-                            "radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(0,0,0,0.2) 70%, rgba(0,0,0,0.5) 100%)",
+                        background: `linear-gradient(to bottom, ${bgColor} 0%, transparent 100%)`
                     }}
                 />
 
-                {/* Overlay sutil para contraste del texto - solo dark mode */}
-                <div className="absolute inset-0 z-[1] dark:bg-black/20 bg-transparent" />
+                {/* Vignette lateral izquierdo */}
+                <div
+                    className="absolute inset-y-0 left-0 w-[25%] z-[1] pointer-events-none"
+                    style={{
+                        background: `linear-gradient(to right, ${bgColor} 0%, ${bgColor} 20%, transparent 100%)`
+                    }}
+                />
+
+                {/* Vignette lateral derecho */}
+                <div
+                    className="absolute inset-y-0 right-0 w-[25%] z-[1] pointer-events-none"
+                    style={{
+                        background: `linear-gradient(to left, ${bgColor} 0%, ${bgColor} 20%, transparent 100%)`
+                    }}
+                />
+
+                {/* Vignette inferior - Fundido hacia el fondo (Mismo estilo que MovieHero) */}
+                <div
+                    className="absolute inset-x-0 bottom-0 h-[50%] z-[1] pointer-events-none"
+                    style={{
+                        background: `linear-gradient(to top, ${bgColor} 0%, ${bgColor} 30%, transparent 100%)`
+                    }}
+                />
+
+                {/* Overlay sutil para enfoque - Solo se nota si hay imagen, aquí damos textura */}
+                <div
+                    className="absolute inset-0 z-[1] opacity-20 pointer-events-none"
+                    style={{
+                        background: "radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(0,0,0,0.1) 100%)",
+                    }}
+                />
             </div>
 
             {/* Contenido dentro de Container - con padding superior compensado (igual que MovieBackdrop) */}
             <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 pb-6 md:pt-22 md:pb-8">
                 {/* Botón Volver Skeleton */}
                 <div className="mb-6">
-                    <Skeleton className="h-9 w-24 bg-white/10" />
+                    <Skeleton className="h-9 w-24" />
                 </div>
 
                 {/* Grid con póster e información */}
                 <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] lg:grid-cols-[280px_1fr] xl:grid-cols-[320px_1fr] gap-6 lg:gap-8 items-end">
                     {/* Póster Skeleton */}
                     <div className="w-full max-w-[240px] sm:max-w-[280px] md:max-w-none mx-auto md:mx-0">
-                        <Skeleton className="aspect-[2/3] w-full rounded-xl bg-white/10" />
+                        <Skeleton className="aspect-[2/3] w-full rounded-xl" />
                     </div>
 
                     {/* Información principal Skeleton */}
                     <div className="flex flex-col justify-end space-y-4">
                         {/* Título */}
-                        <Skeleton className="h-10 sm:h-12 lg:h-14 w-3/4 bg-white/10" />
+                        <Skeleton className="h-10 sm:h-12 lg:h-14 w-3/4" />
 
                         {/* Año y metadata */}
                         <div className="flex items-center gap-4">
-                            <Skeleton className="h-5 w-20 bg-white/10" />
-                            <Skeleton className="h-5 w-24 bg-white/10" />
+                            <Skeleton className="h-5 w-20" />
+                            <Skeleton className="h-5 w-24" />
                         </div>
 
                         {/* Valoraciones */}
                         <div className="flex gap-6">
-                            <Skeleton className="h-6 w-32 bg-white/10" />
-                            <Skeleton className="h-6 w-28 bg-white/10" />
+                            <Skeleton className="h-6 w-32" />
+                            <Skeleton className="h-6 w-28" />
                         </div>
 
                         {/* Director y duración */}
                         <div className="flex items-center gap-4">
-                            <Skeleton className="h-5 w-40 bg-white/10" />
-                            <Skeleton className="h-5 w-24 bg-white/10" />
+                            <Skeleton className="h-5 w-40" />
+                            <Skeleton className="h-5 w-24" />
                         </div>
 
                         {/* Géneros */}
                         <div className="flex flex-wrap gap-2">
                             {Array.from({ length: 4 }).map((_, i) => (
-                                <Skeleton key={i} className="h-7 w-20 rounded-full bg-white/10" />
+                                <Skeleton key={i} className="h-7 w-20 rounded-full" />
                             ))}
                         </div>
 
                         {/* Tagline */}
-                        <Skeleton className="h-5 w-64 bg-white/10" />
+                        <Skeleton className="h-5 w-64" />
                     </div>
                 </div>
             </div>

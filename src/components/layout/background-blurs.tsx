@@ -9,6 +9,7 @@ export function BackgroundBlurs() {
     <>
       <div className="blur-decoration blur-decoration-1" aria-hidden="true" />
       <div className="blur-decoration blur-decoration-2" aria-hidden="true" />
+      <div className="blur-decoration blur-decoration-3" aria-hidden="true" />
     </>
   );
 }

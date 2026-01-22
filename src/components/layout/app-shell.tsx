@@ -5,6 +5,7 @@ import { AppHeader } from './app-header';
 import { MobileTabs } from './mobile-tabs';
 import { BackgroundBlurs } from './background-blurs';
 import { ImportStatusIndicator } from '@/features/import';
+import { cn } from "@/lib/utils";
 
 export type NavbarVariant = "default" | "cinematic" | "cinematic-mobile-visible";
 
@@ -35,11 +36,14 @@ export function AppShell({ children }: AppShellProps) {
       {/* Efectos decorativos de fondo - solo en modo default */}
       {navbarVariant === "default" && <BackgroundBlurs />}
 
-      {/* Header sticky */}
+      {/* Header fixed */}
       <AppHeader variant={navbarVariant} />
 
-      {/* Contenido principal - Con padding-top en mobile para el header fixed */}
-      <main className={isLandingPage ? "flex-1 pt-14 md:pt-0" : "flex-1 pt-14 md:pt-0 pb-24 md:pb-8"}>
+      {/* Contenido principal - Con padding-top para el header fixed */}
+      <main className={cn(
+        "relative z-10 flex-1 pt-14",
+        !isLandingPage && "pb-24 md:pb-8"
+      )}>
         {children}
       </main>
 

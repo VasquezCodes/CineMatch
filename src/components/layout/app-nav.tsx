@@ -34,22 +34,15 @@ export function AppNav({ variant = "default" }: AppNavProps) {
               'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
               isCinematic
                 ? [
-                    'text-white hover:bg-white/15 hover:text-white',
-                    isActive ? 'bg-white/15 backdrop-blur-md border border-white/20' : ''
-                  ]
-                : isCinematicMobileVisible
-                ? [
-                    'hover:bg-accent/80 dark:hover:bg-accent hover:text-accent-foreground',
-                    isActive
-                      ? 'bg-card/15 backdrop-blur-md border border-border/30 text-primary'
-                      : 'text-foreground'
-                  ]
+                  'text-white hover:bg-white/15 hover:text-white',
+                  isActive ? 'bg-white/15 backdrop-blur-md border border-white/20' : ''
+                ]
                 : [
-                    'hover:bg-accent/80 dark:hover:bg-accent hover:text-accent-foreground',
-                    isActive
-                      ? 'bg-card/15 backdrop-blur-md border border-border/30 text-primary'
-                      : 'text-foreground'
-                  ]
+                  'hover:bg-accent/10 dark:hover:bg-white/5 transition-colors',
+                  isActive
+                    ? 'bg-primary/10 backdrop-blur-md border border-primary/20 text-primary'
+                    : 'text-foreground'
+                ]
             )}
             aria-current={isActive ? 'page' : undefined}
           >

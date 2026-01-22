@@ -1,6 +1,6 @@
 import Image from "@/components/CloudinaryImage";
 import { notFound } from "next/navigation";
-import { Calendar, Star, Film, Bookmark } from "lucide-react";
+import { Calendar, Star, Film, Bookmark, Clock } from "lucide-react";
 import {
   getMovie,
   MovieBackButton,
@@ -29,6 +29,20 @@ export default async function MovieDetailPage({ params }: PageProps) {
   const crewDetails = movie.extended_data?.crew_details || [];
   const recommendations = movie.extended_data?.recommendations || [];
 
+  // Detectar si la película aún no se ha estrenado
+  const isUnreleased = movie.release_date
+    ? new Date(movie.release_date) > new Date()
+    : false;
+
+  // Formatear la fecha de estreno para mostrarla
+  const formattedReleaseDate = movie.release_date
+    ? new Date(movie.release_date).toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+    : null;
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Backdrop Banner (Full Width) - DESKTOP/TABLET */}
@@ -43,9 +57,9 @@ export default async function MovieDetailPage({ params }: PageProps) {
         </MovieBackdrop>
       </div>
 
-      {/* Main Content Container */}
-      <div className="relative">
-        <Container className="relative pt-0 md:pt-12 pb-16">
+      {/* Main Content Container - sube para superponerse al backdrop */}
+      <div className="relative md:-mt-84 lg:-mt-[28rem]">
+        <Container className="relative pt-0 pb-16">
           <div className="grid grid-cols-1 gap-8 items-start">
             {/* MOBILE ONLY: Extracted to MovieMobileDetail component */}
             <MovieMobileDetail movie={movie} />
@@ -80,8 +94,8 @@ export default async function MovieDetailPage({ params }: PageProps) {
                 )}
               </div>
 
-              {/* Columna Derecha: Información Principal */}
-              <div className="flex flex-col space-y-6">
+              {/* Columna Derecha: Información Principal (Baja respecto al poster) */}
+              <div className="flex flex-col space-y-6 md:mt-28 lg:mt-40">
                 <div className="space-y-4">
                   {/* Título y Año */}
                   <div className="space-y-2">
@@ -99,6 +113,16 @@ export default async function MovieDetailPage({ params }: PageProps) {
                         </>
                       )}
                     </div>
+
+                    {/* Badge de Próximamente */}
+                    {isUnreleased && (
+                      <div className="flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 w-fit">
+                        <Clock className="h-4 w-4" />
+                        <span className="text-sm font-semibold">
+                          Próximamente: {formattedReleaseDate}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Metadata Secundaria (Runtime) */}

@@ -3,18 +3,13 @@
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { syncMoviePeople } from '@/features/rankings/people-sync';
-import { TmdbClient } from '@/lib/tmdb';
-
-// Tipos auxiliares para mappings de TMDB
-type TmdbCrew = { id: number; name: string; job: string; profile_path: string | null };
-type TmdbCast = { id: number; name: string; character: string; profile_path: string | null };
-type TmdbGenre = { id: number; name: string };
-type TmdbRecommendation = { id: number; title: string; poster_path: string | null; release_date: string };
+import { mapTmdbMovieToPayload, type MoviePayload } from '@/lib/tmdb/mappers';
 export type MovieDetail = {
     id: string;
     imdb_id: string | null;
     title: string;
     year: number;
+    release_date: string | null; // Fecha de estreno (para detectar películas sin estrenar)
     poster_url: string | null;
     backdrop_url: string | null;
     director: string | null;
@@ -79,8 +74,6 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
             .maybeSingle();
 
         if (localMovie) {
-            // Cache HIT - usamos ID local
-            // console.log(`[Cache Hit] Movie ${id} found in DB as ${localMovie.id}`);
             movieId = localMovie.id;
         } else {
             // Cache MISS - fetch desde TMDB
@@ -107,41 +100,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                         .eq('imdb_id', tmdbMovie.imdb_id)
                         .maybeSingle();
 
-                    const payload = {
-                        title: tmdbMovie.title,
-                        year: tmdbMovie.release_date ? parseInt(tmdbMovie.release_date.split('-')[0]) : null,
-                        imdb_id: tmdbMovie.imdb_id,
-                        tmdb_id: tmdbMovie.id, // Asegurar que guardamos el TMDB ID
-                        poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
-                        backdrop_url: TmdbClient.getBestBackdropUrl(tmdbMovie.images, tmdbMovie.backdrop_path),
-                        director: tmdbMovie.credits?.crew?.find((c: TmdbCrew) => c.job === 'Director')?.name || null,
-                        synopsis: tmdbMovie.overview,
-                        imdb_rating: tmdbMovie.vote_average,
-                        genres: tmdbMovie.genres?.map((g: TmdbGenre) => g.name) || [],
-                        extended_data: {
-                            technical: {
-                                runtime: tmdbMovie.runtime,
-                                tagline: tmdbMovie.tagline,
-                            },
-                            cast: tmdbMovie.credits?.cast?.slice(0, 50).map((c: TmdbCast) => ({
-                                name: c.name,
-                                role: c.character,
-                                photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
-                            })),
-                            crew_details: tmdbMovie.credits?.crew?.slice(0, 20).map((c: TmdbCrew) => ({
-                                name: c.name,
-                                job: c.job,
-                                photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
-                            })),
-                            recommendations: validRecommendations.slice(0, 12).map((r: TmdbRecommendation) => ({
-                                id: r.id,
-                                tmdb_id: r.id,
-                                title: r.title,
-                                year: r.release_date ? parseInt(r.release_date.split('-')[0]) : 0,
-                                poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : null
-                            }))
-                        }
-                    };
+                    const payload = mapTmdbMovieToPayload(tmdbMovie, validRecommendations);
 
                     if (existing) {
                         movieId = existing.id;
@@ -176,9 +135,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
 
     // 1. Obtener datos básicos de la película (ahora en paralelo con la autenticación)
 
-    // Validar UUID: si no logramos resolverlo, retornar null
     if (isTmdbId && movieId === id) {
-        // console.warn(`[getMovie] Could not resolve TMDB ID ${id} to a valid UUID. Returning null.`);
         return null;
     }
 
@@ -204,8 +161,8 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
     const isIncomplete = !movie.synopsis || !extended.cast || extended.cast.length === 0 || !hasRecommendations;
 
     if (isIncomplete && (movie.tmdb_id || movie.imdb_id)) {
+        let enrichmentSucceeded = false;
         try {
-            // console.log(`[Action] Repairing/Enriching movie ${movie.title} (${movie.id})`);
             const { tmdb } = await import('@/lib/tmdb');
             let tmdbMovie = null;
 
@@ -226,58 +183,52 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
                     }
                 }
 
-                const payload = {
-                    title: tmdbMovie.title,
-                    year: tmdbMovie.release_date ? parseInt(tmdbMovie.release_date.split('-')[0]) : null,
-                    imdb_id: tmdbMovie.imdb_id,
-                    tmdb_id: tmdbMovie.id,
-                    poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
-                    backdrop_url: TmdbClient.getBestBackdropUrl(tmdbMovie.images, tmdbMovie.backdrop_path),
-                    director: tmdbMovie.credits?.crew?.find((c: TmdbCrew) => c.job === 'Director')?.name || null,
-                    synopsis: tmdbMovie.overview,
-                    imdb_rating: tmdbMovie.vote_average,
-                    genres: tmdbMovie.genres?.map((g: TmdbGenre) => g.name) || [],
-                    extended_data: {
-                        technical: {
-                            runtime: tmdbMovie.runtime,
-                            tagline: tmdbMovie.tagline,
-                        },
-                        cast: tmdbMovie.credits?.cast?.slice(0, 50).map((c: TmdbCast) => ({
-                            name: c.name,
-                            role: c.character,
-                            photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
-                        })),
-                        crew_details: tmdbMovie.credits?.crew?.slice(0, 20).map((c: TmdbCrew) => ({
-                            name: c.name,
-                            job: c.job,
-                            photo: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null
-                        })),
-                        recommendations: validRecommendations.slice(0, 12).map((r: TmdbRecommendation) => ({
-                            id: r.id,
-                            tmdb_id: r.id,
-                            title: r.title,
-                            year: r.release_date ? parseInt(r.release_date.split('-')[0]) : 0,
-                            poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : null
-                        }))
-                    }
-                };
+                const payload = mapTmdbMovieToPayload(tmdbMovie, validRecommendations);
 
-                // Actualizar DB
-                await supabase.from('movies').update(payload).eq('id', movie.id);
+                // TRANSACCIÓN: Actualizar película primero
+                const { error: updateError } = await supabase
+                    .from('movies')
+                    .update(payload)
+                    .eq('id', movie.id);
+
+                if (updateError) {
+                    throw new Error(`Movie update failed: ${updateError.message}`);
+                }
 
                 // Actualizar objeto en memoria para esta request
                 Object.assign(movie, payload);
 
-                // Sync People con el adminClient (para relaciones)
+                // TRANSACCIÓN: Sync People (si falla, marcamos para retry)
                 if (tmdbMovie.credits) {
-                    const adminClient = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-                        auth: { persistSession: false }
-                    });
-                    await syncMoviePeople(adminClient, movie.id, tmdbMovie.credits);
+                    try {
+                        const adminClient = createAdminClient(
+                            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                            process.env.SUPABASE_SERVICE_ROLE_KEY!,
+                            { auth: { persistSession: false } }
+                        );
+                        await syncMoviePeople(adminClient, movie.id, tmdbMovie.credits);
+                        enrichmentSucceeded = true;
+                    } catch (syncError) {
+                        console.error('syncMoviePeople failed, marking for retry:', syncError);
+                        // Marcar película como parcialmente sincronizada
+                        await supabase
+                            .from('movies')
+                            .update({ sync_status: 'people_sync_pending' })
+                            .eq('id', movie.id);
+                    }
+                } else {
+                    enrichmentSucceeded = true;
                 }
             }
         } catch (e) {
             console.error('Error repairing movie data:', e);
+            // Marcar película para re-intento futuro
+            try {
+                await supabase
+                    .from('movies')
+                    .update({ sync_status: 'enrichment_failed' })
+                    .eq('id', movie.id);
+            } catch { /* Silenciar error del rollback */ }
         }
     }
 
@@ -301,6 +252,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
         imdb_id: movie.imdb_id,
         title: movie.title,
         year: movie.year,
+        release_date: movie.release_date || null,
         poster_url: movie.poster_url,
         backdrop_url: movie.backdrop_url,
         director: movie.director,

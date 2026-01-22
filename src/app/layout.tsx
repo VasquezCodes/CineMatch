@@ -1,6 +1,6 @@
 import { Fraunces, Inter } from "next/font/google";
 import { Toaster } from "sonner";
-import { ThemeProvider, AuthProvider } from "@/lib/providers";
+import { ThemeProvider, AuthProvider, QueryProvider } from "@/lib/providers";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import "@/styles/globals.css";
 
@@ -32,12 +32,15 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <AuthProvider>
-            <ScrollToTop />
-            {children}
-            <Toaster position="top-center" />
+            <QueryProvider>
+              <ScrollToTop />
+              {children}
+              <Toaster position="top-center" />
+            </QueryProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
   );
 }
+

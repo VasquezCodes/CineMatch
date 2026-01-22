@@ -5,7 +5,7 @@ import { APP_ROUTES, SECONDARY_ROUTES } from "@/config/routes";
 import { getAnalysisData } from "@/features/insights/actions";
 import { AnalysisStats } from "@/features/collection/components/AnalysisStats";
 import { AnalysisStatsSkeleton } from "@/features/collection/components/AnalysisStatsSkeleton";
-import { RankingsSection } from "@/features/collection/components/RankingsSection";
+import { RankingsSectionClient } from "@/features/collection/components/RankingsSectionClient";
 import { RankingsSkeleton } from "@/features/collection/components/RankingsSkeleton";
 import { PageHeader, Section, Container } from "@/components/layout";
 import { ErrorState } from "@/components/ui/error-state";
@@ -60,7 +60,8 @@ async function RankingsSectionWrapper() {
 
   if (!user) return null;
 
-  return <RankingsSection userId={user.id} />;
+  // Usar el wrapper client para evitar hydration mismatch
+  return <RankingsSectionClient userId={user.id} />;
 }
 
 /**
