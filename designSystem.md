@@ -243,6 +243,26 @@ Base unit: 4px (solo valores del sistema)
 
 ---
 
+## Performance & UX Engineering (Vercel Best Practices)
+
+El diseño no es solo visual, es ingeniería. Para cumplir con los estándares de **Vercel** y **Core Web Vitals**:
+
+### 1. Zero Layout Shift (CLS)
+- **Dimensiones Explícitas:** Todo componente (especialmente imágenes y medios) debe tener `aspect-ratio` o dimensiones reservadas en CSS.
+- **Skeletons Precisos:** Los estados de carga (skeletons) deben ocupar *exactamente* el mismo espacio que el contenido final.
+- **Fuentes:** Usar variables de `next/font` para evitar FOUT/FOIT.
+
+### 2. Diseño para Server Components (RSC)
+- **Static Shell First:** Diseñar la "estructura fija" (Nav, Sidebar, Footer) para que renderice instantáneamente desde el servidor.
+- **Dynamic Holes:** Identificar claramente las áreas que dependen de datos del usuario (Profile, recomendaciones). Estas usarán `Suspense` y deben tener un estado de carga diseñado.
+- **Interacción Diferida:** Los elementos interactivos complejos deben cargarse después del contenido principal (LCP).
+
+### 3. Optimización de Activos (LCP)
+- **Imagen Hero:** La imagen más grande del viewport (Hero) debe ser prioritaria (`priority` en Next.js) y no lazy-loaded.
+- **Formatos Modernos:** Diseñar pensando en WebP/AVIF. No usar PNGs masivos sin necesidad.
+
+---
+
 ## Pendiente de definir
 
 - Estilo final de imágenes

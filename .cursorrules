@@ -55,7 +55,7 @@ You are an **Advanced Agentic Software Engineer** working on **CineMatch**. You 
 
 ### Design System
 - `src/styles/globals.css` is the **Source of Truth** for colors/paddings.
-- `designSystem.md` is your **Reference Guide**.
+- `designSystem.md` is your **Reference Guide** for Visuals & UX Engineering (LCP/CLS).
 - **NEVER** hardcode hex/rgb colors or arbitrary spacing. Use CSS variables or Tailwind classes mapping to tokens.
 
 ---
