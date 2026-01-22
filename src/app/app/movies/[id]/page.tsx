@@ -11,8 +11,6 @@ import {
 } from "@/features/movie";
 import { PersonLink } from "@/components/shared/PersonLink";
 import { Container } from "@/components/layout";
-import { getUserMovieQualitiesGrouped } from "@/features/qualifications/actions";
-import { QualificationSelector } from "@/features/qualifications/components";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -20,24 +18,16 @@ type PageProps = {
 
 export default async function MovieDetailPage({ params }: PageProps) {
   const { id } = await params;
-  /* 
-   * IMPORTANTE: getMovie debe resolverse primero porque 'id' puede ser un TMDB ID.
-   * getMovie resuelve el ID canónico (UUID) que necesitamos para las cualificaciones.
-   */
   const movie = await getMovie(id);
 
   if (!movie) {
     notFound();
   }
 
-  // Ahora seguro usamos el UUID de la película
-  const qualificationsResult = await getUserMovieQualitiesGrouped(movie.id);
-
   const technical = movie.extended_data?.technical;
   const cast = movie.extended_data?.cast || [];
   const crewDetails = movie.extended_data?.crew_details || [];
   const recommendations = movie.extended_data?.recommendations || [];
-  const qualificationCategories = qualificationsResult.data || [];
 
   // Detectar si la película aún no se ha estrenado
   const isUnreleased = movie.release_date
@@ -72,10 +62,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
         <Container className="relative pt-0 pb-16">
           <div className="grid grid-cols-1 gap-8 items-start">
             {/* MOBILE ONLY: Extracted to MovieMobileDetail component */}
-            <MovieMobileDetail
-              movie={movie}
-              qualifications={qualificationCategories}
-            />
+            <MovieMobileDetail movie={movie} />
 
             {/* DESKTOP: Layout */}
             <div className="hidden md:grid md:grid-cols-[260px_1fr] lg:grid-cols-[300px_1fr] gap-8 lg:gap-12">
@@ -205,13 +192,6 @@ export default async function MovieDetailPage({ params }: PageProps) {
                       ))}
                     </div>
                   )}
-                  {/* Selector de Cualificaciones */}
-                  <div className="pt-6 border-t border-border/50">
-                    <QualificationSelector
-                      movieId={movie.id}
-                      categories={qualificationCategories}
-                    />
-                  </div>
                 </div>
               </div>
             </div>

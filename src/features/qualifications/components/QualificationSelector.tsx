@@ -4,167 +4,185 @@ import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { toggleUserMovieQuality } from "../actions";
 import type { QualityCategoryWithSelection } from "../types";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Check, Star } from "lucide-react";
 
-// Iconos y colores por categoría
-const CATEGORY_STYLES: Record<number, { icon: string; color: string; bgColor: string }> = {
-    1: { icon: "👁️", color: "text-pink-500", bgColor: "bg-pink-500/10 border-pink-500/30 hover:bg-pink-500/20" },
-    2: { icon: "❤️", color: "text-red-500", bgColor: "bg-red-500/10 border-red-500/30 hover:bg-red-500/20" },
-    3: { icon: "🧠", color: "text-purple-500", bgColor: "bg-purple-500/10 border-purple-500/30 hover:bg-purple-500/20" },
-    4: { icon: "🎬", color: "text-green-500", bgColor: "bg-green-500/10 border-green-500/30 hover:bg-green-500/20" },
-};
-
-const SELECTED_STYLES: Record<number, string> = {
-    1: "bg-pink-500 text-white border-pink-500",
-    2: "bg-red-500 text-white border-red-500",
-    3: "bg-purple-500 text-white border-purple-500",
-    4: "bg-green-500 text-white border-green-500",
+// Mapeo simple de colores usando las variables CSS existentes
+const CATEGORY_COLORS: Record<number, string> = {
+  1: "text-[hsl(var(--chart-1))]", // Verde
+  2: "text-[hsl(var(--chart-9))]", // Ámbar
+  3: "text-[hsl(var(--chart-6))]", // Azul-violeta
+  4: "text-[hsl(var(--chart-4))]", // Cyan
 };
 
 type Props = {
-    movieId: string;
-    categories: QualityCategoryWithSelection[];
+  movieId: string;
+  categories: QualityCategoryWithSelection[];
 };
 
 export function QualificationSelector({ movieId, categories }: Props) {
-    const [isPending, startTransition] = useTransition();
-    const [localCategories, setLocalCategories] = useState(categories);
-    const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set([1])); // Primera expandida por defecto
+  const [isPending, startTransition] = useTransition();
+  const [localCategories, setLocalCategories] = useState(categories);
+  // Todas las categorías expandidas por defecto
+  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(
+    new Set(categories.map(cat => cat.id))
+  );
 
-    const toggleCategory = (categoryId: number) => {
-        setExpandedCategories((prev) => {
-            const next = new Set(prev);
-            if (next.has(categoryId)) {
-                next.delete(categoryId);
-            } else {
-                next.add(categoryId);
-            }
-            return next;
-        });
-    };
+  const toggleCategory = (categoryId: number) => {
+    setExpandedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
 
-    const handleToggleQuality = (categoryId: number, qualityId: number) => {
-        // Optimistic update
+  const handleToggleQuality = (categoryId: number, qualityId: number) => {
+    // Optimistic update
+    setLocalCategories((prev) =>
+      prev.map((cat) =>
+        cat.id === categoryId
+          ? {
+            ...cat,
+            qualities: cat.qualities.map((q) =>
+              q.id === qualityId ? { ...q, selected: !q.selected } : q
+            ),
+          }
+          : cat
+      )
+    );
+
+    startTransition(async () => {
+      const result = await toggleUserMovieQuality(movieId, qualityId);
+      if (!result.success) {
+        // Revertir en caso de error
         setLocalCategories((prev) =>
-            prev.map((cat) =>
-                cat.id === categoryId
-                    ? {
-                        ...cat,
-                        qualities: cat.qualities.map((q) =>
-                            q.id === qualityId ? { ...q, selected: !q.selected } : q
-                        ),
-                    }
-                    : cat
-            )
+          prev.map((cat) =>
+            cat.id === categoryId
+              ? {
+                ...cat,
+                qualities: cat.qualities.map((q) =>
+                  q.id === qualityId ? { ...q, selected: !q.selected } : q
+                ),
+              }
+              : cat
+          )
         );
+      }
+    });
+  };
 
-        startTransition(async () => {
-            const result = await toggleUserMovieQuality(movieId, qualityId);
-            if (!result.success) {
-                // Revertir en caso de error
-                setLocalCategories((prev) =>
-                    prev.map((cat) =>
-                        cat.id === categoryId
-                            ? {
-                                ...cat,
-                                qualities: cat.qualities.map((q) =>
-                                    q.id === qualityId ? { ...q, selected: !q.selected } : q
-                                ),
-                            }
-                            : cat
-                    )
-                );
-            }
-        });
-    };
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="space-y-1.5">
+        <h3 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          ¿Qué destacarías?
+        </h3>
+        <p className="text-[0.8rem] text-muted-foreground">
+          Selecciona las cualidades que definen esta película para ti.
+        </p>
+      </div>
 
-    const totalSelected = localCategories.reduce(
-        (acc, cat) => acc + cat.qualities.filter((q) => q.selected).length,
-        0
-    );
+      {/* Categorías */}
+      <div className="grid gap-4">
+        {localCategories.map((category, index) => {
+          const isExpanded = expandedCategories.has(category.id);
+          const selectedCount = category.qualities.filter((q) => q.selected).length;
+          const totalQualities = category.qualities.length;
+          const accentColorClass = CATEGORY_COLORS[category.id] || "text-primary";
 
-    return (
-        <div className="space-y-3">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                    ¿Qué destacarías?
-                </h3>
-                {totalSelected > 0 && (
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                        {totalSelected} seleccionadas
-                    </span>
+          return (
+            <div
+              key={category.id}
+              className={cn(
+                "group rounded-xl border border-border/50 bg-card/40 transition-all duration-200",
+                "hover:bg-card/60 hover:border-border",
+                isExpanded && "bg-card/60 border-border"
+              )}
+            >
+              <button
+                onClick={() => toggleCategory(category.id)}
+                className="flex w-full items-center justify-between p-4 text-sm font-medium transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-lg bg-background/50 ring-1 ring-border/50 transition-colors",
+                    "group-hover:bg-background group-hover:ring-border",
+                    accentColorClass
+                  )}>
+                    {/* Icono genérico minimalista o específico si se desea */}
+                    <Star className="h-4 w-4 fill-current opacity-70" />
+                  </span>
+
+                  <div className="flex flex-col items-start gap-0.5">
+                    <span className="text-foreground/90">{category.name}</span>
+                    {selectedCount > 0 && (
+                      <span className="text-[10px] text-muted-foreground">
+                        {selectedCount} seleccionados
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {/* Indicador de progreso */}
+                  <div className="h-2 w-24 overflow-hidden rounded-full bg-secondary">
+                    <div
+                      className={cn(
+                        "h-full transition-all duration-500 ease-out",
+                        accentColorClass.replace('text-', 'bg-')
+                      )}
+                      style={{ width: `${(selectedCount / totalQualities) * 100}%` }}
+                    />
+                  </div>
+
+                  <span className="text-muted-foreground transition-transform duration-200">
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </span>
+                </div>
+              </button>
+
+              {/* Qualities Grid */}
+              <div
+                className={cn(
+                  "grid transition-all duration-300 ease-in-out",
+                  isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
                 )}
+              >
+                <div className="overflow-hidden">
+                  <div className="flex flex-wrap gap-2 p-4 pt-0">
+                    {category.qualities.map((quality) => (
+                      <button
+                        key={quality.id}
+                        onClick={() => handleToggleQuality(category.id, quality.id)}
+                        disabled={isPending}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all",
+                          "border border-transparent",
+                          "hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                          quality.selected
+                            ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                            : "bg-secondary/50 text-secondary-foreground hover:bg-secondary border-transparent hover:border-border/50"
+                        )}
+                      >
+                        {quality.selected && <Check className="h-3 w-3" />}
+                        {quality.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
-
-            {/* Categorías */}
-            <div className="space-y-2">
-                {localCategories.map((category) => {
-                    const style = CATEGORY_STYLES[category.id] || CATEGORY_STYLES[1];
-                    const isExpanded = expandedCategories.has(category.id);
-                    const selectedCount = category.qualities.filter((q) => q.selected).length;
-
-                    return (
-                        <div
-                            key={category.id}
-                            className="border border-border/50 rounded-lg overflow-hidden"
-                        >
-                            {/* Category Header - Clickeable */}
-                            <button
-                                onClick={() => toggleCategory(category.id)}
-                                className={cn(
-                                    "w-full flex items-center justify-between px-3 py-2.5",
-                                    "bg-card/50 hover:bg-card transition-colors",
-                                    "text-left"
-                                )}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <span className="text-lg">{style.icon}</span>
-                                    <span className="text-sm font-medium">{category.name}</span>
-                                    {selectedCount > 0 && (
-                                        <span
-                                            className={cn(
-                                                "text-xs px-1.5 py-0.5 rounded-full",
-                                                style.color,
-                                                "bg-current/10"
-                                            )}
-                                        >
-                                            {selectedCount}
-                                        </span>
-                                    )}
-                                </div>
-                                {isExpanded ? (
-                                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                                ) : (
-                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                                )}
-                            </button>
-
-                            {/* Qualities Grid */}
-                            {isExpanded && (
-                                <div className="px-3 pb-3 pt-2 flex flex-wrap gap-2">
-                                    {category.qualities.map((quality) => (
-                                        <button
-                                            key={quality.id}
-                                            onClick={() => handleToggleQuality(category.id, quality.id)}
-                                            disabled={isPending}
-                                            className={cn(
-                                                "px-2.5 py-1.5 text-xs rounded-full border transition-all",
-                                                "disabled:opacity-50 disabled:cursor-not-allowed",
-                                                quality.selected
-                                                    ? SELECTED_STYLES[category.id]
-                                                    : style.bgColor
-                                            )}
-                                        >
-                                            {quality.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
+          );
+        })}
+      </div>
+    </div>
+  );
 }

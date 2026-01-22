@@ -1,8 +1,12 @@
+"use client";
+
 import Image from "@/components/CloudinaryImage";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { QualificationModal } from "@/features/qualifications";
 import type { LibraryItem } from "../types";
 
 interface MovieCardProps {
@@ -15,7 +19,7 @@ export function MovieCard({ item }: MovieCardProps) {
   return (
     <Link href={`/app/movies/${movie.id}`} className="block group">
       <Card className="relative overflow-hidden border-border/40 transition-all duration-300 shadow-sm hover:shadow-md">
-        <div className="flex h-52 sm:h-48">
+        <div className="flex h-64 sm:h-60">
           <div className="relative w-28 sm:w-32 flex-shrink-0 overflow-hidden bg-muted">
             {movie.poster_url ? (
               <Image
@@ -69,6 +73,27 @@ export function MovieCard({ item }: MovieCardProps) {
                     {genre}
                   </Badge>
                 ))}
+            </div>
+
+            <div className="mt-auto pt-3">
+              <div
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <QualificationModal
+                  movieId={movie.id}
+                  movieTitle={movie.title || "Sin título"}
+                >
+                  <Button
+                    size="sm"
+                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+                  >
+                    Cualificar
+                  </Button>
+                </QualificationModal>
+              </div>
             </div>
           </div>
         </div>
