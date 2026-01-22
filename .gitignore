@@ -56,3 +56,6 @@ tsc_output.txt
 .codex/
 .gemini/
 .cursor/
+
+#mcp
+.mcp.json
