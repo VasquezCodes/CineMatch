@@ -1,5 +1,5 @@
 import Image from "@/components/CloudinaryImage";
-import { Film, Bookmark, Star } from "lucide-react";
+import { Film, Bookmark, Star, Clock } from "lucide-react";
 import { PersonLink } from "@/components/shared/PersonLink";
 import { MovieBackButton } from "./MovieBackButton";
 import type { MovieDetail } from "../actions";
@@ -10,6 +10,20 @@ type MovieMobileDetailProps = {
 
 export function MovieMobileDetail({ movie }: MovieMobileDetailProps) {
   const technical = movie.extended_data?.technical;
+
+  // Detectar si la película aún no se ha estrenado
+  const isUnreleased = movie.release_date
+    ? new Date(movie.release_date) > new Date()
+    : false;
+
+  // Formatear la fecha de estreno para mostrarla
+  const formattedReleaseDate = movie.release_date
+    ? new Date(movie.release_date).toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+    : null;
 
   return (
     <div className="md:hidden relative -mx-4 sm:-mx-6">
@@ -75,6 +89,16 @@ export function MovieMobileDetail({ movie }: MovieMobileDetailProps) {
               <div className="flex items-center gap-1.5 text-emerald-500 pt-2">
                 <Bookmark className="h-4 w-4 fill-current" />
                 <span className="text-sm font-medium">En tu lista</span>
+              </div>
+            )}
+
+            {/* Badge de Próximamente */}
+            {isUnreleased && (
+              <div className="flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 w-fit">
+                <Clock className="h-3.5 w-3.5" />
+                <span className="text-xs font-semibold">
+                  Próximamente: {formattedReleaseDate}
+                </span>
               </div>
             )}
           </div>

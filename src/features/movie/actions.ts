@@ -9,6 +9,7 @@ export type MovieDetail = {
     imdb_id: string | null;
     title: string;
     year: number;
+    release_date: string | null; // Fecha de estreno (para detectar películas sin estrenar)
     poster_url: string | null;
     backdrop_url: string | null;
     director: string | null;
@@ -251,6 +252,7 @@ export async function getMovie(id: string): Promise<MovieDetail | null> {
         imdb_id: movie.imdb_id,
         title: movie.title,
         year: movie.year,
+        release_date: movie.release_date || null,
         poster_url: movie.poster_url,
         backdrop_url: movie.backdrop_url,
         director: movie.director,

@@ -1,6 +1,6 @@
 import Image from "@/components/CloudinaryImage";
 import { notFound } from "next/navigation";
-import { Calendar, Star, Film, Bookmark } from "lucide-react";
+import { Calendar, Star, Film, Bookmark, Clock } from "lucide-react";
 import {
   getMovie,
   MovieBackButton,
@@ -28,6 +28,20 @@ export default async function MovieDetailPage({ params }: PageProps) {
   const cast = movie.extended_data?.cast || [];
   const crewDetails = movie.extended_data?.crew_details || [];
   const recommendations = movie.extended_data?.recommendations || [];
+
+  // Detectar si la película aún no se ha estrenado
+  const isUnreleased = movie.release_date
+    ? new Date(movie.release_date) > new Date()
+    : false;
+
+  // Formatear la fecha de estreno para mostrarla
+  const formattedReleaseDate = movie.release_date
+    ? new Date(movie.release_date).toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+    : null;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -99,6 +113,16 @@ export default async function MovieDetailPage({ params }: PageProps) {
                         </>
                       )}
                     </div>
+
+                    {/* Badge de Próximamente */}
+                    {isUnreleased && (
+                      <div className="flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 w-fit">
+                        <Clock className="h-4 w-4" />
+                        <span className="text-sm font-semibold">
+                          Próximamente: {formattedReleaseDate}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Metadata Secundaria (Runtime) */}

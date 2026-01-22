@@ -29,6 +29,7 @@ type TmdbRecommendation = {
 export type MoviePayload = {
     title: string;
     year: number | null;
+    release_date: string | null; // Fecha de estreno completa (YYYY-MM-DD)
     imdb_id: string | null;
     tmdb_id: number;
     poster_url: string | null;
@@ -122,6 +123,7 @@ export function mapTmdbMovieToPayload(
     return {
         title: tmdbMovie.title,
         year: tmdbMovie.release_date ? parseInt(tmdbMovie.release_date.split('-')[0]) : null,
+        release_date: tmdbMovie.release_date || null, // Guardar fecha completa
         imdb_id: tmdbMovie.imdb_id,
         tmdb_id: tmdbMovie.id,
         poster_url: tmdbMovie.poster_path
