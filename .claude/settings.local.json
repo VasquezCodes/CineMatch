@@ -16,7 +16,8 @@
       "Bash(npm install:*)",
       "Bash(wc:*)",
       "Bash(find:*)",
-      "Bash(pnpm exec tsc:*)"
+      "Bash(pnpm exec tsc:*)",
+      "mcp__better-icons__search_icons"
     ]
   }
 }

@@ -3,6 +3,8 @@ import { Film, Bookmark, Star, Clock } from "lucide-react";
 import { PersonLink } from "@/components/shared/PersonLink";
 import { MovieBackButton } from "./MovieBackButton";
 import type { MovieDetail } from "../actions";
+import { QualificationModal } from "@/features/qualifications/components/QualificationModal";
+import { Button } from "@/components/ui/button";
 
 type MovieMobileDetailProps = {
   movie: MovieDetail;
@@ -86,11 +88,24 @@ export function MovieMobileDetail({ movie }: MovieMobileDetailProps) {
 
             {/* Watchlist */}
             {movie.watchlist && (
-              <div className="flex items-center gap-1.5 text-emerald-500 pt-2">
+              <div className="flex items-center gap-1.5 text-foreground/80 pt-2">
                 <Bookmark className="h-4 w-4 fill-current" />
                 <span className="text-sm font-medium">En tu lista</span>
               </div>
             )}
+
+            {/* Botón Cualificar - Mobile */}
+            <div className="pt-3">
+              <QualificationModal movieId={movie.id} movieTitle={movie.title}>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-md hover:shadow-lg transition-all"
+                >
+                  Cualificar
+                </Button>
+              </QualificationModal>
+            </div>
 
             {/* Badge de Próximamente */}
             {isUnreleased && (

@@ -4,7 +4,9 @@ import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { toggleUserMovieQuality } from "../actions";
 import type { QualityCategoryWithSelection } from "../types";
-import { ChevronDown, ChevronUp, Check, Star } from "lucide-react";
+import { Check, Eye, Heart, Brain, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { LucideIcon } from "lucide-react";
 
 // Mapeo simple de colores usando las variables CSS existentes
 const CATEGORY_COLORS: Record<number, string> = {
@@ -14,29 +16,40 @@ const CATEGORY_COLORS: Record<number, string> = {
   4: "text-[hsl(var(--chart-4))]", // Cyan
 };
 
+// Mapeo de iconos temáticos por categoría
+const CATEGORY_ICONS: Record<number, LucideIcon> = {
+  1: Eye,      // Lo visto y oído
+  2: Heart,    // Lo sentido
+  3: Brain,    // Reflexión/Análisis
+  4: Sparkles, // Impacto/Creatividad
+};
+
 type Props = {
   movieId: string;
   categories: QualityCategoryWithSelection[];
+  onComplete?: () => void;
 };
 
-export function QualificationSelector({ movieId, categories }: Props) {
+export function QualificationSelector({ movieId, categories, onComplete }: Props) {
   const [isPending, startTransition] = useTransition();
   const [localCategories, setLocalCategories] = useState(categories);
-  // Todas las categorías expandidas por defecto
-  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(
-    new Set(categories.map(cat => cat.id))
-  );
+  const [currentStep, setCurrentStep] = useState(0);
 
-  const toggleCategory = (categoryId: number) => {
-    setExpandedCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(categoryId)) {
-        next.delete(categoryId);
-      } else {
-        next.add(categoryId);
-      }
-      return next;
-    });
+  const currentCategory = localCategories[currentStep];
+  const totalSteps = localCategories.length;
+  const isFirstStep = currentStep === 0;
+  const isLastStep = currentStep === totalSteps - 1;
+
+  const handleNext = () => {
+    if (!isLastStep) {
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (!isFirstStep) {
+      setCurrentStep(prev => prev - 1);
+    }
   };
 
   const handleToggleQuality = (categoryId: number, qualityId: number) => {
@@ -74,114 +87,106 @@ export function QualificationSelector({ movieId, categories }: Props) {
     });
   };
 
+  const selectedCount = currentCategory.qualities.filter((q) => q.selected).length;
+  const accentColorClass = CATEGORY_COLORS[currentCategory.id] || "text-primary";
+  const IconComponent = CATEGORY_ICONS[currentCategory.id] || Sparkles;
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="space-y-1.5">
-        <h3 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          ¿Qué destacarías?
-        </h3>
-        <p className="text-[0.8rem] text-muted-foreground">
-          Selecciona las cualidades que definen esta película para ti.
-        </p>
+    <div className="flex flex-col h-full">
+      {/* Progress Indicator */}
+      <div className="mb-6 space-y-3">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span className="font-medium">Paso {currentStep + 1} de {totalSteps}</span>
+          <span>{selectedCount} seleccionados</span>
+        </div>
+        <div className="flex gap-1.5">
+          {localCategories.map((_, index) => (
+            <div
+              key={index}
+              className={cn(
+                "h-1.5 flex-1 rounded-full transition-all duration-300",
+                index <= currentStep ? "bg-primary" : "bg-secondary"
+              )}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Categorías */}
-      <div className="grid gap-4">
-        {localCategories.map((category, index) => {
-          const isExpanded = expandedCategories.has(category.id);
-          const selectedCount = category.qualities.filter((q) => q.selected).length;
-          const totalQualities = category.qualities.length;
-          const accentColorClass = CATEGORY_COLORS[category.id] || "text-primary";
+      {/* Category Content */}
+      <div className="flex-1 space-y-4 animate-fadeIn">
+        {/* Category Header */}
+        <div className="flex items-center gap-3">
+          <span className={cn(
+            "flex h-10 w-10 items-center justify-center rounded-xl bg-background/50 ring-1 ring-border/50",
+            accentColorClass
+          )}>
+            <IconComponent className="h-5 w-5" />
+          </span>
+          <div className="flex flex-col gap-0.5">
+            <h3 className="text-lg font-semibold text-foreground">
+              {currentCategory.name}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Selecciona las cualidades que destacarías
+            </p>
+          </div>
+        </div>
 
-          return (
-            <div
-              key={category.id}
+        {/* Qualities Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 py-2">
+          {currentCategory.qualities.map((quality) => (
+            <button
+              key={quality.id}
+              onClick={() => handleToggleQuality(currentCategory.id, quality.id)}
+              disabled={isPending}
               className={cn(
-                "group rounded-xl border border-border/50 bg-card/40 transition-all duration-200",
-                "hover:bg-card/60 hover:border-border",
-                isExpanded && "bg-card/60 border-border"
+                "flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-all",
+                "border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                "active:scale-95 min-h-[44px]",
+                quality.selected
+                  ? "bg-primary text-primary-foreground border-primary shadow-sm hover:bg-primary/90"
+                  : "bg-secondary/50 text-secondary-foreground border-border/50 hover:bg-secondary hover:border-border"
               )}
             >
-              <button
-                onClick={() => toggleCategory(category.id)}
-                className="flex w-full items-center justify-between p-4 text-sm font-medium transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-lg bg-background/50 ring-1 ring-border/50 transition-colors",
-                    "group-hover:bg-background group-hover:ring-border",
-                    accentColorClass
-                  )}>
-                    {/* Icono genérico minimalista o específico si se desea */}
-                    <Star className="h-4 w-4 fill-current opacity-70" />
-                  </span>
+              {quality.selected && <Check className="h-4 w-4 shrink-0" />}
+              <span className="text-center leading-tight">{quality.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
-                  <div className="flex flex-col items-start gap-0.5">
-                    <span className="text-foreground/90">{category.name}</span>
-                    {selectedCount > 0 && (
-                      <span className="text-[10px] text-muted-foreground">
-                        {selectedCount} seleccionados
-                      </span>
-                    )}
-                  </div>
-                </div>
+      {/* Navigation Buttons */}
+      <div className="flex items-center gap-3 pt-6 border-t border-border/30 mt-auto">
+        <Button
+          variant="outline"
+          onClick={handlePrevious}
+          disabled={isFirstStep}
+          className={cn(
+            "flex-1",
+            isFirstStep && "opacity-0 pointer-events-none"
+          )}
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Anterior
+        </Button>
 
-                <div className="flex items-center gap-3">
-                  {/* Indicador de progreso */}
-                  <div className="h-2 w-24 overflow-hidden rounded-full bg-secondary">
-                    <div
-                      className={cn(
-                        "h-full transition-all duration-500 ease-out",
-                        accentColorClass.replace('text-', 'bg-')
-                      )}
-                      style={{ width: `${(selectedCount / totalQualities) * 100}%` }}
-                    />
-                  </div>
-
-                  <span className="text-muted-foreground transition-transform duration-200">
-                    {isExpanded ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </span>
-                </div>
-              </button>
-
-              {/* Qualities Grid */}
-              <div
-                className={cn(
-                  "grid transition-all duration-300 ease-in-out",
-                  isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                )}
-              >
-                <div className="overflow-hidden">
-                  <div className="flex flex-wrap gap-2 p-4 pt-0">
-                    {category.qualities.map((quality) => (
-                      <button
-                        key={quality.id}
-                        onClick={() => handleToggleQuality(category.id, quality.id)}
-                        disabled={isPending}
-                        className={cn(
-                          "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all",
-                          "border border-transparent",
-                          "hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                          quality.selected
-                            ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
-                            : "bg-secondary/50 text-secondary-foreground hover:bg-secondary border-transparent hover:border-border/50"
-                        )}
-                      >
-                        {quality.selected && <Check className="h-3 w-3" />}
-                        {quality.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {isLastStep ? (
+          <Button
+            onClick={onComplete}
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20"
+          >
+            Guardar y Finalizar
+            <Check className="h-4 w-4 ml-1" />
+          </Button>
+        ) : (
+          <Button
+            onClick={handleNext}
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+          >
+            Continuar
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        )}
       </div>
     </div>
   );

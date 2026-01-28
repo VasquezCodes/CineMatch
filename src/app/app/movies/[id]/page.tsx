@@ -11,6 +11,8 @@ import {
 } from "@/features/movie";
 import { PersonLink } from "@/components/shared/PersonLink";
 import { Container } from "@/components/layout";
+import { QualificationModal } from "@/features/qualifications/components/QualificationModal";
+import { Button } from "@/components/ui/button";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -92,6 +94,19 @@ export default async function MovieDetailPage({ params }: PageProps) {
                     <span>En tu lista</span>
                   </div>
                 )}
+
+                {/* Botón Cualificar - Alineado con los géneros */}
+                <div className="pt-4">
+                  <QualificationModal movieId={movie.id} movieTitle={movie.title}>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-sm hover:shadow-md transition-all"
+                    >
+                      Cualificar
+                    </Button>
+                  </QualificationModal>
+                </div>
               </div>
 
               {/* Columna Derecha: Información Principal (Baja respecto al poster) */}

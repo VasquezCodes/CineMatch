@@ -78,7 +78,7 @@ export function QualificationModal({
         </div>
 
         {/* Content Area - Flex Grow para ocupar espacio disponible */}
-        <div className="flex-1 overflow-y-auto min-h-0 px-6 py-4">
+        <div className="flex-1 overflow-y-auto min-h-0 px-6 py-4 flex flex-col">
           {loading && (
             <div className="h-full flex flex-col items-center justify-center gap-4 animate-fadeIn">
               <div className="relative">
@@ -106,32 +106,24 @@ export function QualificationModal({
           )}
 
           {!loading && !error && categories && (
-            <div className="animate-fade-in pb-4">
-              <QualificationSelector movieId={movieId} categories={categories} />
+            <div className="flex-1 flex flex-col animate-fade-in">
+              <QualificationSelector
+                movieId={movieId}
+                categories={categories}
+                onComplete={() => {
+                  setOpen(false);
+                  toast.success("Cualificaciones guardadas", {
+                    description: "Tus preferencias se han actualizado correctamente"
+                  });
+                }}
+              />
+              <p className="mt-4 text-[10px] text-muted-foreground text-center flex items-center justify-center gap-1.5 opacity-70">
+                <span className="h-1 w-1 rounded-full bg-primary/50" />
+                Tus selecciones se guardan automáticamente
+              </p>
             </div>
           )}
         </div>
-
-        {/* Footer con indicador de guardado */}
-        {!loading && !error && categories && (
-          <div className="px-6 py-4 border-t border-border/30 bg-muted/20">
-            <Button
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-[1.01]"
-              onClick={() => {
-                setOpen(false);
-                toast.success("Cualificaciones guardadas", {
-                  description: "Tus preferencias se han actualizado correctamente"
-                });
-              }}
-            >
-              Guardar y Finalizar
-            </Button>
-            <p className="mt-3 text-[10px] text-muted-foreground text-center flex items-center justify-center gap-1.5 opacity-70">
-              <span className="h-1 list-disc rounded-full bg-primary/50" />
-              Tus selecciones también se guardan automáticamente mientas las eliges
-            </p>
-          </div>
-        )}
       </DialogContent>
     </Dialog>
   );
