@@ -17,7 +17,8 @@
       "Bash(wc:*)",
       "Bash(find:*)",
       "Bash(pnpm exec tsc:*)",
-      "mcp__better-icons__search_icons"
+      "mcp__better-icons__search_icons",
+      "Bash(git add:*)"
     ]
   }
 }

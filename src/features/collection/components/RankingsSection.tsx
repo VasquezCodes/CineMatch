@@ -5,16 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { ChevronDown, ChevronUp, TrendingUp, LayoutGrid, BarChart3 } from "lucide-react";
+import { ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
 import { RankingCard } from "@/components/shared/RankingCard";
-import { RankingsSheet } from "@/components/shared/RankingsSheet";
-import { RankingsChartsView } from "@/features/rankings/components/RankingsChartsView";
+import { RankingsExpandedView } from "@/features/rankings/components/RankingsExpandedView";
 import { useRankings } from "@/features/rankings/hooks/useRankings";
 import { type RankingType } from "@/features/rankings/actions";
 import { cn } from "@/lib/utils";
-
-type ViewMode = "cards" | "charts";
 
 interface RankingsSectionProps {
   userId: string;
@@ -32,10 +28,9 @@ const RANKING_TYPES: Array<{ value: RankingType; label: string }> = [
 
 export function RankingsSection({ userId }: RankingsSectionProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
-  const [viewMode, setViewMode] = React.useState<ViewMode>("cards");
   const [activeTab, setActiveTab] = React.useState<RankingType>("director");
-  const [sheetOpen, setSheetOpen] = React.useState(false);
-  const [sheetRankingType, setSheetRankingType] = React.useState<RankingType>("director");
+  const [expandedView, setExpandedView] = React.useState(false);
+  const [expandedType, setExpandedType] = React.useState<RankingType | null>(null);
 
   // React Query hook - lazy loading + caching automático de 5 minutos
   const { data: rawData, isLoading, error } = useRankings(
@@ -45,20 +40,34 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
     !isCollapsed // Solo fetch cuando no está colapsado
   );
 
-  const displayLimit = viewMode === "charts" ? 10 : 5;
-  const currentData = (rawData || []).slice(0, displayLimit);
-  const currentLabel = RANKING_TYPES.find((t) => t.value === activeTab)?.label || "";
+  const currentData = React.useMemo(
+    () => (rawData || []).slice(0, 5),
+    [rawData]
+  );
 
+  const handleViewMore = React.useCallback((type: RankingType) => {
+    setExpandedType(type);
+    setExpandedView(true);
+  }, []);
 
-  const handleViewMore = (type: RankingType) => {
-    setSheetRankingType(type);
-    setSheetOpen(true);
-  };
+  // Si está en vista expandida, mostrar solo esa vista
+  if (expandedView && expandedType) {
+    return (
+      <RankingsExpandedView
+        userId={userId}
+        type={expandedType}
+        onBack={() => {
+          setExpandedView(false);
+          setExpandedType(null);
+        }}
+      />
+    );
+  }
 
+  // Vista normal de cards
   return (
-    <>
-      <div className="space-y-4">
-        {/* Header con toggle de vista y colapsar */}
+    <div className="space-y-4">
+        {/* Header con botón de colapsar */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
             <h2 className="text-2xl font-bold tracking-tight">Rankings</h2>
@@ -67,52 +76,25 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Toggle de vista: Cards vs Charts */}
-            <ToggleGroup
-              type="single"
-              value={viewMode}
-              onValueChange={(v) => v && setViewMode(v as ViewMode)}
-              className="bg-muted/50 p-1 rounded-lg"
-            >
-              <ToggleGroupItem
-                value="cards"
-                aria-label="Vista de tarjetas"
-                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
-              >
-                <LayoutGrid className="h-4 w-4" />
-                <span className="hidden sm:inline text-sm">Cards</span>
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="charts"
-                aria-label="Vista de gráficos"
-                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
-              >
-                <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline text-sm">Gráficos</span>
-              </ToggleGroupItem>
-            </ToggleGroup>
-
-            {/* Botón de colapsar */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="gap-2"
-            >
-              {isCollapsed ? (
-                <>
-                  <span className="hidden sm:inline">Expandir</span>
-                  <ChevronDown className="h-4 w-4" />
-                </>
-              ) : (
-                <>
-                  <span className="hidden sm:inline">Colapsar</span>
-                  <ChevronUp className="h-4 w-4" />
-                </>
-              )}
-            </Button>
-          </div>
+          {/* Botón de colapsar */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="gap-2"
+          >
+            {isCollapsed ? (
+              <>
+                <span className="hidden sm:inline">Expandir</span>
+                <ChevronDown className="h-4 w-4" />
+              </>
+            ) : (
+              <>
+                <span className="hidden sm:inline">Colapsar</span>
+                <ChevronUp className="h-4 w-4" />
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Contenido colapsable */}
@@ -139,57 +121,46 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
             {/* Contenido de cada tab */}
             {RANKING_TYPES.map((type) => (
               <TabsContent key={type.value} value={type.value} className="mt-6">
-                {viewMode === "charts" ? (
-                  <RankingsChartsView
-                    data={currentData}
-                    type={type.value}
-                    isLoading={isLoading && type.value === activeTab}
-                    error={error?.message || null}
+                {isLoading && type.value === activeTab ? (
+                  <RankingsSkeleton />
+                ) : error ? (
+                  <ErrorState
+                    title="Error al cargar rankings"
+                    description={error.message}
+                  />
+                ) : currentData.length === 0 ? (
+                  <EmptyState
+                    icon={<TrendingUp className="h-12 w-12" />}
+                    title={`No hay rankings de ${type.label.toLowerCase()}`}
+                    description="Califica más películas para ver rankings personalizados."
                   />
                 ) : (
                   <>
-                    {isLoading && type.value === activeTab ? (
-                      <RankingsSkeleton />
-                    ) : error ? (
-                      <ErrorState
-                        title="Error al cargar rankings"
-                        description={error.message}
-                      />
-                    ) : currentData.length === 0 ? (
-                      <EmptyState
-                        icon={<TrendingUp className="h-12 w-12" />}
-                        title={`No hay rankings de ${type.label.toLowerCase()}`}
-                        description="Califica más películas para ver rankings personalizados."
-                      />
-                    ) : (
-                      <>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                          {currentData.map((item, index) => (
-                            <RankingCard
-                              key={item.key}
-                              item={item}
-                              index={index}
-                              type={type.value}
-                              onViewMore={() => handleViewMore(type.value)}
-                              compact
-                              variant="collection"
-                            />
-                          ))}
-                        </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {currentData.map((item, index) => (
+                        <RankingCard
+                          key={item.key}
+                          item={item}
+                          index={index}
+                          type={type.value}
+                          onViewMore={() => handleViewMore(type.value)}
+                          compact
+                          variant="collection"
+                        />
+                      ))}
+                    </div>
 
-                        {currentData.length > 0 && (
-                          <div className="mt-6 text-center">
-                            <Button
-                              variant="outline"
-                              onClick={() => handleViewMore(type.value)}
-                              className="gap-2"
-                            >
-                              Ver Top 10 completo de {type.label}
-                              <ChevronDown className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
-                      </>
+                    {currentData.length > 0 && (
+                      <div className="mt-6 text-center">
+                        <Button
+                          variant="outline"
+                          onClick={() => handleViewMore(type.value)}
+                          className="gap-2"
+                        >
+                          Ver Top 10 completo de {type.label}
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </div>
                     )}
                   </>
                 )}
@@ -197,28 +168,17 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
             ))}
           </Tabs>
         </div>
-      </div>
-
-      {/* Sheet para ver Top 10 completo */}
-      <RankingsSheet
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-        userId={userId}
-        rankingType={sheetRankingType}
-        rankingLabel={currentLabel}
-        variant="collection"
-      />
-    </>
+    </div>
   );
 }
 
-// Skeleton component local
-function RankingsSkeleton() {
+// Skeleton component local - memoizado para evitar re-renders
+const RankingsSkeleton = React.memo(function RankingsSkeleton() {
   const { Skeleton } = require("@/components/ui/skeleton");
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {Array.from({ length: 4 }).map((_, i) => (
+      {[...Array(4)].map((_, i) => (
         <div key={i} className="rounded-xl border border-border/40 p-4 bg-card/30">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
@@ -231,7 +191,7 @@ function RankingsSkeleton() {
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
-            {Array.from({ length: 3 }).map((_, j) => (
+            {[...Array(3)].map((_, j) => (
               <div key={j} className="w-[84px] md:w-[96px] space-y-2">
                 <Skeleton className="aspect-2/3 w-full rounded-lg" />
                 <Skeleton className="h-3 w-full rounded" />
@@ -243,5 +203,4 @@ function RankingsSkeleton() {
       ))}
     </div>
   );
-}
-
+});
