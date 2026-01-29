@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useAuth } from '@/lib/providers/auth-provider';
 import { toast } from 'sonner';
+import { updateUsername, uploadAvatar, getProfile } from '@/features/profile/actions';
 
 // UI Components
 import {
@@ -47,20 +48,47 @@ function AccountSkeleton() {
 }
 
 export default function AccountPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, refreshUser } = useAuth();
+  const [isUpdating, setIsUpdating] = React.useState(false);
 
   // User Info
   const [username, setUsername] = React.useState('');
   const [currentUsername, setCurrentUsername] = React.useState('');
 
+  // Avatar local state to show updates immediately
+  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(null);
+
   // Initialize from user data
   React.useEffect(() => {
-    if (user) {
-      const name =
-        user.user_metadata?.username || user.email?.split('@')[0] || '';
-      setUsername(name);
-      setCurrentUsername(name);
+    async function loadProfile() {
+      if (!user) return;
+
+      // Default to auth metadata first (fallback)
+      const metaName = user.user_metadata?.username || user.email?.split('@')[0] || '';
+      const metaAvatar = user.user_metadata?.avatar_url || null;
+
+      setUsername(metaName);
+      setCurrentUsername(metaName);
+      setAvatarUrl(metaAvatar);
+
+      // Then fetch authoritative data from profiles table
+      try {
+        const profile = await getProfile();
+        if (profile) {
+          if (profile.username) {
+            setUsername(profile.username);
+            setCurrentUsername(profile.username);
+          }
+          if (profile.avatar_url) {
+            setAvatarUrl(profile.avatar_url);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
     }
+
+    loadProfile();
   }, [user]);
 
   // ========================================
@@ -68,28 +96,53 @@ export default function AccountPage() {
   // ========================================
 
   const handleAvatarUpload = async (file: File) => {
-    // TODO: Implementar backend
-    // 1. const publicUrl = await uploadAvatar(user.id, file)
-    // 2. await updateAvatarUrl(publicUrl)
-    // 3. toast.success('Avatar actualizado')
+    const formData = new FormData();
+    formData.append('file', file);
 
-    console.log('TODO: Upload avatar', file.name);
-    toast.info('Backend no implementado aún', {
-      description: 'La funcionalidad de subir avatar estará disponible pronto',
-    });
+    // Optimistic update (show preview handled by child, or verify after upload)
+
+    try {
+      const result = await uploadAvatar(formData);
+
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      if (result.url) {
+        setAvatarUrl(result.url);
+        await refreshUser(); // Update auth context if needed
+        toast.success('Avatar actualizado');
+      }
+    } catch (error) {
+      toast.error('Error al subir avatar');
+      console.error(error);
+    }
   };
 
   const handleUpdateUsername = async () => {
-    // TODO: Implementar backend
-    // 1. await updateUsername(username)
-    // 2. setCurrentUsername(username)
-    // 3. toast.success('Nombre actualizado')
+    if (!user) return;
+    if (username === currentUsername) return;
 
-    console.log('TODO: Update username to', username);
-    toast.info('Backend no implementado aún', {
-      description:
-        'La funcionalidad de actualizar nombre estará disponible pronto',
-    });
+    setIsUpdating(true);
+
+    try {
+      const result = await updateUsername(username);
+
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      setCurrentUsername(username);
+      await refreshUser();
+      toast.success('Nombre actualizado');
+    } catch (error) {
+      toast.error('Error al actualizar nombre');
+      console.error(error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   // ========================================
@@ -131,7 +184,7 @@ export default function AccountPage() {
             {/* Avatar Upload */}
             <div className="flex-shrink-0 mx-auto sm:mx-0">
               <ProfileAvatarUpload
-                currentAvatarUrl={user?.user_metadata?.avatar_url}
+                currentAvatarUrl={avatarUrl}
                 username={username}
                 onFileSelect={handleAvatarUpload}
               />
@@ -153,9 +206,9 @@ export default function AccountPage() {
                   <Button
                     variant="outline"
                     onClick={handleUpdateUsername}
-                    disabled={username === currentUsername}
+                    disabled={username === currentUsername || isUpdating}
                   >
-                    Guardar
+                    {isUpdating ? 'Guardando...' : 'Guardar'}
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">

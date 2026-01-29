@@ -7,6 +7,7 @@ import { AnalysisStats } from "@/features/collection/components/AnalysisStats";
 import { AnalysisStatsSkeleton } from "@/features/collection/components/AnalysisStatsSkeleton";
 import { RankingsSectionClient } from "@/features/collection/components/RankingsSectionClient";
 import { RankingsSkeleton } from "@/features/collection/components/RankingsSkeleton";
+import { CollaborationsSection } from "@/features/analysis/components/CollaborationsSection";
 import { PageHeader, Section, Container } from "@/components/layout";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -62,6 +63,19 @@ async function RankingsSectionWrapper() {
 
   // Usar el wrapper client para evitar hydration mismatch
   return <RankingsSectionClient userId={user.id} />;
+}
+
+/**
+ * Componente que carga y muestra la sección de Colaboraciones
+ */
+async function CollaborationsSectionWrapper() {
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  return <CollaborationsSection userId={user.id} />;
 }
 
 /**
@@ -304,6 +318,13 @@ export default async function AnalysisPage() {
       >
         <Section>
           <RankingsSectionWrapper />
+        </Section>
+      </Suspense>
+
+      {/* Colaboraciones - carga independiente */}
+      <Suspense fallback={<Section><Skeleton className="h-64 w-full rounded-xl" /></Section>}>
+        <Section>
+          <CollaborationsSectionWrapper />
         </Section>
       </Suspense>
 

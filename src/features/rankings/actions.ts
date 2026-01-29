@@ -60,7 +60,8 @@ export async function getRanking(
         const { data, error } = await supabase.rpc('get_person_rankings', {
             p_user_id: userId,
             p_role: role,
-            p_limit: limit
+            p_limit: limit,
+            p_min_rating: options.minRating || 0
         });
 
         if (error) {
@@ -106,7 +107,8 @@ export async function getRanking(
     if (type === 'genre') {
         const { data, error } = await supabase.rpc('get_genre_rankings', {
             p_user_id: userId,
-            p_limit: limit
+            p_limit: limit,
+            p_min_rating: options.minRating || 0
         });
 
         if (error) {
@@ -141,7 +143,8 @@ export async function getRanking(
     if (type === 'year') {
         const { data, error } = await supabase.rpc('get_year_rankings', {
             p_user_id: userId,
-            p_limit: limit
+            p_limit: limit,
+            p_min_rating: options.minRating || 0
         });
 
         if (error) {

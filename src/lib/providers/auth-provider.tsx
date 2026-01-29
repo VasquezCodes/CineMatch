@@ -9,6 +9,7 @@ type AuthContextType = {
     user: User | null;
     session: Session | null;
     isLoading: boolean;
+    refreshUser: () => Promise<void>;
 };
 
 // Creamos el contexto
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     session: null,
     isLoading: true,
+    refreshUser: async () => { },
 });
 
 // Hook para usar el contexto facilmente
@@ -28,6 +30,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
 
     const supabase = createBrowserClient();
+
+    const refreshUser = async () => {
+        const { data: { session }, error } = await supabase.auth.refreshSession();
+        if (error) {
+            console.error('Error refreshing session:', error);
+            return;
+        }
+        setSession(session);
+        setUser(session?.user ?? null);
+    };
 
     useEffect(() => {
         // 1. Obtener sesión inicial
@@ -62,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         session,
         user,
         isLoading,
+        refreshUser,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -5,8 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
-import { ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
+import { ChevronDown, ChevronUp, TrendingUp, Filter } from "lucide-react";
 import { RankingCard } from "@/components/shared/RankingCard";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import { RankingsExpandedView } from "@/features/rankings/components/RankingsExpandedView";
 import { useRankings } from "@/features/rankings/hooks/useRankings";
 import { type RankingType } from "@/features/rankings/actions";
@@ -32,12 +34,24 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
   const [expandedView, setExpandedView] = React.useState(false);
   const [expandedType, setExpandedType] = React.useState<RankingType | null>(null);
 
-  // React Query hook - lazy loading + caching automático de 5 minutos
+  const [minRating, setMinRating] = React.useState([0]);
+
+  // Debounce para minRating para evitar saturar la consulta
+  const [debouncedMinRating, setDebouncedMinRating] = React.useState(0);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedMinRating(minRating[0]);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [minRating]);
+
+  // Hook de React Query - carga diferida + caché automático de 5 minutos
   const { data: rawData, isLoading, error } = useRankings(
     userId,
     activeTab,
-    { minRating: 1, limit: 20 },
-    !isCollapsed // Solo fetch cuando no está colapsado
+    { minRating: debouncedMinRating, limit: 20 },
+    !isCollapsed // Solo realizar petición cuando no está colapsado
   );
 
   const currentData = React.useMemo(
@@ -67,112 +81,142 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
   // Vista normal de cards
   return (
     <div className="space-y-4">
-        {/* Header con botón de colapsar */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold tracking-tight">Rankings</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Descubre tus preferencias cinematográficas
-            </p>
-          </div>
-
-          {/* Botón de colapsar */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="gap-2"
-          >
-            {isCollapsed ? (
-              <>
-                <span className="hidden sm:inline">Expandir</span>
-                <ChevronDown className="h-4 w-4" />
-              </>
-            ) : (
-              <>
-                <span className="hidden sm:inline">Colapsar</span>
-                <ChevronUp className="h-4 w-4" />
-              </>
-            )}
-          </Button>
+      {/* Header con botón de colapsar */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <h2 className="text-2xl font-bold tracking-tight">Rankings</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Descubre tus preferencias cinematográficas
+          </p>
         </div>
 
-        {/* Contenido colapsable */}
-        <div
-          className={cn(
-            "overflow-hidden transition-all duration-300 ease-in-out",
-            isCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
-          )}
+        {/* Botón de colapsar */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="gap-2"
         >
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as RankingType)}>
-            {/* Lista de tabs responsive */}
-            <TabsList className="w-full justify-start overflow-x-auto flex-nowrap h-auto p-1 bg-muted/50">
-              {RANKING_TYPES.map((type) => (
-                <TabsTrigger
-                  key={type.value}
-                  value={type.value}
-                  className="shrink-0 data-[state=active]:bg-background text-xs md:text-sm"
-                >
-                  {type.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+          {isCollapsed ? (
+            <>
+              <span className="hidden sm:inline">Expandir</span>
+              <ChevronDown className="h-4 w-4" />
+            </>
+          ) : (
+            <>
+              <span className="hidden sm:inline">Colapsar</span>
+              <ChevronUp className="h-4 w-4" />
+            </>
+          )}
+        </Button>
+      </div>
 
-            {/* Contenido de cada tab */}
+      {/* Panel de Filtros - Solo visible cuando está expandido */}
+      {
+        !isCollapsed && (
+          <div className="bg-muted/30 p-4 rounded-lg border border-border/50 space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Label className="text-sm font-medium">Filtros de Análisis</Label>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Calificación mínima: {minRating[0] === 0 ? "Todas" : `★ ${minRating[0]}`}</span>
+                  <span>Considerar películas rated {minRating[0]}+</span>
+                </div>
+                <Slider
+                  defaultValue={[0]}
+                  value={minRating}
+                  onValueChange={setMinRating}
+                  max={10}
+                  min={0}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Contenido colapsable */}
+      <div
+        className={cn(
+          "overflow-hidden transition-all duration-300 ease-in-out",
+          isCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
+        )}
+      >
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as RankingType)}>
+          {/* Lista de tabs responsive */}
+          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap h-auto p-1 bg-muted/50">
             {RANKING_TYPES.map((type) => (
-              <TabsContent key={type.value} value={type.value} className="mt-6">
-                {isLoading && type.value === activeTab ? (
-                  <RankingsSkeleton />
-                ) : error ? (
-                  <ErrorState
-                    title="Error al cargar rankings"
-                    description={error.message}
-                  />
-                ) : currentData.length === 0 ? (
-                  <EmptyState
-                    icon={<TrendingUp className="h-12 w-12" />}
-                    title={`No hay rankings de ${type.label.toLowerCase()}`}
-                    description="Califica más películas para ver rankings personalizados."
-                  />
-                ) : (
-                  <>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      {currentData.map((item, index) => (
-                        <RankingCard
-                          key={item.key}
-                          item={item}
-                          index={index}
-                          type={type.value}
-                          onViewMore={() => handleViewMore(type.value)}
-                          compact
-                          variant="collection"
-                        />
-                      ))}
-                    </div>
-
-                    {currentData.length > 0 && (
-                      <div className="mt-6 text-center">
-                        <Button
-                          variant="outline"
-                          onClick={() => handleViewMore(type.value)}
-                          className="gap-2"
-                        >
-                          Ver Top 10 completo de {type.label}
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </TabsContent>
+              <TabsTrigger
+                key={type.value}
+                value={type.value}
+                className="shrink-0 data-[state=active]:bg-background text-xs md:text-sm"
+              >
+                {type.label}
+              </TabsTrigger>
             ))}
-          </Tabs>
-        </div>
-    </div>
+          </TabsList>
+
+          {/* Contenido de cada tab */}
+          {RANKING_TYPES.map((type) => (
+            <TabsContent key={type.value} value={type.value} className="mt-6">
+              {isLoading && type.value === activeTab ? (
+                <RankingsSkeleton />
+              ) : error ? (
+                <ErrorState
+                  title="Error al cargar rankings"
+                  description={error.message}
+                />
+              ) : currentData.length === 0 ? (
+                <EmptyState
+                  icon={<TrendingUp className="h-12 w-12" />}
+                  title={`No hay rankings de ${type.label.toLowerCase()}`}
+                  description="Califica más películas para ver rankings personalizados."
+                />
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {currentData.map((item, index) => (
+                      <RankingCard
+                        key={item.key}
+                        item={item}
+                        index={index}
+                        type={type.value}
+                        onViewMore={() => handleViewMore(type.value)}
+                        compact
+                        variant="collection"
+                      />
+                    ))}
+                  </div>
+
+                  {currentData.length > 0 && (
+                    <div className="mt-6 text-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => handleViewMore(type.value)}
+                        className="gap-2"
+                      >
+                        Ver Top 10 completo de {type.label}
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+    </div >
   );
 }
 
-// Skeleton component local - memoizado para evitar re-renders
+// Componente Skeleton local - memorizado para evitar re-renderizados
 const RankingsSkeleton = React.memo(function RankingsSkeleton() {
   const { Skeleton } = require("@/components/ui/skeleton");
 

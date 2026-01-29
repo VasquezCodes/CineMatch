@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useAuth } from '@/lib/providers/auth-provider';
 import { toast } from 'sonner';
+import { getProfile, updateLocation } from '@/features/profile/actions';
 
 // UI Components
 import {
@@ -42,6 +43,7 @@ function LocationSkeleton() {
 
 export default function LocationPage() {
   const { user, isLoading } = useAuth();
+  const [isSaving, setIsSaving] = React.useState(false);
 
   // Location
   const [city, setCity] = React.useState('');
@@ -50,13 +52,24 @@ export default function LocationPage() {
 
   // Initialize from user data
   React.useEffect(() => {
-    if (user) {
-      // TODO: Cargar ubicación desde profiles table
-      // const profile = await getProfile(user.id);
-      // setCity(profile.city || '');
-      // setState(profile.state || '');
-      // setNeighborhood(profile.neighborhood || '');
+    async function loadProfile() {
+      if (!user) return;
+
+      const profile = await getProfile();
+      if (profile?.location_text) {
+        // Simple parse: "Barrio, Ciudad, Estado"
+        // Si el formato no coincide exacto, al menos ponemos todo en ciudad o algo
+        // Por ahora asumimos que el usuario lo llenó con este form
+        const parts = profile.location_text.split(',').map(s => s.trim());
+
+        // Intentamos asignar de atrás para adelante: Estado, Ciudad, Barrio
+        if (parts.length >= 1) setState(parts[parts.length - 1]);
+        if (parts.length >= 2) setCity(parts[parts.length - 2]);
+        if (parts.length >= 3) setNeighborhood(parts[parts.length - 3]);
+      }
     }
+
+    loadProfile();
   }, [user]);
 
   // ========================================
@@ -64,15 +77,18 @@ export default function LocationPage() {
   // ========================================
 
   const handleUpdateLocation = async () => {
-    // TODO: Implementar backend
-    // await updateLocation({ city, state, neighborhood })
-    // toast.success('Ubicación actualizada')
+    if (!user) return;
+    setIsSaving(true);
 
-    console.log('TODO: Update location', { city, state, neighborhood });
-    toast.info('Backend no implementado aún', {
-      description:
-        'La funcionalidad de actualizar ubicación estará disponible pronto',
-    });
+    try {
+      await updateLocation({ city, state, neighborhood });
+      toast.success('Ubicación actualizada');
+    } catch (error) {
+      toast.error('Error al actualizar ubicación');
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // ========================================
@@ -146,9 +162,10 @@ export default function LocationPage() {
           <Button
             variant="outline"
             onClick={handleUpdateLocation}
+            disabled={isSaving}
             className="w-full sm:w-auto"
           >
-            Guardar ubicación
+            {isSaving ? 'Guardando...' : 'Guardar ubicación'}
           </Button>
         </CardContent>
       </Card>
