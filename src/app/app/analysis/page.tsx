@@ -2,9 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { AlertCircle, Star, Upload, Library, Trash } from "lucide-react";
 import { APP_ROUTES, SECONDARY_ROUTES } from "@/config/routes";
-import { getAnalysisData } from "@/features/insights/actions";
-import { AnalysisStats } from "@/features/collection/components/AnalysisStats";
-import { AnalysisStatsSkeleton } from "@/features/collection/components/AnalysisStatsSkeleton";
+
 import { RankingsSectionClient } from "@/features/collection/components/RankingsSectionClient";
 import { RankingsSkeleton } from "@/features/collection/components/RankingsSkeleton";
 import { CollaborationsSection } from "@/features/analysis/components/CollaborationsSection";
@@ -28,25 +26,8 @@ import { MovieCard } from "@/features/library";
 // Cada uno hace su propia carga de datos
 // ============================================
 
-/**
- * Componente que carga y muestra las estadísticas de análisis
- * Se renderiza de forma independiente gracias a Suspense
- */
-async function AnalysisStatsSection() {
-  try {
-    const statsData = await getAnalysisData();
-    if (!statsData) return null;
-    return <AnalysisStats data={statsData} />;
-  } catch (err) {
-    console.error("Error loading stats:", err);
-    return (
-      <ErrorState
-        title="Error al cargar estadísticas"
-        description="No se pudieron cargar las estadísticas. Intenta recargar la página."
-      />
-    );
-  }
-}
+
+
 
 /**
  * Componente que carga y muestra la sección de Rankings
@@ -292,18 +273,7 @@ export default async function AnalysisPage() {
         </Section>
       </Suspense>
 
-      {/* Stats - carga independiente con skeleton */}
-      <Suspense
-        fallback={
-          <Section>
-            <AnalysisStatsSkeleton />
-          </Section>
-        }
-      >
-        <Section>
-          <AnalysisStatsSection />
-        </Section>
-      </Suspense>
+
 
       {/* 
         Rankings - carga independiente con skeleton

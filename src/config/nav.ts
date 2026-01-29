@@ -45,6 +45,12 @@ export const APP_NAV_ITEMS: NavItem[] = [
     icon: Sparkles,
   },
   {
+    label: "Libreria",
+    mobileLabel: "Libreria",
+    href: SECONDARY_ROUTES.LIBRARY,
+    icon: Library,
+  },
+  {
     label: "Perfil",
     mobileLabel: "Perfil",
     href: APP_ROUTES.PROFILE,
@@ -54,11 +60,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
 
 // Navegación secundaria (features adicionales)
 export const SECONDARY_NAV_ITEMS: NavItem[] = [
-  {
-    label: "Biblioteca",
-    href: SECONDARY_ROUTES.LIBRARY,
-    icon: Library,
-  },
   {
     label: "Historial",
     href: SECONDARY_ROUTES.IMPORTS,
