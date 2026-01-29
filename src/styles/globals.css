@@ -287,4 +287,13 @@ body {
     animation: slide-in-line 0.8s ease-out forwards;
     transform-origin: left;
   }
+
+  /* Carousel infinite animation */
+  .animate-carousel {
+    animation: scroll-left 30s linear infinite;
+  }
+
+  .animate-carousel:hover {
+    animation-play-state: paused;
+  }
 }

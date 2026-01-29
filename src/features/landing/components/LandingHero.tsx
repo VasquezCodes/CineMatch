@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
+import { TrendingCarousel } from "./TrendingCarousel";
 
 export function LandingHero() {
   return (
@@ -55,11 +56,11 @@ export function LandingHero() {
             </Link>
           </Button>
         </div>
+      </div>
 
-        {/* Espacio reservado para cards de películas con animación */}
-        <div className="mt-16 w-full md:mt-24">
-          {/* Aquí irán las cards de películas animadas */}
-        </div>
+      {/* Carrusel de películas trending */}
+      <div className="pb-16 md:pb-24">
+        <TrendingCarousel />
       </div>
     </section>
   );
