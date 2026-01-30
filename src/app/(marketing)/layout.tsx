@@ -1,4 +1,4 @@
-import { LandingFooter } from '@/features/landing/components'
+import { Footer } from '@/components/layout'
 
 export default function MarketingLayout({
   children,
@@ -6,7 +6,7 @@ export default function MarketingLayout({
   return (
     <>
       {children}
-      <LandingFooter />
+      <Footer variant="landing" />
     </>
   )
 }

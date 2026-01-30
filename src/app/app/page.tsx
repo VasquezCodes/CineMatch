@@ -1,10 +1,11 @@
-import { LandingHero, LandingFooter } from "@/features/landing/components";
+import { LandingHero } from "@/features/landing/components";
+import { Footer } from "@/components/layout";
 
 export default function AppPage() {
   return (
     <>
       <LandingHero />
-      <LandingFooter />
+      <Footer variant="landing" />
     </>
   );
 }

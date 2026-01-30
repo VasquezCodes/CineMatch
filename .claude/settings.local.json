@@ -30,7 +30,9 @@
       "Bash(pnpm run dev)",
       "Bash(pkill:*)",
       "Bash(pnpm install:*)",
-      "Bash(timeout 10 pnpm dev:*)"
+      "Bash(timeout 10 pnpm dev:*)",
+      "WebSearch",
+      "WebFetch(domain:ui.aceternity.com)"
     ]
   }
 }

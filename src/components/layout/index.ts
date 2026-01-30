@@ -12,4 +12,4 @@ export type { ContainerProps } from "./container";
 export { PageHeader } from "./page-header";
 export { Section, SectionGrid } from "./section";
 export type { SectionProps, SectionGridProps } from "./section";
-
+export { Footer } from "./Footer";

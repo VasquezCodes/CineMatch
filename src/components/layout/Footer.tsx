@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Container } from '@/components/layout'
 import { Github, Twitter } from 'lucide-react'
 
-export function LandingFooter() {
+export function Footer({ variant = "landing" }: { variant?: "landing" | "app" }) {
   const currentYear = new Date().getFullYear()
 
   return (
@@ -19,21 +19,23 @@ export function LandingFooter() {
 
       <Container className="relative z-10">
         <div className="py-12 md:py-16 lg:py-20">
-          {/* CTA Section */}
-          <div className="text-center space-y-6 mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-heading">
-              ¿Listo para Descubrir tu Próxima{' '}
-              <span className="text-primary">Película Favorita</span>?
-            </h2>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="rounded-xl">
-                <Link href="/login">Empezar Ahora</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-xl">
-                <Link href="/app/library">Ver Demo</Link>
-              </Button>
+          {/* CTA Section - solo en landing */}
+          {variant === "landing" && (
+            <div className="text-center space-y-6 mb-16">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-heading">
+                ¿Listo para Descubrir tu Próxima{' '}
+                <span className="text-primary">Película Favorita</span>?
+              </h2>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button asChild size="lg" className="rounded-xl">
+                  <Link href="/login">Empezar Ahora</Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="rounded-xl">
+                  <Link href="/app/library">Ver Demo</Link>
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Main Footer Content */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
