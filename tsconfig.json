@@ -16,8 +16,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "baseUrl": ".",
-    "jsx": "preserve",
-    "types": ["react", "react-dom"],
+    "jsx": "react-jsx",
+    "types": [
+      "react",
+      "react-dom"
+    ],
     "incremental": true,
     "plugins": [
       {

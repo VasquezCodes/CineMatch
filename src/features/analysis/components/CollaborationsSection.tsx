@@ -85,12 +85,14 @@ function CollaborationCard({ collab }: { collab: Collaboration }) {
     );
 }
 
-export function CollaborationsSection({ userId }: { userId: string }) {
+import { type RankingType } from "@/features/rankings/actions";
+
+export function CollaborationsSection({ userId, rankingType }: { userId: string; rankingType?: RankingType }) {
     // Búsqueda predeterminada para minRating = 0 (todas las joyas)
-    // Eventualmente podría aceptar una prop para minRating similar a Rankings
+    // El queryKey incluye rankingType para refetch automático al cambiar
     const { data: collaborations, isLoading } = useQuery({
-        queryKey: ['collaborations', userId],
-        queryFn: () => getCollaborations(userId, 0),
+        queryKey: ['collaborations', userId, rankingType],
+        queryFn: () => getCollaborations(userId, 0, rankingType),
         staleTime: 1000 * 60 * 10 // caché de 10 minutos
     });
 

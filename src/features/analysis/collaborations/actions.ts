@@ -22,16 +22,32 @@ export type Collaboration = {
     }>;
 };
 
+import { type RankingType } from "@/features/rankings/actions";
+
 export async function getCollaborations(
     userId: string,
-    minRating: number = 0
+    minRating: number = 0,
+    rankingType?: RankingType
 ): Promise<Collaboration[]> {
     const supabase = await createClient();
+
+    let role: string | null = null;
+    if (rankingType) {
+        switch (rankingType) {
+            case 'director': role = 'Director'; break;
+            case 'actor': role = 'Actor'; break;
+            case 'screenplay': role = 'Writer'; break; // Mapea a 'Writer' o 'Screenplay'
+            case 'photography': role = 'Director of Photography'; break;
+            case 'music': role = 'Original Music Composer'; break;
+            // genre y year no tienen un rol específico de persona asociado para filtro
+        }
+    }
 
     const { data, error } = await supabase.rpc('get_collaborations', {
         p_user_id: userId,
         p_min_rating: minRating,
-        p_limit: 10
+        p_limit: 10,
+        p_role: role
     });
 
     if (error) {

@@ -6,6 +6,7 @@ import { APP_ROUTES } from "@/config/routes";
 import { RankingsSectionClient } from "@/features/collection/components/RankingsSectionClient";
 import { RankingsSkeleton } from "@/features/collection/components/RankingsSkeleton";
 import { CollaborationsSection } from "@/features/analysis/components/CollaborationsSection";
+import { AnalysisClientWrapper } from "./AnalysisClientWrapper";
 import { PageHeader, Section, Container } from "@/components/layout";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -25,37 +26,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 // ============================================
 
 
-
-
-/**
- * Componente que carga y muestra la sección de Rankings
- * Se renderiza de forma independiente gracias a Suspense
- */
-async function RankingsSectionWrapper() {
-  const { createClient } = await import("@/lib/supabase/server");
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return null;
-
-  // Usar el wrapper client para evitar hydration mismatch
-  return <RankingsSectionClient userId={user.id} />;
-}
-
-/**
- * Componente que carga y muestra la sección de Colaboraciones
- */
-async function CollaborationsSectionWrapper() {
-  const { createClient } = await import("@/lib/supabase/server");
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return null;
-
-  return <CollaborationsSection userId={user.id} />;
-}
 
 /**
  * Componente que muestra la alerta de películas sin calificar
@@ -152,6 +122,13 @@ async function checkHasMovies(): Promise<boolean> {
 // ============================================
 
 export default async function AnalysisPage() {
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Redirect or handle unauthenticated state (though middleware usually handles this)
+  if (!user) return null;
+
   // Solo verificamos si hay películas para mostrar el estado vacío
   // El resto de datos se carga en paralelo con Suspense
   const hasMovies = await checkHasMovies();
@@ -194,28 +171,23 @@ export default async function AnalysisPage() {
       </Suspense>
 
 
-
       {/* 
-        Rankings - carga independiente con skeleton
-        Este es el componente más pesado, ahora no bloquea el LCP
+        Rankings + Colaboraciones
+        Integrados en un Client Wrapper para compartir estado de filtrado
       */}
       <Suspense
         fallback={
-          <Section>
-            <RankingsSkeleton />
-          </Section>
+          <div className="space-y-10">
+            <Section>
+              <RankingsSkeleton />
+            </Section>
+            <Section>
+              <Skeleton className="h-64 w-full rounded-xl" />
+            </Section>
+          </div>
         }
       >
-        <Section>
-          <RankingsSectionWrapper />
-        </Section>
-      </Suspense>
-
-      {/* Colaboraciones - carga independiente */}
-      <Suspense fallback={<Section><Skeleton className="h-64 w-full rounded-xl" /></Section>}>
-        <Section>
-          <CollaborationsSectionWrapper />
-        </Section>
+        <AnalysisClientWrapper userId={user.id} />
       </Suspense>
     </Container>
   );

@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 
 interface RankingsSectionProps {
   userId: string;
+  activeTab?: RankingType;
+  onTabChange?: (type: RankingType) => void;
 }
 
 const RANKING_TYPES: Array<{ value: RankingType; label: string }> = [
@@ -28,9 +30,21 @@ const RANKING_TYPES: Array<{ value: RankingType; label: string }> = [
   { value: "year", label: "Años" },
 ];
 
-export function RankingsSection({ userId }: RankingsSectionProps) {
+export function RankingsSection({ userId, activeTab: propActiveTab, onTabChange }: RankingsSectionProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState<RankingType>("director");
+  const [internalActiveTab, setInternalActiveTab] = React.useState<RankingType>("director");
+
+  // Use prop if provided, else internal state
+  const activeTab = propActiveTab || internalActiveTab;
+
+  const handleTabChange = (val: string) => {
+    const newVal = val as RankingType;
+    if (onTabChange) {
+      onTabChange(newVal);
+    } else {
+      setInternalActiveTab(newVal);
+    }
+  };
   const [expandedView, setExpandedView] = React.useState(false);
   const [expandedType, setExpandedType] = React.useState<RankingType | null>(null);
 
@@ -148,7 +162,7 @@ export function RankingsSection({ userId }: RankingsSectionProps) {
           isCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
         )}
       >
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as RankingType)}>
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
           {/* Lista de tabs responsive */}
           <TabsList className="w-full justify-start overflow-x-auto flex-nowrap h-auto p-1 bg-muted/50">
             {RANKING_TYPES.map((type) => (

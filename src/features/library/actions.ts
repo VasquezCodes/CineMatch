@@ -212,27 +212,32 @@ export async function getLibraryPaginated(
  * NOTA: No usamos unstable_cache porque createClient() usa cookies()
  */
 export async function getTopRatedMovies(
-  limit: number = 6
+  limit: number = 6,
+  userId?: string
 ): Promise<{
   data: LibraryItem[] | null;
   error: string | null;
 }> {
   try {
     const supabase = await createClient();
+    let targetUserId = userId;
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    if (!targetUserId) {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-    if (userError || !user) {
-      return { data: null, error: "Usuario no autenticado" };
+      if (userError || !user) {
+        return { data: null, error: "Usuario no autenticado" };
+      }
+      targetUserId = user.id;
     }
 
     const { data: viewData, error: viewError } = await supabase
       .from("user_library_view")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", targetUserId)
       .not("user_rating", "is", null)
       .order("user_rating", { ascending: false })
       .limit(limit);

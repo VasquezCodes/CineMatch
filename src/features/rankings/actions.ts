@@ -73,17 +73,25 @@ export async function getRanking(
 
         // Mapeamos la respuesta del RPC a la estructura del frontend
         return (data as PersonRankingRpcRow[]).map((item) => {
-            const movies = (item.top_movies || [])
-                .map((m: any) => ({
-                    id: m.id,
-                    title: m.title,
-                    year: m.year,
-                    poster_url: m.poster_url,
-                    user_rating: m.user_rating,
-                    imdb_rating: m.imdb_rating,
-                    director_name: m.director_name
-                }))
-                .filter((m) => m.user_rating && m.user_rating > 0);
+            // Deduplicar películas usando un Map por ID
+            const moviesMap = new Map();
+
+            (item.top_movies || []).forEach((m: any) => {
+                if (!moviesMap.has(m.id)) {
+                    moviesMap.set(m.id, {
+                        id: m.id,
+                        title: m.title,
+                        year: m.year,
+                        poster_url: m.poster_url,
+                        user_rating: m.user_rating,
+                        imdb_rating: m.imdb_rating,
+                        director_name: m.director_name
+                    });
+                }
+            });
+
+            const movies = Array.from(moviesMap.values())
+                .filter((m: any) => m.user_rating && m.user_rating > 0);
 
             const count = Number(item.total_movies) || 0;
             const score = Number(item.score) || 0;
