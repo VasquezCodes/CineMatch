@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { AlertCircle, Star, Upload, Library, Trash } from "lucide-react";
-import { APP_ROUTES, SECONDARY_ROUTES } from "@/config/routes";
+import { AlertCircle, Star, Upload, Trash } from "lucide-react";
+import { APP_ROUTES } from "@/config/routes";
 
 import { RankingsSectionClient } from "@/features/collection/components/RankingsSectionClient";
 import { RankingsSkeleton } from "@/features/collection/components/RankingsSkeleton";
@@ -18,8 +18,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getTopRatedMovies } from "@/features/library";
-import { MovieCard } from "@/features/library";
 
 // ============================================
 // Componentes Server con Suspense
@@ -57,84 +55,6 @@ async function CollaborationsSectionWrapper() {
   if (!user) return null;
 
   return <CollaborationsSection userId={user.id} />;
-}
-
-/**
- * Componente que carga y muestra las películas destacadas
- * Se renderiza de forma independiente gracias a Suspense
- */
-async function TopMoviesSection() {
-  const result = await getTopRatedMovies(6);
-  const topMovies = result.data ?? [];
-
-  if (result.error) {
-    return (
-      <ErrorState
-        title="Error al cargar películas"
-        description={result.error}
-      />
-    );
-  }
-
-  if (topMovies.length === 0) return null;
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Películas destacadas</CardTitle>
-            <CardDescription>
-              Tus {topMovies.length} películas mejor calificadas
-            </CardDescription>
-          </div>
-          <Button asChild variant="outline" size="sm" className="gap-2">
-            <Link href={SECONDARY_ROUTES.LIBRARY}>
-              <Library className="h-4 w-4" />
-              Ver toda mi biblioteca
-            </Link>
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {topMovies.map((item) => (
-            <MovieCard key={item.watchlist.id} item={item} />
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/**
- * Skeleton para las películas destacadas
- */
-function TopMoviesSkeleton() {
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-4 w-56" />
-          </div>
-          <Skeleton className="h-9 w-40" />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="space-y-3">
-              <Skeleton className="aspect-video w-full rounded-lg" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
 
 /**
@@ -295,19 +215,6 @@ export default async function AnalysisPage() {
       <Suspense fallback={<Section><Skeleton className="h-64 w-full rounded-xl" /></Section>}>
         <Section>
           <CollaborationsSectionWrapper />
-        </Section>
-      </Suspense>
-
-      {/* Películas destacadas - carga independiente con skeleton */}
-      <Suspense
-        fallback={
-          <Section>
-            <TopMoviesSkeleton />
-          </Section>
-        }
-      >
-        <Section>
-          <TopMoviesSection />
         </Section>
       </Suspense>
     </Container>

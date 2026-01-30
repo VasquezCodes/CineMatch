@@ -57,12 +57,12 @@ export function AppHeader({ variant = "default" }: AppHeaderProps) {
 
   return (
     <header className={cn(
-      "fixed top-0 z-40 w-full transition-all duration-300",
+      "fixed top-0 z-40 w-full transition-all duration-500",
       isCinematic
         ? "absolute border-none bg-transparent"
         : isScrolled
-          ? "border-b border-border/10 bg-background/30 backdrop-blur-xl supports-[backdrop-filter]:bg-background/30"
-          : "border-b border-transparent bg-transparent backdrop-blur-[2px]"
+          ? "border-b border-border/5 bg-gradient-to-b from-background/60 via-background/40 to-background/20 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/0 shadow-sm"
+          : "border-b border-border/5 bg-gradient-to-b from-background/40 via-background/20 to-transparent backdrop-blur-xl"
     )}>
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
         {/* SECCIÓN IZQUIERDA: Logo */}

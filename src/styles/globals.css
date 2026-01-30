@@ -297,3 +297,87 @@ body {
     animation-play-state: paused;
   }
 }
+
+/* 🎬 Cinematch Typewriter Custom Styles */
+@layer components {
+  /* Override kokonutui typewriter default styles */
+  .cinematch-typewriter-wrapper > div > div {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Remove default padding from typewriter container */
+  .cinematch-typewriter-wrapper > div > div > div {
+    padding: 0 !important;
+  }
+
+  /* Text styling - Responsive font sizes matching hero design */
+  .cinematch-typewriter-wrapper div[class*="motion"],
+  .cinematch-typewriter-wrapper [style*="opacity"] {
+    font-family: inherit !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    letter-spacing: -0.05em !important;
+    white-space: nowrap !important;
+
+    /* Base mobile size (text-5xl) */
+    font-size: 3rem !important;
+  }
+
+  /* sm: text-7xl */
+  @media (min-width: 640px) {
+    .cinematch-typewriter-wrapper div[class*="motion"],
+    .cinematch-typewriter-wrapper [style*="opacity"] {
+      font-size: 4.5rem !important;
+    }
+  }
+
+  /* md: text-8xl */
+  @media (min-width: 768px) {
+    .cinematch-typewriter-wrapper div[class*="motion"],
+    .cinematch-typewriter-wrapper [style*="opacity"] {
+      font-size: 6rem !important;
+    }
+  }
+
+  /* lg: text-9xl */
+  @media (min-width: 1024px) {
+    .cinematch-typewriter-wrapper div[class*="motion"],
+    .cinematch-typewriter-wrapper [style*="opacity"] {
+      font-size: 8rem !important;
+    }
+  }
+
+  /* Gradient text effect matching hero */
+  .cinematch-typewriter-wrapper span:first-child {
+    background: linear-gradient(to right, hsl(var(--accent)), hsl(var(--accent) / 0.7)) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+  }
+
+  /* Cursor color matching accent */
+  .cinematch-typewriter-wrapper span:last-child {
+    background-color: hsl(var(--accent)) !important;
+    height: 1em !important;
+    width: 3px !important;
+  }
+
+  /* 🎬 Hero Gradient - Theme-aware background */
+  .hero-gradient {
+    background: radial-gradient(
+      circle at center,
+      hsl(var(--background)) 0%,
+      hsl(142 76% 82%) 100%
+    );
+  }
+
+  .dark .hero-gradient {
+    background: radial-gradient(
+      circle at center,
+      hsl(var(--background)) 0%,
+      hsl(142 50% 12%) 100%
+    );
+  }
+}

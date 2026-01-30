@@ -20,7 +20,17 @@
       "mcp__better-icons__search_icons",
       "Bash(git add:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nRefactorizar perfil con sidebar de navegación y rutas anidadas\n\nImplementa una arquitectura completa de rutas anidadas para el perfil con sidebar fijo en desktop y sheet overlay en mobile:\n\n- Layout con sidebar izquierdo \\(desktop\\) y FAB con sheet \\(mobile\\)\n- Rutas separadas: /account, /settings, /location, /security, /library, /support\n- Componentes extraídos: ProfileSidebar, ProfileMobileNav, ProfileAvatarUpload\n- Configuración centralizada de navegación en profile-nav.ts\n- Estados activos con usePathname\\(\\) y accesibilidad completa\n- Spacing responsive mejorado \\(py-8 md:py-10 lg:py-12\\)\n- z-index optimizado para mobile \\(z-[100] por encima de tabs\\)\n\nPreparado para integración con backend \\(ver TODO en actions\\).\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(pnpm dlx:*)",
+      "Bash(pnpm config set:*)",
+      "Bash(pnpm config:*)",
+      "Bash(pnpm store:*)",
+      "Bash(pnpm tsc:*)",
+      "Bash(pnpm run build:*)",
+      "Bash(pnpm run dev)",
+      "Bash(pkill:*)",
+      "Bash(pnpm install:*)",
+      "Bash(timeout 10 pnpm dev:*)"
     ]
   }
 }

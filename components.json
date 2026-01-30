@@ -17,5 +17,7 @@
     "ui": "@/components/ui",
     "lib": "@/lib"
   },
-  "registries": {}
+  "registries": {
+    "@kokonutui": "https://kokonutui.com/r/{name}.json"
+  }
 }

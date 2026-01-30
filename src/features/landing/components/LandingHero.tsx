@@ -4,17 +4,16 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
 import { TrendingCarousel } from "./TrendingCarousel";
+import { CinematchTypewriter } from "./CinematchTypewriter";
 
 export function LandingHero() {
   return (
-    <section className="relative w-full overflow-hidden">
+    <section
+      className="hero-gradient relative w-full overflow-hidden"
+    >
       <div className="mx-auto flex min-h-[80vh] max-w-7xl flex-col items-center justify-center px-4 py-20 text-center sm:px-6 md:min-h-[85vh] md:py-28 lg:px-8">
-        {/* H1 Principal - Más grande y prominente */}
-        <h1 className="text-5xl font-bold leading-none tracking-tight sm:text-7xl md:text-8xl lg:text-9xl">
-          <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent">
-            CINEMATCH
-          </span>
-        </h1>
+        {/* H1 Principal con Typewriter - Animación de escritura de CINEMATCH */}
+        <CinematchTypewriter />
 
         {/* Subtítulo */}
         <p className="mt-6 text-balance text-xl font-medium leading-relaxed text-foreground sm:text-2xl md:mt-8 md:text-3xl lg:text-4xl">
@@ -26,10 +25,12 @@ export function LandingHero() {
           Revele conexiones y explore sus listas a través de una interfaz visual e intuitiva que transformará la forma en que descubre y analiza películas.
         </p>
 
-        {/* Badge de plataformas */}
-        <p className="mt-6 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground/70 sm:text-sm md:mt-8">
-          Compatible con IMDb, TMDb y Letterboxd
-        </p>
+        {/* Badge de plataformas con efecto liquid glass */}
+        <div className="mt-6 inline-flex items-center justify-center md:mt-8">
+          <span className="rounded-full border border-white/20 bg-gradient-to-br from-white/10 to-white/5 px-6 py-2 text-xs font-medium uppercase tracking-wider text-foreground/90 shadow-lg backdrop-blur-md transition-all hover:border-white/30 hover:from-white/15 hover:to-white/10 hover:shadow-xl sm:text-sm">
+            Compatible con IMDb, TMDb y Letterboxd
+          </span>
+        </div>
 
         {/* CTAs */}
         <div className="mt-10 flex w-full flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-6 md:mt-12">
