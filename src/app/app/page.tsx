@@ -1,5 +1,10 @@
-import { LandingHero } from "@/features/landing/components";
+import { LandingHero, LandingFooter } from "@/features/landing/components";
 
 export default function AppPage() {
-  return <LandingHero />;
+  return (
+    <>
+      <LandingHero />
+      <LandingFooter />
+    </>
+  );
 }
