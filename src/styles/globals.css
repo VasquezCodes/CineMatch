@@ -363,21 +363,4 @@ body {
     height: 1em !important;
     width: 3px !important;
   }
-
-  /* 🎬 Hero Gradient - Theme-aware background */
-  .hero-gradient {
-    background: radial-gradient(
-      circle at center,
-      hsl(var(--background)) 0%,
-      hsl(142 76% 82%) 100%
-    );
-  }
-
-  .dark .hero-gradient {
-    background: radial-gradient(
-      circle at center,
-      hsl(var(--background)) 0%,
-      hsl(142 50% 12%) 100%
-    );
-  }
 }

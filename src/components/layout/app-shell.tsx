@@ -33,8 +33,8 @@ export function AppShell({ children }: AppShellProps) {
   const isLandingPage = pathname === "/app";
   return (
     <div className="relative flex min-h-screen flex-col">
-      {/* Efectos decorativos de fondo - solo en modo default */}
-      {navbarVariant === "default" && <BackgroundBlurs />}
+      {/* Efectos decorativos de fondo - solo en modo default y no en landing page */}
+      {navbarVariant === "default" && !isLandingPage && <BackgroundBlurs />}
 
       {/* Header fixed */}
       <AppHeader variant={navbarVariant} />
