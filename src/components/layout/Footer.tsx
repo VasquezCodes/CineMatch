@@ -7,11 +7,11 @@ export function Footer({ variant = "landing" }: { variant?: "landing" | "app" })
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="relative border-t border-border/20 bg-card/50 backdrop-blur-lg overflow-hidden">
+    <footer className="relative border-t border-border bg-muted overflow-hidden">
       {/* Background Watermark */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/4">
-          <span className="text-[12rem] sm:text-[16rem] md:text-[20rem] lg:text-[24rem] font-bold text-muted/5 select-none font-heading">
+          <span className="text-[12rem] sm:text-[16rem] md:text-[20rem] lg:text-[24rem] font-bold text-foreground/5 select-none font-heading">
             CINEMATCH
           </span>
         </div>

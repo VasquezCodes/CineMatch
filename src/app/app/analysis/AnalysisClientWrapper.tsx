@@ -4,7 +4,7 @@ import * as React from "react";
 import { RankingsSection } from "@/features/collection/components/RankingsSection";
 import { CollaborationsSection } from "@/features/analysis/components/CollaborationsSection";
 import { type RankingType } from "@/features/rankings/actions";
-import { Section, Footer } from "@/components/layout";
+import { Section } from "@/components/layout";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface AnalysisClientWrapperProps {
@@ -34,9 +34,6 @@ export function AnalysisClientWrapper({ userId }: AnalysisClientWrapperProps) {
                     />
                 </Section>
             </div>
-
-            {/* Footer global - sin CTA */}
-            <Footer variant="app" />
         </>
     );
 }
