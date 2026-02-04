@@ -82,7 +82,7 @@ export function RecommendationsGrid({ items }: { items: Recommendation[] }) {
                             {/* Explainability Badge - Floating */}
                             <div className="absolute top-2 right-2">
                                 <Badge variant="secondary" className="backdrop-blur-md bg-black/40 border-white/10 text-xs font-normal text-white px-2 py-0.5 shadow-sm">
-                                    {movie.rec_match_percentage ? `${Math.round(movie.rec_match_percentage)}% Match` : <Sparkles className="h-3 w-3 text-amber-400" />}
+                                    {movie.rec_score ? `${Math.round(movie.rec_score)}% Match` : <Sparkles className="h-3 w-3 text-amber-400" />}
                                 </Badge>
                             </div>
 
