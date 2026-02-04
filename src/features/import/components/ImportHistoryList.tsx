@@ -2,9 +2,10 @@
 
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trash2, FileText, CheckCircle2, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import { Trash2, FileText, CheckCircle2, Clock, AlertCircle, Loader2, Film, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -29,24 +30,29 @@ function getStatusConfig(status: string) {
             return {
                 label: 'Completado',
                 icon: CheckCircle2,
-                className: 'text-primary',
+                variant: 'default' as const,
+                className: 'bg-green-500/15 text-green-700 hover:bg-green-500/25 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20',
             };
         case 'processing':
             return {
                 label: 'Procesando',
                 icon: Loader2,
-                className: 'text-amber-500 animate-spin',
+                variant: 'secondary' as const,
+                className: 'animate-pulse',
+                iconClassName: 'animate-spin',
             };
         case 'error':
             return {
                 label: 'Error',
                 icon: AlertCircle,
-                className: 'text-destructive',
+                variant: 'destructive' as const,
+                className: '',
             };
         default:
             return {
                 label: 'Pendiente',
                 icon: Clock,
+                variant: 'outline' as const,
                 className: 'text-muted-foreground',
             };
     }
@@ -64,62 +70,82 @@ export function ImportHistoryList({ imports }: ImportHistoryListProps) {
     };
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-4">
             {imports.map((item) => {
                 const statusConfig = getStatusConfig(item.status);
                 const StatusIcon = statusConfig.icon;
-                const importDate = new Date(item.imported_at).toLocaleDateString('es-ES', {
+                const importDate = new Date(item.imported_at);
+
+                const formattedDate = importDate.toLocaleDateString('es-ES', {
                     day: 'numeric',
-                    month: 'short',
+                    month: 'long',
                     year: 'numeric',
+                });
+
+                const formattedTime = importDate.toLocaleTimeString('es-ES', {
                     hour: '2-digit',
                     minute: '2-digit',
                 });
 
                 return (
-                    <Card key={item.id} className="overflow-hidden">
-                        <CardContent className="p-4">
-                            <div className="flex items-start justify-between gap-4">
+                    <Card
+                        key={item.id}
+                        className="group overflow-hidden transition-all hover:border-primary/50 hover:shadow-md dark:hover:border-primary/40 bg-card/50 backdrop-blur-sm"
+                    >
+                        <CardContent className="p-5">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
                                 {/* Left: File info */}
-                                <div className="flex items-start gap-3 min-w-0 flex-1">
-                                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-                                        <FileText className="size-5 text-muted-foreground" />
+                                <div className="flex items-start gap-4 min-w-0 flex-1">
+                                    <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-sm group-hover:scale-105 transition-transform">
+                                        <FileText className="size-6" />
                                     </div>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="font-medium truncate">{item.filename}</p>
-                                        <p className="text-sm text-muted-foreground">{importDate}</p>
-                                        <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                                            <span className="rounded-full bg-muted px-2 py-0.5">
+                                    <div className="min-w-0 flex-1 space-y-1.5">
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-semibold text-lg tracking-tight truncate text-foreground">
+                                                {item.filename}
+                                            </p>
+                                            <Badge variant={statusConfig.variant} className={cn("gap-1.5 ml-2 h-6 pl-1.5 pr-2.5", statusConfig.className)}>
+                                                <StatusIcon className={cn("size-3.5", statusConfig.iconClassName)} />
+                                                {statusConfig.label}
+                                            </Badge>
+                                        </div>
+
+                                        <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                                            <div className="flex items-center gap-1.5">
+                                                <Calendar className="size-3.5" />
+                                                <span>{formattedDate}</span>
+                                                <span className="text-muted-foreground/50">•</span>
+                                                <span>{formattedTime}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-1 flex flex-wrap gap-2 text-xs">
+                                            <Badge variant="secondary" className="gap-1.5 font-normal bg-secondary/50 hover:bg-secondary">
+                                                <Film className="size-3.5 opacity-70" />
                                                 {item.counts?.total ?? 0} películas
-                                            </span>
+                                            </Badge>
+
                                             {(item.counts?.new ?? 0) > 0 && (
-                                                <span className="rounded-full bg-primary/10 text-primary px-2 py-0.5">
+                                                <Badge variant="default" className="gap-1.5 bg-primary/90 hover:bg-primary font-medium">
                                                     +{item.counts.new} nuevas
-                                                </span>
+                                                </Badge>
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Right: Status & Actions */}
-                                <div className="flex items-center gap-3 shrink-0">
-                                    <div className="flex items-center gap-1.5">
-                                        <StatusIcon className={cn('size-4', statusConfig.className)} />
-                                        <span className="text-sm text-muted-foreground hidden sm:inline">
-                                            {statusConfig.label}
-                                        </span>
-                                    </div>
-
+                                {/* Right: Actions */}
+                                <div className="flex items-center sm:self-center pt-2 sm:pt-0 pl-16 sm:pl-0">
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button
                                                 variant="ghost"
-                                                size="icon"
-                                                className="text-muted-foreground hover:text-destructive"
+                                                size="sm"
+                                                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors gap-2"
                                                 disabled={isPending}
-                                                aria-label="Eliminar importación"
                                             >
                                                 <Trash2 className="size-4" />
+                                                <span className="sr-only sm:not-sr-only sm:inline-block">Eliminar</span>
                                             </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
