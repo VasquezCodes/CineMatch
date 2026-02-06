@@ -10,20 +10,6 @@ import {
 } from "@/components/ui/chart";
 import type { RankingStatConfig } from "../../actions";
 
-// Hook para detectar si es móvil
-function useIsMobile(breakpoint = 640) {
-  const [isMobile, setIsMobile] = React.useState(false);
-
-  React.useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < breakpoint);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, [breakpoint]);
-
-  return isMobile;
-}
-
 interface RankingPieChartProps {
   data: RankingStatConfig[];
   selectedIndex: number | null;
@@ -47,11 +33,25 @@ const PIE_COLORS = [
 const chartConfig = {
   count: {
     label: "Películas",
+    color: "hsl(var(--chart-1))",
+  },
+  avgRating: {
+    label: "Rating Promedio",
+  },
+  percentage: {
+    label: "Porcentaje",
   },
 } satisfies ChartConfig;
 
 export function RankingPieChart({ data, selectedIndex, onSelectItem }: RankingPieChartProps) {
-  const isMobile = useIsMobile();
+  // Validación de datos
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-[400px] w-full flex items-center justify-center text-muted-foreground">
+        No hay datos disponibles para mostrar
+      </div>
+    );
+  }
 
   // Ordenar datos de mayor a menor por count (asegurar orden correcto)
   const sortedData = [...data]
@@ -107,16 +107,12 @@ export function RankingPieChart({ data, selectedIndex, onSelectItem }: RankingPi
     );
   };
 
-  const pieConfig = isMobile
-    ? { cx: "50%", cy: "35%", innerRadius: 40, outerRadius: 70 }
-    : { cx: "50%", cy: "50%", innerRadius: 60, outerRadius: 120 };
-
-  const legendConfig = isMobile
-    ? { layout: "horizontal" as const, align: "center" as const, verticalAlign: "bottom" as const }
-    : { layout: "vertical" as const, align: "right" as const, verticalAlign: "middle" as const };
+  // Configuración responsive usando CSS en lugar de JS hook para evitar hidratación
+  const pieConfig = { cx: "50%", cy: "50%", innerRadius: 60, outerRadius: 120 };
+  const legendConfig = { layout: "vertical" as const, align: "right" as const, verticalAlign: "middle" as const };
 
   return (
-    <ChartContainer config={chartConfig} className={isMobile ? "h-[450px] w-full aspect-auto" : "h-full max-h-[400px] w-full"}>
+    <ChartContainer config={chartConfig} className="h-[400px] w-full" style={{ minHeight: '400px' }}>
       <PieChart>
         <ChartTooltip
           content={
@@ -168,10 +164,9 @@ export function RankingPieChart({ data, selectedIndex, onSelectItem }: RankingPi
           verticalAlign={legendConfig.verticalAlign}
           iconType="circle"
           iconSize={8}
-          wrapperStyle={isMobile ? { paddingTop: 20 } : undefined}
           formatter={(value, entry: any) => (
             <span className="text-xs text-muted-foreground">
-              {isMobile ? truncateName(value, 12) : truncateName(value, 18)} ({entry.payload.percentage}%)
+              {truncateName(value, 18)} ({entry.payload.percentage}%)
             </span>
           )}
         />

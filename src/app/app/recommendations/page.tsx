@@ -1,5 +1,4 @@
-import { Container } from "@/components/layout";
-import { WavyBackground } from "@/components/ui/wavy-background";
+import { Container, BackgroundBlurs } from "@/components/layout";
 import { getRecommendations } from "@/features/recommendations/actions";
 import { RecommendationsGrid } from "@/features/recommendations/components";
 
@@ -15,9 +14,12 @@ export default async function RecommendationsPage() {
 
   return (
     <div className="relative w-full min-h-screen">
-      {/* Hero Section with Wavy Background */}
-      <WavyBackground className="max-w-4xl mx-auto pb-10 pt-20">
-        <div className="text-center space-y-4 px-4">
+      {/* Background Decorations */}
+      <BackgroundBlurs />
+
+      {/* Hero Section */}
+      <div className="max-w-4xl mx-auto pb-4 pt-20">
+        <div className="text-center space-y-8 px-4">
           <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 font-sans tracking-tight">
             Recomendaciones <span className="text-primary block md:inline">Para Ti</span>
           </h1>
@@ -26,10 +28,10 @@ export default async function RecommendationsPage() {
             coincidir con tus gustos cinematográficos únicos.
           </p>
         </div>
-      </WavyBackground>
+      </div>
 
       {/* Main Content */}
-      <Container className="py-12 -mt-20 relative z-10">
+      <Container className="py-16 relative z-10">
         <RecommendationsGrid items={recommendations || []} />
       </Container>
     </div>

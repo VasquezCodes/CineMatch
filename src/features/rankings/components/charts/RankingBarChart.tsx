@@ -35,9 +35,24 @@ const chartConfig = {
     label: "Películas",
     color: "hsl(var(--chart-1))",
   },
+  avgRating: {
+    label: "Rating Promedio",
+  },
+  percentage: {
+    label: "Porcentaje",
+  },
 } satisfies ChartConfig;
 
 export function RankingBarChart({ data, selectedIndex, onSelectItem }: RankingBarChartProps) {
+  // Validación de datos
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-[400px] w-full flex items-center justify-center text-muted-foreground">
+        No hay datos disponibles para mostrar
+      </div>
+    );
+  }
+
   // Ordenar datos de mayor a menor por count (asegurar orden correcto)
   const sortedData = [...data]
     .sort((a, b) => b.count - a.count)
@@ -70,7 +85,7 @@ export function RankingBarChart({ data, selectedIndex, onSelectItem }: RankingBa
   });
 
   return (
-    <ChartContainer config={chartConfig} className="h-full max-h-[400px] w-full">
+    <ChartContainer config={chartConfig} className="h-[400px] w-full" style={{ minHeight: '400px' }}>
       <BarChart
         data={chartData}
         layout="vertical"

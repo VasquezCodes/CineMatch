@@ -32,7 +32,8 @@
       "Bash(pnpm install:*)",
       "Bash(timeout 10 pnpm dev:*)",
       "WebSearch",
-      "WebFetch(domain:ui.aceternity.com)"
+      "WebFetch(domain:ui.aceternity.com)",
+      "Bash(npm run dev:*)"
     ]
   }
 }

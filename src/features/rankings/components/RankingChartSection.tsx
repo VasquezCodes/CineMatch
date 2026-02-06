@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ChartSelector,
   RankingBarChart,
@@ -55,6 +57,15 @@ export function RankingChartSection({
   onSelectItem,
   isLoading,
 }: RankingChartSectionProps) {
+  // Debug logging (temporal para diagnóstico)
+  console.log('[RankingChartSection] Rendering with:', {
+    chartType,
+    dataLength: data.length,
+    isLoading,
+    firstItem: data[0],
+    hasData: data && data.length > 0
+  });
+
   const renderChart = () => {
     if (isLoading) {
       return <ChartSkeleton />;
