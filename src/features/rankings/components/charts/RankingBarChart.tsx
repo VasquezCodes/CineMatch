@@ -59,12 +59,12 @@ export function RankingBarChart({ data, selectedIndex, onSelectItem }: RankingBa
     .slice(0, 10);
 
   // Crear mapeo de índices: índice en sortedData -> índice original en data
-  const indexMap = sortedData.map((sortedItem) => 
+  const indexMap = sortedData.map((sortedItem) =>
     data.findIndex((originalItem) => originalItem.key === sortedItem.key)
   );
 
   // Mapear selectedIndex original al índice en sortedData
-  const sortedSelectedIndex = selectedIndex !== null 
+  const sortedSelectedIndex = selectedIndex !== null
     ? indexMap.findIndex((originalIdx) => originalIdx === selectedIndex)
     : null;
 
@@ -85,62 +85,51 @@ export function RankingBarChart({ data, selectedIndex, onSelectItem }: RankingBa
   });
 
   return (
-    <ChartContainer config={chartConfig} className="h-[400px] w-full" style={{ minHeight: '400px' }}>
-      <BarChart
-        data={chartData}
-        layout="vertical"
-        margin={{ top: 10, right: 16, left: 0, bottom: 10 }}
-      >
-        <XAxis type="number" tickLine={false} axisLine={false} hide />
-        <YAxis
-          type="category"
-          dataKey="name"
-          tickLine={false}
-          axisLine={false}
-          width={80}
-          tick={{ fontSize: 11 }}
-        />
-        <ChartTooltip
-          content={
-            <ChartTooltipContent
-              hideLabel
-              formatter={(value, name, item) => (
-                <div className="flex flex-col gap-1">
-                  <span className="font-medium">{item.payload.fullName}</span>
-                  <span>{value} películas</span>
-                  <span className="text-muted-foreground">
-                    Promedio: <span className="text-accent">★</span> {item.payload.avgRating}
-                  </span>
-                </div>
-              )}
-            />
-          }
-        />
-        <Bar
-          dataKey="count"
-          radius={[0, 4, 4, 0]}
-          cursor="pointer"
-          onClick={(clickedData: any) => {
-            // Recharts pasa el payload directamente o dentro de un objeto
-            const payload = clickedData.payload || clickedData;
-            const clickedItem = chartData.find((item) => item.name === payload.name || item.fullName === payload.fullName);
-            if (clickedItem && clickedItem.originalIndex !== undefined) {
-              onSelectItem(clickedItem.originalIndex);
-            }
-          }}
+    <div className="w-full">
+      <ChartContainer config={chartConfig} className="h-[400px] w-full" style={{ minHeight: '400px' }}>
+        <BarChart
+          data={chartData}
+          layout="vertical"
+          margin={{ top: 10, right: 16, left: 0, bottom: 10 }}
         >
-          {chartData.map((entry, index) => (
-            <Cell
-              key={`cell-${index}`}
-              fill={BAR_COLORS[index]} // Sin repetición: usar índice directo (máximo 10 elementos)
-              opacity={sortedSelectedIndex === null || sortedSelectedIndex === index ? 1 : 0.4}
-              stroke={sortedSelectedIndex === index ? "hsl(var(--primary))" : "transparent"}
-              strokeWidth={sortedSelectedIndex === index ? 2 : 0}
-            />
-          ))}
-        </Bar>
-      </BarChart>
-    </ChartContainer>
+          <XAxis type="number" tickLine={false} axisLine={false} hide />
+          <YAxis
+            type="category"
+            dataKey="name"
+            tickLine={false}
+            axisLine={false}
+            width={80}
+            tick={{ fontSize: 11, fill: 'currentColor' }}
+          />
+          <ChartTooltip
+            cursor={false}
+            content={<ChartTooltipContent hideLabel />}
+          />
+          <Bar
+            dataKey="count"
+            radius={[0, 4, 4, 0]}
+            cursor="pointer"
+            onClick={(clickedData: any) => {
+              const payload = clickedData.payload || clickedData;
+              const clickedItem = chartData.find((item) => item.name === payload.name || item.fullName === payload.fullName);
+              if (clickedItem && clickedItem.originalIndex !== undefined) {
+                onSelectItem(clickedItem.originalIndex);
+              }
+            }}
+          >
+            {chartData.map((entry, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={BAR_COLORS[index] || "#8884d8"}
+                opacity={sortedSelectedIndex === null || sortedSelectedIndex === index ? 1 : 0.4}
+                stroke={sortedSelectedIndex === index ? "currentColor" : "transparent"}
+                strokeWidth={sortedSelectedIndex === index ? 2 : 0}
+              />
+            ))}
+          </Bar>
+        </BarChart>
+      </ChartContainer>
+    </div>
   );
 }
 

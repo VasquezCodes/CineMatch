@@ -13,6 +13,7 @@ import { RankingsExpandedView } from "@/features/rankings/components/RankingsExp
 import { useRankings } from "@/features/rankings/hooks/useRankings";
 import { type RankingType } from "@/features/rankings/actions";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface RankingsSectionProps {
   userId: string;
@@ -162,7 +163,7 @@ export function RankingsSection({ userId, activeTab: propActiveTab, onTabChange 
           isCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
         )}
       >
-        <Tabs value={activeTab} onValueChange={handleTabChange}>
+        <Tabs id="rankings-tabs" value={activeTab} onValueChange={handleTabChange}>
           {/* Lista de tabs responsive */}
           <TabsList className="w-full justify-start overflow-x-auto flex-nowrap h-auto p-1 bg-muted/50">
             {RANKING_TYPES.map((type) => (
@@ -232,8 +233,6 @@ export function RankingsSection({ userId, activeTab: propActiveTab, onTabChange 
 
 // Componente Skeleton local - memorizado para evitar re-renderizados
 const RankingsSkeleton = React.memo(function RankingsSkeleton() {
-  const { Skeleton } = require("@/components/ui/skeleton");
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {[...Array(4)].map((_, i) => (

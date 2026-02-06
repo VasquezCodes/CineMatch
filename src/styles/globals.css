@@ -51,25 +51,26 @@
     --star-yellow: 45 93% 54%;
 
     /* 🎨 Chart colors – 10 colores categóricos */
-    --chart-1: 142 76% 36%;
+    /* Comma-separated for better Recharts compatibility */
+    --chart-1: 142, 76%, 36%;
     /* verde marca */
-    --chart-2: 158 70% 40%;
+    --chart-2: 158, 70%, 40%;
     /* verde-menta */
-    --chart-3: 175 65% 42%;
+    --chart-3: 175, 65%, 42%;
     /* teal */
-    --chart-4: 195 80% 45%;
+    --chart-4: 195, 80%, 45%;
     /* cyan */
-    --chart-5: 210 85% 48%;
+    --chart-5: 210, 85%, 48%;
     /* azul */
-    --chart-6: 235 75% 55%;
+    --chart-6: 235, 75%, 55%;
     /* azul-violeta */
-    --chart-7: 265 70% 50%;
+    --chart-7: 265, 70%, 50%;
     /* violeta */
-    --chart-8: 295 65% 55%;
+    --chart-8: 295, 65%, 55%;
     /* magenta suave */
-    --chart-9: 32 92% 48%;
+    --chart-9: 32, 92%, 48%;
     /* ámbar */
-    --chart-10: 12 85% 55%;
+    --chart-10: 12, 85%, 55%;
     /* coral */
   }
 
@@ -98,16 +99,17 @@
     --star-yellow: 45 93% 54%;
 
     /* 🎨 Chart colors – Dark (más luminosos) */
-    --chart-1: 142 70.6% 55%;
-    --chart-2: 158 65% 58%;
-    --chart-3: 175 65% 60%;
-    --chart-4: 195 80% 62%;
-    --chart-5: 210 85% 65%;
-    --chart-6: 235 80% 68%;
-    --chart-7: 265 75% 70%;
-    --chart-8: 295 70% 72%;
-    --chart-9: 32 95% 60%;
-    --chart-10: 12 90% 62%;
+    /* Comma-separated for better Recharts compatibility */
+    --chart-1: 142, 70.6%, 55%;
+    --chart-2: 158, 65%, 58%;
+    --chart-3: 175, 65%, 60%;
+    --chart-4: 195, 80%, 62%;
+    --chart-5: 210, 85%, 65%;
+    --chart-6: 235, 80%, 68%;
+    --chart-7: 265, 75%, 70%;
+    --chart-8: 295, 70%, 72%;
+    --chart-9: 32, 95%, 60%;
+    --chart-10: 12, 90%, 62%;
   }
 
   body {
@@ -300,14 +302,15 @@ body {
 
 /* 🎬 Cinematch Typewriter Custom Styles */
 @layer components {
+
   /* Override kokonutui typewriter default styles */
-  .cinematch-typewriter-wrapper > div > div {
+  .cinematch-typewriter-wrapper>div>div {
     padding: 0 !important;
     max-width: 100% !important;
   }
 
   /* Remove default padding from typewriter container */
-  .cinematch-typewriter-wrapper > div > div > div {
+  .cinematch-typewriter-wrapper>div>div>div {
     padding: 0 !important;
   }
 
@@ -326,6 +329,7 @@ body {
 
   /* sm: text-7xl */
   @media (min-width: 640px) {
+
     .cinematch-typewriter-wrapper div[class*="motion"],
     .cinematch-typewriter-wrapper [style*="opacity"] {
       font-size: 4.5rem !important;
@@ -334,6 +338,7 @@ body {
 
   /* md: text-8xl */
   @media (min-width: 768px) {
+
     .cinematch-typewriter-wrapper div[class*="motion"],
     .cinematch-typewriter-wrapper [style*="opacity"] {
       font-size: 6rem !important;
@@ -342,6 +347,7 @@ body {
 
   /* lg: text-9xl */
   @media (min-width: 1024px) {
+
     .cinematch-typewriter-wrapper div[class*="motion"],
     .cinematch-typewriter-wrapper [style*="opacity"] {
       font-size: 8rem !important;
