@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { Container } from "@/components/layout";
 import { getConstellationData, getRecommendations } from "@/features/recommendations/actions";
 import { ConstellationMap, RecommendationsGrid } from "@/features/recommendations/components";
-import { Sparkles, Network, Grid3X3, ArrowRight } from "lucide-react";
+import { Sparkles, Network, Grid3X3 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const dynamic = "force-dynamic";
@@ -12,21 +12,37 @@ export const metadata = {
   description: "Descubre películas basadas en tus gustos.",
 };
 
-// Loading skeleton for constellation
+// Loading skeleton for constellation - neural network style
 function ConstellationSkeleton() {
   return (
-    <div className="space-y-8 py-8">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="flex items-center gap-4">
-          <Skeleton className="w-32 h-44 rounded-xl" />
-          <ArrowRight className="w-5 h-5 text-muted-foreground/30" />
-          <div className="flex gap-3">
-            {[1, 2, 3].map((j) => (
-              <Skeleton key={j} className="w-24 h-32 rounded-xl" />
-            ))}
-          </div>
+    <div className="relative h-[400px] flex items-center justify-center">
+      {/* Animated loading circles */}
+      <div className="flex items-center gap-32">
+        {/* Source nodes skeleton */}
+        <div className="flex flex-col gap-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="relative">
+              <Skeleton className="w-20 h-20 rounded-full" />
+              <div className="absolute inset-0 rounded-full animate-pulse bg-primary/10" style={{ animationDelay: `${i * 0.2}s` }} />
+            </div>
+          ))}
         </div>
-      ))}
+        {/* Center pulse */}
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-32 h-px bg-gradient-to-r from-primary/40 via-primary to-primary/40 animate-pulse" />
+          <Sparkles className="w-6 h-6 text-primary animate-pulse" />
+          <div className="w-32 h-px bg-gradient-to-r from-primary/40 via-primary to-primary/40 animate-pulse" />
+        </div>
+        {/* Recommendation nodes skeleton */}
+        <div className="flex flex-col gap-6">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="relative">
+              <Skeleton className="w-14 h-14 rounded-full" />
+              <div className="absolute inset-0 rounded-full animate-pulse bg-chart-5/10" style={{ animationDelay: `${i * 0.15}s` }} />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -37,13 +53,13 @@ async function ConstellationSection() {
 
   if (error || !data || data.nodes.length === 0) {
     return (
-      <div className="w-full py-16 text-center">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-muted/50 mb-4">
-          <Network className="w-7 h-7 text-muted-foreground" />
+      <div className="w-full py-20 text-center">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 mb-6">
+          <Network className="w-10 h-10 text-primary/60" />
         </div>
-        <h3 className="text-lg font-medium text-foreground mb-2">Tu mapa está en construcción</h3>
-        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-          Califica más películas con 4 o 5 estrellas para ver las conexiones con recomendaciones.
+        <h3 className="text-xl font-semibold text-white mb-3">Tu universo está en construcción</h3>
+        <p className="text-white/60 max-w-md mx-auto">
+          Califica películas con 4 o 5 estrellas para construir tu constelación personal de recomendaciones.
         </p>
       </div>
     );
@@ -60,56 +76,90 @@ async function GridSection() {
 
 export default function RecommendationsPage() {
   return (
-    <div className="relative w-full min-h-screen bg-background">
-      {/* Subtle background */}
+    <div className="relative w-full min-h-screen bg-[#09090b]">
+      {/* Cosmic gradient background - Stitch Design */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/3 rounded-full blur-[100px] -translate-y-1/2" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-chart-5/3 rounded-full blur-[100px] translate-y-1/2" />
+        {/* Purple cosmic glow - top left */}
+        <div className="absolute -top-1/4 -left-1/4 w-[800px] h-[800px] bg-violet-900/20 rounded-full blur-[150px]" />
+        {/* Blue cosmic glow - top right */}
+        <div className="absolute -top-1/4 right-0 w-[600px] h-[600px] bg-blue-900/15 rounded-full blur-[120px]" />
+        {/* Primary glow - bottom */}
+        <div className="absolute bottom-0 left-1/3 w-[700px] h-[400px] bg-primary/10 rounded-full blur-[120px] translate-y-1/2" />
+        {/* Subtle grid pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+            backgroundSize: '60px 60px'
+          }}
+        />
       </div>
 
-      {/* Hero Section */}
-      <Container className="relative z-10 pt-12 pb-6">
-        <div className="max-w-2xl mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-3">
-            Recomendaciones
-          </h1>
-          <p className="text-muted-foreground">
-            Basadas en tus películas favoritas, haz clic en cualquier póster para explorar.
-          </p>
-        </div>
+      {/* Hero Section - Tu Universo de Películas */}
+      <section className="relative z-10 pt-16 pb-8">
+        <Container>
+          {/* Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Personalizado para ti</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">
+              Tu Universo de Películas
+            </h1>
+            <p className="text-lg text-white/60 max-w-2xl mx-auto">
+              Explora las conexiones entre tus películas favoritas y descubre nuevas recomendaciones basadas en tu gusto único.
+            </p>
+          </div>
 
-        {/* Constellation Map */}
-        <Suspense fallback={<ConstellationSkeleton />}>
-          <ConstellationSection />
-        </Suspense>
-      </Container>
+          {/* Constellation Map */}
+          <div className="relative">
+            {/* Decorative frame */}
+            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none" />
+            <div className="absolute -inset-4 rounded-3xl border border-white/[0.05] pointer-events-none" />
+
+            <Suspense fallback={<ConstellationSkeleton />}>
+              <ConstellationSection />
+            </Suspense>
+          </div>
+        </Container>
+      </section>
+
+      {/* Divider */}
+      <div className="relative z-10 py-8">
+        <Container>
+          <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        </Container>
+      </div>
 
       {/* Grid Section */}
-      <Container className="py-16 relative z-10">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="p-2 rounded-lg bg-muted/50 border border-border/50">
-            <Grid3X3 className="w-5 h-5 text-primary" />
+      <section className="relative z-10 pb-20">
+        <Container>
+          <div className="flex items-center gap-4 mb-10">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10">
+              <Grid3X3 className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Explorar Más</h2>
+              <p className="text-white/50">Todas las recomendaciones en vista de cuadrícula</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-foreground">Todas las Recomendaciones</h2>
-            <p className="text-sm text-muted-foreground">Vista en cuadrícula para explorar más películas</p>
-          </div>
-        </div>
 
-        <Suspense fallback={
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="space-y-3">
-                <Skeleton className="aspect-[2/3] rounded-2xl" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-              </div>
-            ))}
-          </div>
-        }>
-          <GridSection />
-        </Suspense>
-      </Container>
+          <Suspense fallback={
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="aspect-[2/3] rounded-2xl bg-white/5" />
+                  <Skeleton className="h-4 w-3/4 bg-white/5" />
+                  <Skeleton className="h-3 w-1/2 bg-white/5" />
+                </div>
+              ))}
+            </div>
+          }>
+            <GridSection />
+          </Suspense>
+        </Container>
+      </section>
     </div>
   );
 }
