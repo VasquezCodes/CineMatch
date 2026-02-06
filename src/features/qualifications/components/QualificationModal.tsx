@@ -33,8 +33,11 @@ export function QualificationModal({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open && !categories) {
+    if (open) {
       loadCategories();
+    } else {
+      // Reset state when closing to ensure fresh data on next open
+      setCategories(null);
     }
   }, [open]);
 

@@ -138,7 +138,6 @@ export function QualificationSelector({ movieId, categories, onComplete }: Props
             <button
               key={quality.id}
               onClick={() => handleToggleQuality(currentCategory.id, quality.id)}
-              disabled={isPending}
               className={cn(
                 "flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-all",
                 "border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
