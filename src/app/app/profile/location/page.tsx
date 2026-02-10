@@ -46,8 +46,8 @@ export default function LocationPage() {
   const [isSaving, setIsSaving] = React.useState(false);
 
   // Location
-  const [city, setCity] = React.useState('');
-  const [state, setState] = React.useState('');
+  const [country, setCountry] = React.useState('');
+  const [district, setDistrict] = React.useState('');
   const [neighborhood, setNeighborhood] = React.useState('');
 
   // Initialize from user data
@@ -57,14 +57,12 @@ export default function LocationPage() {
 
       const profile = await getProfile();
       if (profile?.location_text) {
-        // Simple parse: "Barrio, Ciudad, Estado"
-        // Si el formato no coincide exacto, al menos ponemos todo en ciudad o algo
-        // Por ahora asumimos que el usuario lo llenó con este form
+        // Simple parse: "Barrio, Distrito, País"
         const parts = profile.location_text.split(',').map(s => s.trim());
 
-        // Intentamos asignar de atrás para adelante: Estado, Ciudad, Barrio
-        if (parts.length >= 1) setState(parts[parts.length - 1]);
-        if (parts.length >= 2) setCity(parts[parts.length - 2]);
+        // Intentamos asignar de atrás para adelante: País, Distrito, Barrio
+        if (parts.length >= 1) setCountry(parts[parts.length - 1]);
+        if (parts.length >= 2) setDistrict(parts[parts.length - 2]);
         if (parts.length >= 3) setNeighborhood(parts[parts.length - 3]);
       }
     }
@@ -81,7 +79,7 @@ export default function LocationPage() {
     setIsSaving(true);
 
     try {
-      await updateLocation({ city, state, neighborhood });
+      await updateLocation({ country, district, neighborhood });
       toast.success('Ubicación actualizada');
     } catch (error) {
       toast.error('Error al actualizar ubicación');
@@ -129,28 +127,28 @@ export default function LocationPage() {
           {/* Grid responsive: 2 cols en desktop, 1 en mobile */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="city">Ciudad</Label>
+              <Label htmlFor="country">País</Label>
               <Input
-                id="city"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Buenos Aires"
+                id="country"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                placeholder="Argentina"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="state">Provincia/Estado</Label>
+              <Label htmlFor="district">Distrito</Label>
               <Input
-                id="state"
-                value={state}
-                onChange={(e) => setState(e.target.value)}
+                id="district"
+                value={district}
+                onChange={(e) => setDistrict(e.target.value)}
                 placeholder="CABA"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="neighborhood">Barrio/Distrito (opcional)</Label>
+            <Label htmlFor="neighborhood">Barrio (opcional)</Label>
             <Input
               id="neighborhood"
               value={neighborhood}

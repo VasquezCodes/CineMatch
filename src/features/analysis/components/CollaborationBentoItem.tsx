@@ -119,7 +119,7 @@ export function CollaborationBentoItem({
             className="bg-primary/10 text-primary text-xs px-2 py-0.5 shrink-0"
             aria-label={`${collab.count} películas en colaboración`}
           >
-            {collab.count} films
+            {collab.count} películas
           </Badge>
         </div>
       }

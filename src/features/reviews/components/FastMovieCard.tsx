@@ -46,16 +46,17 @@ export function FastMovieCard({ movie, onRated }: FastMovieCardProps) {
   return (
     <div
       className={cn(
-        "group relative flex items-center gap-4 p-3 rounded-xl border transition-[background-color,border-color,box-shadow,opacity] duration-200",
-        "bg-card border-border hover:shadow-md hover:border-primary/30",
+        "group relative flex items-center gap-4 p-3 rounded-xl transition-all duration-300",
+        "backdrop-blur-md bg-card/90 ring-1 ring-border/40 border-0",
+        "shadow-md shadow-black/5 hover:shadow-lg hover:shadow-black/10 hover:ring-primary/30",
         isRated &&
-        "border-primary/40 bg-primary/2 dark:bg-primary/5 shadow-[0_0_15px_-5px_hsl(var(--primary)/0.15)]",
+        "ring-primary/40 bg-primary/5 shadow-lg shadow-primary/10",
         isSaving && "opacity-70 pointer-events-none"
       )}
       data-theme-transition
     >
       {/* Poster */}
-      <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-md bg-muted border border-border/50 shadow-sm">
+      <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-lg bg-muted ring-1 ring-border/30 shadow-md shadow-black/10">
         {movie.posterUrl ? (
           <Image
             src={movie.posterUrl}
@@ -75,7 +76,7 @@ export function FastMovieCard({ movie, onRated }: FastMovieCardProps) {
         <div className="flex items-baseline justify-between gap-2">
           <h3
             className={cn(
-              "font-semibold text-sm truncate tracking-tight",
+              "font-semibold text-sm truncate tracking-tight [text-shadow:_0_1px_2px_rgb(0_0_0_/_8%)]",
               isRated ? "text-primary" : "text-foreground"
             )}
           >
@@ -94,11 +95,11 @@ export function FastMovieCard({ movie, onRated }: FastMovieCardProps) {
               onClick={() => handleRate(num)}
               disabled={isSaving}
               className={cn(
-                "h-7 w-7 rounded-md text-[11px] font-bold transition-[background-color,border-color,color,transform,box-shadow] duration-200 flex items-center justify-center border",
+                "h-7 w-7 rounded-md text-[11px] font-bold transition-all duration-200 flex items-center justify-center",
                 "focus:ring-2 focus:ring-primary/20 outline-none",
                 currentRating === num
-                  ? "bg-primary text-primary-foreground border-primary shadow-sm scale-105"
-                  : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-primary hover:bg-primary/3"
+                  ? "bg-primary text-primary-foreground ring-1 ring-primary shadow-md shadow-primary/20 scale-105"
+                  : "backdrop-blur-sm bg-background/80 text-muted-foreground ring-1 ring-border/40 hover:ring-primary/50 hover:text-primary hover:bg-primary/5 hover:shadow-sm"
               )}
             >
               {num}

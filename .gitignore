@@ -59,3 +59,10 @@ tsc_output.txt
 
 #mcp
 .mcp.json
+
+# project documentation
+BADGE_VARIANTS.md
+BUTTON_CARD_VARIANTS.md
+DESIGN_DECISIONS.md
+FASE_1_COMPLETADA.md
+GEMINI.md

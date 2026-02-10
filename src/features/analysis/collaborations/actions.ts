@@ -24,6 +24,25 @@ export type Collaboration = {
 
 import { type RankingType } from "@/features/rankings/actions";
 
+const ROLE_TRANSLATIONS: Record<string, string> = {
+    'Director': 'Director',
+    'Actor': 'Actor',
+    'Writer': 'Guionista',
+    'Screenplay': 'Guion',
+    'Director of Photography': 'Director de Fotografía',
+    'Original Music Composer': 'Compositor',
+    'Producer': 'Productor',
+    'Editor': 'Editor',
+    'Cinematographer': 'Director de Fotografía',
+    'Music': 'Música',
+    'Crew': 'Equipo técnico',
+    'Acting': 'Actor',
+};
+
+function translateRole(role: string): string {
+    return ROLE_TRANSLATIONS[role] || role;
+}
+
 export async function getCollaborations(
     userId: string,
     minRating: number = 0,
@@ -60,12 +79,12 @@ export async function getCollaborations(
     return data.map((row: any) => ({
         person1: {
             name: row.person1_name,
-            role: row.person1_role,
+            role: translateRole(row.person1_role),
             photo_url: row.person1_photo
         },
         person2: {
             name: row.person2_name,
-            role: row.person2_role,
+            role: translateRole(row.person2_role),
             photo_url: row.person2_photo
         },
         count: Number(row.collaboration_count),

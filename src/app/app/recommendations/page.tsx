@@ -57,8 +57,8 @@ async function ConstellationSection() {
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 mb-6">
           <Network className="w-10 h-10 text-primary/60" />
         </div>
-        <h3 className="text-xl font-semibold text-white mb-3">Tu universo está en construcción</h3>
-        <p className="text-white/60 max-w-md mx-auto">
+        <h3 className="text-xl font-semibold text-foreground mb-3">Tu universo está en construcción</h3>
+        <p className="text-muted-foreground max-w-md mx-auto">
           Califica películas con 4 o 5 estrellas para construir tu constelación personal de recomendaciones.
         </p>
       </div>
@@ -76,20 +76,20 @@ async function GridSection() {
 
 export default function RecommendationsPage() {
   return (
-    <div className="relative w-full min-h-screen bg-[#09090b]">
+    <div className="relative w-full min-h-screen bg-background">
       {/* Cosmic gradient background - Stitch Design */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         {/* Purple cosmic glow - top left */}
-        <div className="absolute -top-1/4 -left-1/4 w-[800px] h-[800px] bg-violet-900/20 rounded-full blur-[150px]" />
+        <div className="absolute -top-1/4 -left-1/4 w-[800px] h-[800px] bg-violet-500/10 dark:bg-violet-900/20 rounded-full blur-[150px]" />
         {/* Blue cosmic glow - top right */}
-        <div className="absolute -top-1/4 right-0 w-[600px] h-[600px] bg-blue-900/15 rounded-full blur-[120px]" />
+        <div className="absolute -top-1/4 right-0 w-[600px] h-[600px] bg-blue-500/8 dark:bg-blue-900/15 rounded-full blur-[120px]" />
         {/* Primary glow - bottom */}
         <div className="absolute bottom-0 left-1/3 w-[700px] h-[400px] bg-primary/10 rounded-full blur-[120px] translate-y-1/2" />
         {/* Subtle grid pattern overlay */}
         <div
-          className="absolute inset-0 opacity-[0.02]"
+          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.02]"
           style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(hsl(var(--foreground) / 0.1) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground) / 0.1) 1px, transparent 1px)`,
             backgroundSize: '60px 60px'
           }}
         />
@@ -104,10 +104,10 @@ export default function RecommendationsPage() {
               <Sparkles className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-primary">Personalizado para ti</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4">
               Tu Universo de Películas
             </h1>
-            <p className="text-lg text-white/60 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Explora las conexiones entre tus películas favoritas y descubre nuevas recomendaciones basadas en tu gusto único.
             </p>
           </div>
@@ -115,8 +115,8 @@ export default function RecommendationsPage() {
           {/* Constellation Map */}
           <div className="relative">
             {/* Decorative frame */}
-            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none" />
-            <div className="absolute -inset-4 rounded-3xl border border-white/[0.05] pointer-events-none" />
+            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-b from-foreground/[0.03] to-transparent pointer-events-none" />
+            <div className="absolute -inset-4 rounded-3xl border border-border/50 pointer-events-none" />
 
             <Suspense fallback={<ConstellationSkeleton />}>
               <ConstellationSection />
@@ -128,7 +128,7 @@ export default function RecommendationsPage() {
       {/* Divider */}
       <div className="relative z-10 py-8">
         <Container>
-          <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
         </Container>
       </div>
 
@@ -136,12 +136,12 @@ export default function RecommendationsPage() {
       <section className="relative z-10 pb-20">
         <Container>
           <div className="flex items-center gap-4 mb-10">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10">
-              <Grid3X3 className="w-6 h-6 text-white" />
+            <div className="p-3 rounded-xl bg-gradient-to-br from-muted to-muted/50 border border-border">
+              <Grid3X3 className="w-6 h-6 text-foreground" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white">Explorar Más</h2>
-              <p className="text-white/50">Todas las recomendaciones en vista de cuadrícula</p>
+              <h2 className="text-2xl font-bold text-foreground">Explorar Más</h2>
+              <p className="text-muted-foreground">Todas las recomendaciones en vista de cuadrícula</p>
             </div>
           </div>
 
@@ -149,9 +149,9 @@ export default function RecommendationsPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {Array.from({ length: 10 }).map((_, i) => (
                 <div key={i} className="space-y-3">
-                  <Skeleton className="aspect-[2/3] rounded-2xl bg-white/5" />
-                  <Skeleton className="h-4 w-3/4 bg-white/5" />
-                  <Skeleton className="h-3 w-1/2 bg-white/5" />
+                  <Skeleton className="aspect-[2/3] rounded-2xl" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
                 </div>
               ))}
             </div>

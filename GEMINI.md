@@ -2,112 +2,108 @@
 
 ## 1. Project Description
 
-CineMatch is a social movie platform that provides personalized and explainable recommendations. It's built for film lovers who want to discover movies based on their personal tastes and understand *why* a movie is recommended to them.
+CineMatch is a social movie platform that provides personalized and explainable recommendations. It's built for film lovers who want to discover movies based on their personal tastes, track their history, and understand *why* certain films are recommended to them.
 
 **Key Features:**
-- Personalized and explainable movie recommendations.
-- User-specific viewing insights and statistics.
-- Smart Watchlist to organize and prioritize movies.
-- Rich movie data from The Movie Database (TMDB).
-- History import from other platforms.
-- Light and Dark mode support.
-- Mobile-first responsive design.
+- **Personalized Recommendations:** Explainable movie suggestions based on user taste.
+- **Insights & Analysis:** Detailed statistics and visualizations of viewing habits.
+- **Smart Watchlist & Library:** Organize and prioritize movies with custom statuses.
+- **Rich Movie Data:** Integration with TMDB for comprehensive film information.
+- **History Import:** Support for importing movie history from external platforms (CSV).
+- **Social & Community:** User profiles, reviews, and community features.
+- **Movie Games:** Interactive experiences related to films.
+- **Mobile-First Design:** Fully responsive UI with light/dark mode support.
 
 ## 2. Tech Stack
 
-- **Framework:** Next.js 16 (App Router)
-- **Language:** TypeScript 5
-- **UI Library:** React 19
-- **Backend-as-a-Service (BaaS):** Supabase (PostgreSQL, Auth, Storage)
-- **Styling:** Tailwind CSS 4
-- **UI Components:** shadcn/ui built on Radix UI
-- **Animations:** Framer Motion, GSAP
-- **Data Fetching:** React Query, React Server Components
+- **Framework:** Next.js 16.1.6 (App Router)
+- **Language:** TypeScript 5.9.3
+- **UI Library:** React 19.2.4
+- **Backend-as-a-Service (BaaS):** Supabase (PostgreSQL, Auth, Storage, Realtime)
+- **Styling:** Tailwind CSS 4.1.18
+- **UI Components:** shadcn/ui (Radix UI)
+- **Animations:** Framer Motion 12, GSAP 3
+- **Data Fetching & State:** React Query (TanStack Query), React Server Components
 - **Forms & Validation:** Zod
-- **External APIs:** TMDB for movie data.
+- **External APIs:** The Movie Database (TMDB)
+- **Utilities:** Papaparse (CSV parsing), Recharts (data visualization), Sonner (toasts).
 
 ## 3. Architecture & Project Structure
 
-The project follows a feature-based architecture, promoting separation of concerns and modularity.
+The project follows a **Feature-Based Architecture**, promoting modularity and strict separation of concerns.
 
 ```
 src/
-├── app/              # Next.js App Router: Handles routing and page composition.
-│   ├── (auth)/       # Authentication-related routes (e.g., login, signup).
-│   ├── (marketing)/  # Marketing pages (e.g., landing page).
-│   └── app/          # Core application routes, protected by authentication.
+├── app/              # Next.js App Router: Routing and page composition ONLY.
+│   ├── (auth)/       # Auth routes (login, signup, confirm-email).
+│   ├── (marketing)/  # Marketing pages (landing page).
+│   ├── app/          # Core protected application routes (analysis, library, etc.).
+│   ├── api/          # Route handlers / API endpoints.
+│   └── auth/         # Auth callbacks.
 │
 ├── components/       # Shared UI components.
-│   ├── ui/           # Base components from shadcn/ui (Button, Card, etc.).
-│   ├── layout/       # Structural components (AppShell, Header, Footer).
-│   └── shared/       # Components shared across multiple features.
+│   ├── ui/           # Primitives (shadcn/ui: Button, Card, etc.).
+│   ├── layout/       # Structural (AppShell, Header, Nav, MobileTabs).
+│   ├── shared/       # Cross-feature components (PersonLink, RankingCard).
+│   └── animations/   # Reusable animation components.
 │
 ├── features/         # Self-contained business logic modules.
-│   │                 # Each feature has its own `actions.ts`, `components/`, etc.
-│   ├── auth/         # User authentication logic.
-│   ├── library/      # User's movie library.
-│   ├── analysis/     # User data analysis and insights.
-│   └── ...           # Other features like 'profile', 'recommendations', etc.
+│   │                 # (actions.ts, components/, types/, index.ts).
+│   ├── analysis/     # Statistics and data visualization.
+│   ├── auth/         # User authentication and session management.
+│   ├── collection/   # User collections/lists management.
+│   ├── import/       # History import logic (CSV).
+│   ├── library/      # Main user movie library.
+│   ├── movie/        # Movie details and search logic.
+│   ├── person/       # Cast and crew information.
+│   ├── profile/      # User profile management.
+│   ├── rankings/     # Movie rankings and leaderboards.
+│   ├── reviews/      # User ratings and reviews.
+│   └── watchlist/    # Watchlist management.
 │
-├── lib/              # Core libraries, utilities, and integrations.
-│   ├── supabase/     # Supabase client configurations (browser, server, middleware).
-│   ├── providers/    # Global context providers (Theme, Auth).
+├── lib/              # Core libraries and integrations.
+│   ├── supabase/     # Clients: browser.ts, server.ts, middleware.ts.
 │   ├── tmdb/         # TMDB API client and utilities.
-│   └── utils/        # General utility functions.
+│   ├── providers/    # Context providers (Theme, Auth).
+│   └── utils/        # Shared utilities (cn, formatters).
 │
 ├── types/            # TypeScript type definitions.
-│   └── database.types.ts # Auto-generated types from Supabase schema (Single Source of Truth).
+│   └── database.types.ts # SINGLE SOURCE OF TRUTH (Generated from Supabase).
 │
-├── config/           # Application-wide configuration (routes, navigation).
-└── styles/           # Global styles and Tailwind CSS setup.
+├── config/           # App-wide config (routes.ts, nav.ts).
+└── styles/           # Global styles and Tailwind tokens.
 ```
 
 **Architectural Principles:**
-- **Server Components by Default:** Maximizes performance by rendering on the server.
-- **Feature-Driven Structure:** Code for a specific feature is co-located. `src/features` is the heart of the business logic.
-- **Strict Separation of Concerns:** `src/app` is for routing only. Logic resides in `src/features`.
-- **Server Actions for Mutations:** Data mutations are handled via Server Actions, ensuring secure and server-managed operations.
-- **Supabase Integration:** Uses dedicated clients for server, browser, and middleware contexts to handle data fetching and authentication securely.
-- **Type Safety:** Relies on auto-generated types from the Supabase schema (`database.types.ts`) as the single source of truth for data shapes.
+- **Server Components by Default:** Maximizes performance and SEO.
+- **Logic in Features:** `src/app` only composes components; business logic stays in `src/features`.
+- **Server Actions for Mutations:** All data modifications happen via Server Actions with auth checks.
+- **Type Safety:** Strict adherence to `database.types.ts` generated types.
+- **UI States:** Every data-driven view MUST handle **Loading** (Skeletons), **Empty**, and **Error** states.
 
-## 4. Key Files
+## 4. Key Files & Documentation
 
-- **`ARQUITECTURA.md`**: The primary source for in-depth architectural decisions, Supabase integration patterns, and data flow.
-- **`designSystem.md`**: The guide for UI/UX principles, design tokens (colors, spacing, typography), and component patterns.
-- **`package.json`**: Defines project dependencies and scripts.
-- **`next.config.mjs`**: Next.js configuration, including image loading from Cloudinary and TMDB.
-- **`tsconfig.json`**: TypeScript configuration, including path aliases for cleaner imports.
-- **`src/middleware.ts`**: Handles session management and route protection using Supabase middleware.
-- **`src/types/database.types.ts`**: **Crucial file.** Contains all TypeScript types generated from the database schema.
+- **`ARQUITECTURA.md`**: Detailed architectural guide and patterns.
+- **`designSystem.md`**: UI/UX principles, tokens, and component patterns.
+- **`docs/`**: Feature-specific implementation guides (Import, Person feature, etc.).
+- **`src/middleware.ts`**: Session management and route protection.
+- **`src/types/database.types.ts`**: Core database types.
 
 ## 5. Getting Started & Scripts
 
+**Available Scripts:**
+- `pnpm dev`: Starts development server.
+- `pnpm build`: Production build.
+- `pnpm lint`: ESLint check.
+
 **Setup:**
-1. Clone the repo.
-2. Create a `.env.local` file with Supabase and TMDB API keys.
-3. Run `pnpm install`.
+Requires `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and TMDB keys.
 
-**Available Scripts (`package.json`):**
-- `pnpm dev`: Starts the development server.
-- `pnpm build`: Creates a production build.
-- `pnpm start`: Starts the production server.
-- `pnpm lint`: Runs the ESLint code linter.
+## 6. Authentication & Data Flow
 
-## 6. Design System & UI
-
-The project uses a design system based on **shadcn/ui** and **Tailwind CSS**.
-
-- **Tokens:** All design tokens (colors, fonts, spacing) are defined as CSS variables in `src/styles/globals.css` and documented in `designSystem.md`.
-- **Component Library:** `shadcn/ui` provides the base for UI components, which are customized for the project.
-- **Responsiveness:** The design is mobile-first.
-- **States:** All data-displaying components must handle loading, empty, and error states gracefully, using Skeletons, EmptyState, and ErrorState components respectively.
-
-## 7. Authentication Flow
-
-- Authentication is managed by **Supabase Auth**.
-- The `src/middleware.ts` file intercepts requests to refresh user sessions and protect routes.
-- **Three Supabase clients** are used:
-    1.  **Server Client (`/lib/supabase/server.ts`):** For use in Server Components and Server Actions.
-    2.  **Browser Client (`/lib/supabase/client.ts`):** For use in Client Components.
-    3.  **Middleware Client (`/lib/supabase/middleware.ts`):** For session management in the middleware.
-- All Server Actions that modify data must perform a server-side check for an authenticated user.
+1. **Auth:** Managed by Supabase Auth. Middleware handles session refresh and protection.
+2. **Data Fetching:** 
+   - **Read:** Server Components call Server Actions or direct Supabase queries.
+   - **Write:** Client Components call Server Actions.
+3. **Revalidation:** Use `revalidatePath` after mutations to keep the UI in sync.
+4. **Security:** Real security is enforced via **RLS (Row Level Security)** in Supabase.

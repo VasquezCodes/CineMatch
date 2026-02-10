@@ -18,17 +18,21 @@ export function MovieCard({ item }: MovieCardProps) {
 
   return (
     <Link href={`/app/movies/${movie.id}`} className="block group">
-      <Card className="relative overflow-hidden border-border/40 transition-all duration-300 shadow-sm hover:shadow-md">
+      <Card variant="glassmorphism" className="relative overflow-hidden p-0 gap-0 duration-500 hover:shadow-2xl hover:shadow-black/20 hover:ring-primary/30">
         <div className="flex h-64 sm:h-60">
-          <div className="relative w-28 sm:w-32 flex-shrink-0 overflow-hidden bg-muted">
+          <div className="relative w-28 sm:w-32 flex-shrink-0 overflow-hidden bg-muted rounded-l-xl">
             {movie.poster_url ? (
-              <Image
-                src={movie.poster_url}
-                alt={movie.title || "Movie poster"}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                sizes="(max-width: 640px) 112px, 128px"
-              />
+              <>
+                <Image
+                  src={movie.poster_url}
+                  alt={movie.title || "Movie poster"}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-110"
+                  sizes="(max-width: 640px) 112px, 128px"
+                />
+                {/* Subtle gradient overlay for depth */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-card/20 pointer-events-none" />
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center text-[10px] uppercase tracking-widest text-muted-foreground/50">
                 No Art
@@ -39,19 +43,19 @@ export function MovieCard({ item }: MovieCardProps) {
           <div className="flex flex-col flex-1 p-4 min-w-0">
             <div className="flex items-center gap-1.5 mb-1">
               {watchlist.user_rating != null && (
-                <div className="flex items-center gap-1 text-accent">
-                  <Star className="h-3 w-3 fill-accent text-accent" />
+                <Badge variant="glassmorphism-accent" className="gap-1 px-2 py-1">
+                  <Star className="h-3 w-3 fill-accent" />
                   <span className="text-xs font-bold leading-none">
                     {watchlist.user_rating.toFixed(1)}
                   </span>
-                </div>
+                </Badge>
               )}
               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
                 {movie.year || "N/A"}
               </span>
             </div>
 
-            <h3 className="font-semibold text-base leading-tight line-clamp-1 text-foreground group-hover:text-primary transition-colors">
+            <h3 className="font-semibold text-base leading-tight line-clamp-1 text-foreground group-hover:text-primary transition-colors duration-300 [text-shadow:_0_1px_2px_rgb(0_0_0_/_10%)]">
               {movie.title || "Sin título"}
             </h3>
 
@@ -67,8 +71,8 @@ export function MovieCard({ item }: MovieCardProps) {
                 (movie.genres as string[]).slice(0, 2).map((genre) => (
                   <Badge
                     key={genre}
-                    variant="secondary"
-                    className="text-[9px] uppercase tracking-normal px-1.5 py-0 font-medium bg-muted/50 text-muted-foreground border-none"
+                    variant="ring"
+                    className="text-[9px] uppercase tracking-normal px-1.5 py-0 font-medium"
                   >
                     {genre}
                   </Badge>
@@ -87,8 +91,9 @@ export function MovieCard({ item }: MovieCardProps) {
                   movieTitle={movie.title || "Sin título"}
                 >
                   <Button
+                    variant="premium"
                     size="sm"
-                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+                    className="w-full"
                   >
                     Cualificar
                   </Button>

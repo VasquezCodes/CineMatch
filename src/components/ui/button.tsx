@@ -19,6 +19,15 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground",
         link: "text-foreground underline-offset-4 hover:underline",
+        // Modern Cinema Variants
+        premium:
+          "bg-accent text-accent-foreground shadow-md shadow-black/10 hover:bg-accent/90 hover:shadow-lg hover:shadow-black/20 active:scale-[0.98]",
+        glassmorphism:
+          "backdrop-blur-md bg-background/80 border-0 ring-1 ring-border/40 text-foreground shadow-sm hover:ring-border/60 hover:bg-background/90 hover:shadow-md",
+        "glassmorphism-accent":
+          "backdrop-blur-md bg-accent/10 border-0 ring-1 ring-accent/30 text-accent shadow-sm hover:ring-accent/50 hover:bg-accent/20 hover:shadow-md",
+        ring:
+          "backdrop-blur-sm bg-background/50 border-0 ring-1 ring-border/30 text-foreground hover:ring-primary/50 hover:bg-background/70 hover:shadow-sm",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

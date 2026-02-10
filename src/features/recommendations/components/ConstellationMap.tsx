@@ -144,7 +144,7 @@ function NeuralNode({
                 cx={x}
                 cy={y}
                 r={size}
-                fill="#09090b"
+                fill="hsl(var(--background))"
                 stroke={color.ring}
                 strokeWidth={isHovered ? 4 : isSource ? 3.5 : 2.5}
                 style={{ filter: isHovered || isConnected ? `drop-shadow(0 0 12px ${color.glow})` : 'none' }}
@@ -174,7 +174,7 @@ function NeuralNode({
                 <circle
                     r={14}
                     fill={color.bg}
-                    stroke="#09090b"
+                    stroke="hsl(var(--background))"
                     strokeWidth={2}
                 />
                 {isSource ? (
@@ -184,7 +184,7 @@ function NeuralNode({
                             y={-6}
                             width={12}
                             height={12}
-                            fill="white"
+                            fill="hsl(var(--primary-foreground))"
                             stroke="none"
                         />
                     </>
@@ -192,7 +192,7 @@ function NeuralNode({
                     <text
                         textAnchor="middle"
                         dominantBaseline="central"
-                        fill="white"
+                        fill="hsl(var(--primary-foreground))"
                         fontSize={10}
                         fontWeight={700}
                     >
@@ -243,7 +243,7 @@ function NeuralEdge({
             <motion.path
                 d={path}
                 fill="none"
-                stroke={isActive ? color : "rgba(255,255,255,0.08)"}
+                stroke={isActive ? color : "hsl(var(--border))"}
                 strokeWidth={isActive ? 2.5 : 1}
                 strokeOpacity={isActive ? 1 : 0.5}
                 strokeLinecap="round"
@@ -280,7 +280,7 @@ function GlassTooltip({
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
         >
-            <div className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl p-3 shadow-2xl">
+            <div className="bg-card/95 backdrop-blur-xl border border-border rounded-xl p-3 shadow-2xl">
                 <div className="flex items-start gap-3">
                     {node.movie.posterUrl && (
                         <div className="w-12 h-16 rounded-md overflow-hidden bg-muted shrink-0">
@@ -292,10 +292,10 @@ function GlassTooltip({
                         </div>
                     )}
                     <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-white text-sm line-clamp-2 leading-tight">
+                        <h4 className="font-semibold text-foreground text-sm line-clamp-2 leading-tight">
                             {node.movie.title}
                         </h4>
-                        <p className="text-xs text-white/60 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                             {node.movie.year}
                             {node.movie.cluster && ` • ${node.movie.cluster}`}
                         </p>
@@ -313,8 +313,8 @@ function GlassTooltip({
                     </div>
                 </div>
                 {edge && !isSource && (
-                    <div className="mt-2 pt-2 border-t border-white/10">
-                        <p className="text-xs text-white/70 line-clamp-2">{edge.reason}</p>
+                    <div className="mt-2 pt-2 border-t border-border">
+                        <p className="text-xs text-muted-foreground line-clamp-2">{edge.reason}</p>
                     </div>
                 )}
             </div>
@@ -339,7 +339,7 @@ function RecommendationDetailModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
             onClick={onClose}
         >
             <motion.div
@@ -348,14 +348,14 @@ function RecommendationDetailModal({
                 exit={{ scale: 0.95, opacity: 0, y: 20 }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
                 onClick={(e) => e.stopPropagation()}
-                className="relative bg-gradient-to-br from-zinc-900/95 to-zinc-950/95 backdrop-blur-xl border border-white/10 rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden"
+                className="relative bg-card/95 backdrop-blur-xl border border-border rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden"
             >
                 {/* Close button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                    className="absolute top-4 right-4 z-10 p-2 rounded-full bg-muted hover:bg-muted/80 border border-border transition-colors"
                 >
-                    <X className="w-5 h-5 text-white/70" />
+                    <X className="w-5 h-5 text-muted-foreground" />
                 </button>
 
                 <div className="flex flex-col md:flex-row">
@@ -374,12 +374,12 @@ function RecommendationDetailModal({
                             </div>
                         )}
                         {/* Gradient overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent md:bg-gradient-to-r" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent md:bg-gradient-to-r" />
 
                         {/* Title on poster (mobile) */}
                         <div className="absolute bottom-0 left-0 right-0 p-4 md:hidden">
-                            <h2 className="text-2xl font-bold text-white">{node.movie.title}</h2>
-                            <p className="text-white/60 text-sm">{node.movie.year}</p>
+                            <h2 className="text-2xl font-bold text-foreground">{node.movie.title}</h2>
+                            <p className="text-muted-foreground text-sm">{node.movie.year}</p>
                         </div>
                     </div>
 
@@ -387,12 +387,12 @@ function RecommendationDetailModal({
                     <div className="flex-1 p-6">
                         {/* Title (desktop) */}
                         <div className="hidden md:block mb-4">
-                            <h2 className="text-2xl font-bold text-white">{node.movie.title}</h2>
-                            <div className="flex items-center gap-2 mt-1 text-white/60 text-sm">
+                            <h2 className="text-2xl font-bold text-foreground">{node.movie.title}</h2>
+                            <div className="flex items-center gap-2 mt-1 text-muted-foreground text-sm">
                                 {node.movie.year && <span>{node.movie.year}</span>}
                                 {node.movie.cluster && (
                                     <>
-                                        <span className="w-1 h-1 rounded-full bg-white/40" />
+                                        <span className="w-1 h-1 rounded-full bg-border" />
                                         <span className="capitalize">{node.movie.cluster}</span>
                                     </>
                                 )}
@@ -407,18 +407,18 @@ function RecommendationDetailModal({
                         </div>
 
                         {/* Divider */}
-                        <div className="h-px bg-white/10 mb-5" />
+                        <div className="h-px bg-border mb-5" />
 
                         {/* Reasons section */}
                         <div>
-                            <h3 className="text-sm font-semibold text-white/90 mb-3">¿Por qué te lo recomendamos?</h3>
+                            <h3 className="text-sm font-semibold text-foreground mb-3">¿Por qué te lo recomendamos?</h3>
                             <ul className="space-y-3">
                                 {edge && (
                                     <li className="flex items-start gap-3">
                                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                                             <Clapperboard className="w-4 h-4 text-primary" />
                                         </div>
-                                        <span className="text-sm text-white/70 pt-1.5">{edge.reason}</span>
+                                        <span className="text-sm text-muted-foreground pt-1.5">{edge.reason}</span>
                                     </li>
                                 )}
                                 {node.movie.cluster && (
@@ -426,32 +426,32 @@ function RecommendationDetailModal({
                                         <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
                                             <Tag className="w-4 h-4 text-violet-400" />
                                         </div>
-                                        <span className="text-sm text-white/70 pt-1.5">Género: {node.movie.cluster}</span>
+                                        <span className="text-sm text-muted-foreground pt-1.5">Género: {node.movie.cluster}</span>
                                     </li>
                                 )}
                                 <li className="flex items-start gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
                                         <Users className="w-4 h-4 text-amber-400" />
                                     </div>
-                                    <span className="text-sm text-white/70 pt-1.5">Popular entre usuarios con gustos similares</span>
+                                    <span className="text-sm text-muted-foreground pt-1.5">Popular entre usuarios con gustos similares</span>
                                 </li>
                             </ul>
                         </div>
 
                         {/* Mini connection graph */}
                         {sourceNode && (
-                            <div className="mt-5 pt-5 border-t border-white/10">
-                                <p className="text-xs text-white/50 mb-2">Conexión</p>
+                            <div className="mt-5 pt-5 border-t border-border">
+                                <p className="text-xs text-muted-foreground mb-2">Conexión</p>
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full overflow-hidden bg-muted border-2 border-primary">
                                         {sourceNode.movie.posterUrl && (
                                             <img src={sourceNode.movie.posterUrl} alt="" className="w-full h-full object-cover" />
                                         )}
                                     </div>
-                                    <div className="flex-1 h-px bg-gradient-to-r from-primary/50 to-white/20 relative">
+                                    <div className="flex-1 h-px bg-gradient-to-r from-primary/50 to-border relative">
                                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary" />
                                     </div>
-                                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted border-2 border-white/30">
+                                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted border-2 border-border">
                                         {node.movie.posterUrl && (
                                             <img src={node.movie.posterUrl} alt="" className="w-full h-full object-cover" />
                                         )}
@@ -469,7 +469,7 @@ function RecommendationDetailModal({
                                 <ExternalLink className="w-4 h-4" />
                                 Ver Detalles
                             </Link>
-                            <button className="px-5 py-3 rounded-xl border border-white/20 text-white/80 hover:text-white hover:border-white/40 transition-colors">
+                            <button className="px-5 py-3 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors">
                                 <Plus className="w-5 h-5" />
                             </button>
                         </div>
@@ -598,7 +598,7 @@ export function ConstellationMap({ data }: ConstellationMapProps) {
                         className="w-4 h-4 rounded-full"
                         style={{ background: PRIMARY_COLOR.ring, boxShadow: `0 0 8px ${PRIMARY_COLOR.glow}` }}
                     />
-                    <span className="text-sm text-white/70">Tus favoritas</span>
+                    <span className="text-sm text-muted-foreground">Tus favoritas</span>
                 </div>
                 {clusters.map(([name, color]) => (
                     <div key={name} className="flex items-center gap-2.5">
@@ -606,7 +606,7 @@ export function ConstellationMap({ data }: ConstellationMapProps) {
                             className="w-4 h-4 rounded-full"
                             style={{ background: color.ring, boxShadow: `0 0 8px ${color.glow}` }}
                         />
-                        <span className="text-sm text-white/70 capitalize">{name}</span>
+                        <span className="text-sm text-muted-foreground capitalize">{name}</span>
                     </div>
                 ))}
             </div>
@@ -705,7 +705,7 @@ export function ConstellationMap({ data }: ConstellationMapProps) {
             </AnimatePresence>
 
             {/* Hint */}
-            <p className="text-center text-xs text-white/40 mt-4">
+            <p className="text-center text-xs text-muted-foreground/60 mt-4">
                 Pasa el cursor sobre cualquier nodo para ver detalles • Haz clic para explorar
             </p>
         </div>

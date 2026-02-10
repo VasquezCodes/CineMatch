@@ -53,8 +53,8 @@ export async function getProfile() {
  * Actualiza la ubicación (texto simple por ahora)
  */
 export async function updateLocation(data: {
-  city: string;
-  state: string;
+  country: string;
+  district: string;
   neighborhood?: string;
 }) {
   const supabase = await createClient();
@@ -62,11 +62,11 @@ export async function updateLocation(data: {
 
   if (!user) throw new Error('No autenticado');
 
-  // Formato simple: "Barrio, Ciudad, Estado"
+  // Formato simple: "Barrio, Distrito, País"
   const locationParts = [
     data.neighborhood,
-    data.city,
-    data.state
+    data.district,
+    data.country
   ].filter(Boolean);
 
   const locationText = locationParts.join(', ');

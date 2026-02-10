@@ -54,7 +54,7 @@ export function RecommendationsGrid({ items }: { items: Recommendation[] }) {
                         className="group relative flex flex-col h-full"
                     >
                         {/* Poster Card with Premium Hover Effects */}
-                        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl bg-muted shadow-lg ring-1 ring-white/10 transition-all duration-500 group-hover:shadow-2xl group-hover:scale-[1.02] group-hover:ring-primary/50">
+                        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl bg-muted shadow-lg shadow-black/10 ring-1 ring-white/10 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-black/20 group-hover:scale-[1.02] group-hover:ring-primary/50">
                             {movie.rec_poster_url ? (
                                 <Image
                                     src={movie.rec_poster_url}
@@ -70,25 +70,25 @@ export function RecommendationsGrid({ items }: { items: Recommendation[] }) {
                             )}
 
                             {/* Gradient Overlay for Text Readability */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-80" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent opacity-50 transition-opacity duration-300 group-hover:opacity-70" />
 
                             {/* Action Overlay (Icon appears on hover) */}
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-300 group-hover:opacity-100">
-                                <div className="rounded-full bg-white/10 p-3 backdrop-blur-md transition-transform duration-300 group-hover:scale-110">
+                                <div className="rounded-full bg-white/10 p-3 backdrop-blur-lg border border-white/20 shadow-lg transition-transform duration-300 group-hover:scale-110">
                                     <Info className="h-6 w-6 text-white" />
                                 </div>
                             </div>
 
                             {/* Explainability Badge - Floating */}
                             <div className="absolute top-2 right-2">
-                                <Badge variant="secondary" className="backdrop-blur-md bg-black/40 border-white/10 text-xs font-normal text-white px-2 py-0.5 shadow-sm">
+                                <Badge variant="glassmorphism" className="bg-black/40 border border-white/10 text-xs font-normal text-white px-2 py-0.5 shadow-lg shadow-black/20">
                                     {movie.rec_score ? `${Math.round(movie.rec_score)}% Match` : <Sparkles className="h-3 w-3 text-amber-400" />}
                                 </Badge>
                             </div>
 
                             {/* Bottom Info in Card */}
                             <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-2 transition-transform duration-300 group-hover:translate-y-0">
-                                <p className="text-xs font-medium text-amber-300 line-clamp-1 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
+                                <p className="text-xs font-medium text-amber-300 line-clamp-1 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75 [text-shadow:_0_1px_8px_rgb(0_0_0_/_60%)]">
                                     {movie.rec_reason}
                                 </p>
                             </div>
