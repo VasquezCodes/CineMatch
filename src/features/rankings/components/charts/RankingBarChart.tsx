@@ -54,9 +54,7 @@ export function RankingBarChart({ data, selectedIndex, onSelectItem }: RankingBa
   }
 
   // Ordenar datos de mayor a menor por count (asegurar orden correcto)
-  const sortedData = [...data]
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
+  const sortedData = [...data].sort((a, b) => b.count - a.count);
 
   // Crear mapeo de índices: índice en sortedData -> índice original en data
   const indexMap = sortedData.map((sortedItem) =>
@@ -68,7 +66,6 @@ export function RankingBarChart({ data, selectedIndex, onSelectItem }: RankingBa
     ? indexMap.findIndex((originalIdx) => originalIdx === selectedIndex)
     : null;
 
-  // Preparar datos para el gráfico (máximo 10)
   const chartData = sortedData.map((item, index) => {
     const avgRating = item.data.movies.length > 0
       ? item.data.movies.reduce((sum, m) => sum + (m.user_rating || 0), 0) / item.data.movies.length
@@ -120,7 +117,7 @@ export function RankingBarChart({ data, selectedIndex, onSelectItem }: RankingBa
             {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={BAR_COLORS[index] || "#8884d8"}
+                fill={BAR_COLORS[index % BAR_COLORS.length]}
                 opacity={sortedSelectedIndex === null || sortedSelectedIndex === index ? 1 : 0.4}
                 stroke={sortedSelectedIndex === index ? "currentColor" : "transparent"}
                 strokeWidth={sortedSelectedIndex === index ? 2 : 0}

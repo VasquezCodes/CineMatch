@@ -33,7 +33,9 @@
       "Bash(timeout 10 pnpm dev:*)",
       "WebSearch",
       "WebFetch(domain:ui.aceternity.com)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(del \"C:\\\\Users\\\\gaelg\\\\OneDrive\\\\Desktop\\\\CineMatch\\\\src\\\\features\\\\rankings\\\\components\\\\RankingsDetailPanel.tsx\")",
+      "Bash(powershell.exe -Command \"Remove-Item ''C:\\\\Users\\\\gaelg\\\\OneDrive\\\\Desktop\\\\CineMatch\\\\src\\\\features\\\\rankings\\\\components\\\\RankingsDetailPanel.tsx''\")"
     ]
   }
 }

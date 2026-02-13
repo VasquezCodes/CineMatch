@@ -3,20 +3,13 @@ import Link from "next/link";
 import { AlertCircle, Star, Upload, Trash } from "lucide-react";
 import { APP_ROUTES } from "@/config/routes";
 
-import { RankingsSectionClient } from "@/features/collection/components/RankingsSectionClient";
-import { RankingsSkeleton } from "@/features/collection/components/RankingsSkeleton";
-import { CollaborationsSection } from "@/features/analysis/components/CollaborationsSection";
 import { AnalysisClientWrapper } from "./AnalysisClientWrapper";
 import { PageHeader, Section, Container } from "@/components/layout";
-import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -177,13 +170,9 @@ export default async function AnalysisPage() {
       */}
       <Suspense
         fallback={
-          <div className="space-y-10">
-            <Section>
-              <RankingsSkeleton />
-            </Section>
-            <Section>
-              <Skeleton className="h-64 w-full rounded-xl" />
-            </Section>
+          <div className="space-y-6">
+            <Skeleton className="h-10 w-full rounded-xl" />
+            <Skeleton className="h-[600px] w-full rounded-xl" />
           </div>
         }
       >

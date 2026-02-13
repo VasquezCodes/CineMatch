@@ -2,16 +2,15 @@
 
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RankingsGraphicsPanel } from "./RankingsGraphicsPanel";
-import { RankingsDetailPanel } from "./RankingsDetailPanel";
 import { getRanking, type RankingType, type RankingStatConfig } from "../actions";
-import { ArrowLeft, BarChart3, List } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 interface RankingsExpandedViewProps {
   userId: string;
   type: RankingType;
-  onBack: () => void;
+  limit?: number;
+  onBack?: () => void;
 }
 
 const TYPE_LABELS: Record<RankingType, string> = {
@@ -27,13 +26,13 @@ const TYPE_LABELS: Record<RankingType, string> = {
 export function RankingsExpandedView({
   userId,
   type,
-  onBack,
+  limit = 20,
+  onBack = undefined,
 }: RankingsExpandedViewProps) {
   const [data, setData] = React.useState<RankingStatConfig[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
 
-  // Cargar datos cuando se monta el componente
   React.useEffect(() => {
     let isMounted = true;
 
@@ -41,7 +40,7 @@ export function RankingsExpandedView({
       try {
         const result = await getRanking(userId, type, {
           minRating: 1,
-          limit: 20,
+          limit,
         });
         if (isMounted) {
           setData(result);
@@ -60,25 +59,24 @@ export function RankingsExpandedView({
     return () => {
       isMounted = false;
     };
-  }, [userId, type]);
+  }, [userId, type, limit]);
 
   const handleSelectItem = React.useCallback((index: number) => {
     setSelectedIndex((prev) => (prev === index ? null : index));
   }, []);
 
   return (
-    <div className="space-y-6 transition-all duration-300 ease-in-out">
-      {/* Header con botón volver */}
+    <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between gap-4 pb-4 border-b border-border/50">
-        <Button
-          onClick={onBack}
-          variant="ghost"
-          size="sm"
-          className="gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Volver a rankings
-        </Button>
+        {onBack ? (
+          <Button onClick={onBack} variant="ghost" size="sm" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Volver a rankings
+          </Button>
+        ) : (
+          <div className="w-[120px]" />
+        )}
         <div className="flex-1 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">
             {TYPE_LABELS[type]}
@@ -87,72 +85,17 @@ export function RankingsExpandedView({
             Análisis detallado con gráficos interactivos
           </p>
         </div>
-        <div className="w-[120px]" /> {/* Spacer para centrar el título */}
+        <div className="w-[120px]" />
       </div>
 
-      {/* Desktop: 2 columnas lado a lado */}
-      <div className="hidden lg:grid lg:grid-cols-[1fr_420px] gap-6 min-h-[600px]">
-        {/* Panel Izquierdo: Gráficos */}
-        <RankingsGraphicsPanel
-          data={data}
-          type={type}
-          selectedIndex={selectedIndex}
-          onSelectItem={handleSelectItem}
-          isLoading={loading}
-        />
-
-        {/* Panel Derecho: Detalles */}
-        <RankingsDetailPanel
-          data={data}
-          type={type}
-          selectedIndex={selectedIndex}
-          onSelectItem={handleSelectItem}
-          isLoading={loading}
-        />
-      </div>
-
-      {/* Mobile/Tablet: Tabs para alternar entre vistas */}
-      <div className="lg:hidden">
-        <Tabs defaultValue="graphics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 h-12 bg-muted/50">
-            <TabsTrigger
-              value="graphics"
-              className="gap-2 data-[state=active]:bg-background"
-            >
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Gráficos</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="details"
-              className="gap-2 data-[state=active]:bg-background"
-            >
-              <List className="h-4 w-4" />
-              <span className="hidden sm:inline">Detalles</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="graphics" className="mt-6 space-y-6">
-            <RankingsGraphicsPanel
-              data={data}
-              type={type}
-              selectedIndex={selectedIndex}
-              onSelectItem={handleSelectItem}
-              isLoading={loading}
-            />
-          </TabsContent>
-
-          <TabsContent value="details" className="mt-6">
-            <RankingsDetailPanel
-              data={data}
-              type={type}
-              selectedIndex={selectedIndex}
-              onSelectItem={handleSelectItem}
-              isLoading={loading}
-              isMobile
-            />
-          </TabsContent>
-        </Tabs>
-      </div>
+      {/* Panel único con gráficos + detalles */}
+      <RankingsGraphicsPanel
+        data={data}
+        type={type}
+        selectedIndex={selectedIndex}
+        onSelectItem={handleSelectItem}
+        isLoading={loading}
+      />
     </div>
   );
 }

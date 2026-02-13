@@ -54,12 +54,10 @@ export function RankingPieChart({ data, selectedIndex, onSelectItem }: RankingPi
   }
 
   // Ordenar datos de mayor a menor por count (asegurar orden correcto)
-  const sortedData = [...data]
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
+  const sortedData = [...data].sort((a, b) => b.count - a.count);
 
   // Crear mapeo de índices: índice en sortedData -> índice original en data
-  const indexMap = sortedData.map((sortedItem) => 
+  const indexMap = sortedData.map((sortedItem) =>
     data.findIndex((originalItem) => originalItem.key === sortedItem.key)
   );
 
@@ -82,7 +80,7 @@ export function RankingPieChart({ data, selectedIndex, onSelectItem }: RankingPi
       avgRating: avgRating.toFixed(1),
       index,
       originalIndex: indexMap[index], // Guardar índice original para el click
-      fill: PIE_COLORS[index], // Sin repetición: usar índice directo (máximo 10 elementos)
+      fill: PIE_COLORS[index % PIE_COLORS.length],
     };
   });
 

@@ -3,7 +3,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Film, User } from "lucide-react";
 import type { RankingStatConfig, RankingType } from "../actions";
 
@@ -53,7 +52,7 @@ export function RankingsSidebar({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Header */}
       <div className="px-4 py-3 border-b border-border/50">
         <h3 className="font-semibold text-sm">Top 10 {TYPE_LABELS[type]}</h3>
@@ -62,8 +61,8 @@ export function RankingsSidebar({
         </p>
       </div>
 
-      {/* Lista scrolleable */}
-      <ScrollArea className="flex-1">
+      {/* Lista de items */}
+      <div>
         <div className="p-2 space-y-1">
           {data.slice(0, 10).map((item, index) => {
             const isSelected = selectedIndex === index;
@@ -120,7 +119,7 @@ export function RankingsSidebar({
             );
           })}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Footer con stats */}
       <div className="px-4 py-3 border-t border-border/50 bg-muted/30">

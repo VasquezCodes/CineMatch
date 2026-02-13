@@ -32,11 +32,11 @@ export function RankingDetailList({
     <section className="space-y-3">
       <header>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Top 10 {TYPE_LABELS[type]}
+          Top {data.length} {TYPE_LABELS[type]}
         </h3>
       </header>
 
-      <div className="space-y-1.5">
+      <div className="space-y-1 max-h-[480px] overflow-y-auto pr-1 ranking-scroll">
         {data.map((item, index) => (
           <RankingDetailItem
             key={item.key}
