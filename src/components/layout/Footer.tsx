@@ -171,7 +171,7 @@ export function Footer({ variant = "landing" }: { variant?: "landing" | "app" })
                 </li>
                 <li>
                   <span className="text-sm text-muted-foreground">
-                 cinematchvercel@gmail.com
+                 Contacto: cinematchvercel@gmail.com
                 </span>
                 </li>
                 <li>
