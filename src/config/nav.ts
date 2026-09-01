@@ -16,6 +16,7 @@ export interface NavItem {
   mobileLabel?: string; // Label corto para mobile tabs
   href: string;
   icon: LucideIcon;
+  disabled?: boolean;
 }
 
 // Navegación primaria (flujo principal CineMatch)
@@ -43,6 +44,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     mobileLabel: "Recos",
     href: APP_ROUTES.RECOMMENDATIONS,
     icon: Sparkles,
+    disabled: true,
   },
   {
     label: "Libreria",
