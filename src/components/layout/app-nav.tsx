@@ -25,29 +25,25 @@ export function AppNav({ variant = "default" }: AppNavProps) {
       {APP_NAV_ITEMS.map((item) => {
   const isActive = pathname === item.href;
   const Icon = item.icon;
+if (item.disabled) {
+  return (
+    <span
+      key={item.href}
+      className="relative group inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground cursor-default"
+      aria-disabled="true"
+    >
+      <Icon className="size-4" aria-hidden="true" suppressHydrationWarning />
+      <span>{item.label}</span>
 
-  if (item.disabled) {
-    return (
       <span
-        key={item.href}
-        title="Próximamente"
-        className={cn(
-          'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 cursor-default',
-          isCinematic
-            ? [
-              'text-white/60',
-            ]
-            : [
-              'text-muted-foreground',
-            ]
-        )}
-        aria-disabled="true"
+        role="tooltip"
+        className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 shadow-md transition-opacity duration-200 group-hover:opacity-100"
       >
-        <Icon className="size-4" aria-hidden="true" suppressHydrationWarning />
-        <span>{item.label}</span>
+        Próximamente
       </span>
-    );
-  }
+    </span>
+  );
+}
 
   /*
    * Recomendaciones: cuando la funcionalidad esté terminada,
