@@ -39,13 +39,13 @@ interface RankingChartSectionProps {
 }
 
 const TYPE_LABELS: Record<RankingType, string> = {
-  director: "director",
-  actor: "actor",
-  genre: "género",
-  year: "año",
-  screenplay: "guionista",
-  photography: "fotografía",
-  music: "música",
+  director: "Director",
+  actor: "Actor",
+  genre: "Género",
+  year: "Año",
+  screenplay: "Guionista",
+  photography: " Director de fotografía",
+  music: "Compositor Musical",
 };
 
 export function RankingChartSection({
