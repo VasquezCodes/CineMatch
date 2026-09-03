@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "@/components/CloudinaryImage";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Star, Film, SlidersHorizontal } from "lucide-react";
@@ -154,50 +155,59 @@ export function RankingsGraphicsPanel({
           {/* Header del item seleccionado */}
           <div className="flex items-end justify-between pb-3 border-b border-border/30">
             <div className="flex items-center gap-3">
-              {isPerson && (
-                <Avatar className="h-10 w-10 ring-2 ring-border/40">
-                  {selectedItem.data.image_url &&
-                  getImageUrl(selectedItem.data.image_url) ? (
-                    <AvatarImage
-                      src={getImageUrl(selectedItem.data.image_url)!}
-                      alt={selectedItem.key}
-                    />
-                  ) : null}
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                    {getInitials(selectedItem.key)}
-                  </AvatarFallback>
-                </Avatar>
-              )}
-              <div
-                className={cn(
-                  "text-3xl font-black select-none",
-                  selectedIndex === 0 && "text-yellow-600 dark:text-yellow-500",
-                  selectedIndex === 1 && "text-slate-600 dark:text-slate-400",
-                  selectedIndex === 2 && "text-amber-700 dark:text-amber-600",
-                  selectedIndex !== null &&
-                    selectedIndex > 2 &&
-                    "text-muted-foreground"
-                )}
-              >
-                {String((selectedIndex || 0) + 1).padStart(2, "0")}
-              </div>
-              <div>
-                <h4 className="text-lg font-bold text-foreground leading-tight">
-                  {selectedItem.key}
-                </h4>
-                {selectedItem.data.roles &&
-                  selectedItem.data.roles.length > 0 && (
-                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                      {selectedItem.data.roles
-                        .map(
-                          (r: any) =>
-                            `${r.role} (${r.movies.join(" • ")})`
-                        )
-                        .join(" • ")}
-                    </p>
-                  )}
-              </div>
-            </div>
+  <div
+    className={cn(
+      "text-3xl font-black select-none",
+      selectedIndex === 0 && "text-yellow-600 dark:text-yellow-500",
+      selectedIndex === 1 && "text-slate-600 dark:text-slate-400",
+      selectedIndex === 2 && "text-amber-700 dark:text-amber-600",
+      selectedIndex !== null &&
+        selectedIndex > 2 &&
+        "text-muted-foreground"
+    )}
+  >
+    {String((selectedIndex || 0) + 1).padStart(2, "0")}
+  </div>
+
+  {isPerson && (
+    <Link
+      href={`/person/${encodeURIComponent(selectedItem.key)}`}
+      className="flex items-center gap-3 rounded-lg transition-opacity hover:opacity-80"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <Avatar className="h-10 w-10 ring-2 ring-border/40">
+        {selectedItem.data.image_url &&
+        getImageUrl(selectedItem.data.image_url) ? (
+          <AvatarImage
+            src={getImageUrl(selectedItem.data.image_url)!}
+            alt={selectedItem.key}
+          />
+        ) : null}
+        <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+          {getInitials(selectedItem.key)}
+        </AvatarFallback>
+      </Avatar>
+
+      <div>
+        <h4 className="text-lg font-bold text-foreground leading-tight">
+          {selectedItem.key}
+        </h4>
+
+        {selectedItem.data.roles &&
+          selectedItem.data.roles.length > 0 && (
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+              {selectedItem.data.roles
+                .map(
+                  (r: any) =>
+                    `${r.role} (${r.movies.join(" • ")})`
+                )
+                .join(" • ")}
+            </p>
+          )}
+      </div>
+    </Link>
+  )}
+</div>
             <div className="text-xs font-medium text-muted-foreground bg-muted/50 px-2 py-1 rounded">
               {selectedItem.count} títulos
             </div>

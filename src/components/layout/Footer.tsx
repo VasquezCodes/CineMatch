@@ -170,12 +170,9 @@ export function Footer({ variant = "landing" }: { variant?: "landing" | "app" })
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    href="/contact"
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-lg inline-block"
-                  >
-                    Contacto
-                  </Link>
+                  <span className="text-sm text-muted-foreground">
+                 Contacto: cinematchvercel@gmail.com
+                </span>
                 </li>
                 <li>
                   <Link
