@@ -106,10 +106,10 @@ export function RankingChartSection({
           <p className="text-sm text-muted-foreground">
            {chartType === "bar" &&
            "Visualiza cuántas películas tienes de cada " +
-          TYPE_LABELS[type].toLowerCase()}
+          TYPE_LABELS[type]}
             {chartType === "pie" &&
           "Proporción de tu colección por " +
-      TYPE_LABELS[type].toLowerCase()}
+      TYPE_LABELS[type]}
 </p>
         </header>
 
