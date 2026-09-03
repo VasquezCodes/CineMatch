@@ -39,13 +39,13 @@ interface RankingChartSectionProps {
 }
 
 const TYPE_LABELS: Record<RankingType, string> = {
-  director: "Directores",
-  actor: "Actores",
-  genre: "Géneros",
-  year: "Años",
-  screenplay: "Guionistas",
-  photography: "Fotografía",
-  music: "Música",
+  director: "director",
+  actor: "actor",
+  genre: "género",
+  year: "año",
+  screenplay: "guionista",
+  photography: "fotografía",
+  music: "música",
 };
 
 export function RankingChartSection({
@@ -104,13 +104,13 @@ export function RankingChartSection({
             {chartType === "pie" && "Distribución porcentual"}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {chartType === "bar" &&
-              "Visualiza cuántas películas tienes de cada " +
-                TYPE_LABELS[type].toLowerCase().slice(0, -1)}
+           {chartType === "bar" &&
+           "Visualiza cuántas películas tienes de cada " +
+          TYPE_LABELS[type].toLowerCase()}
             {chartType === "pie" &&
-              "Proporción de tu colección por " +
-                TYPE_LABELS[type].toLowerCase().slice(0, -1)}
-          </p>
+          "Proporción de tu colección por " +
+      TYPE_LABELS[type].toLowerCase()}
+</p>
         </header>
 
         {renderChart()}
