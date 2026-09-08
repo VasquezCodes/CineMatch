@@ -114,13 +114,13 @@ export function AnalysisClientWrapper({ userId }: AnalysisClientWrapperProps) {
                         minRating={minRatingCommitted}
                     />
                 </div>
-            </Section>
+               </Section>
 
-            {/*
-<Section>
-    <CollaborationsSection
-        userId={userId}
-        rankingType={activeTab}
-    />
-</Section>
-*/}
+               {/*
+              <Section>
+              <CollaborationsSection
+              userId={userId}
+              rankingType={activeTab}
+              />
+              </Section>
+             */}
