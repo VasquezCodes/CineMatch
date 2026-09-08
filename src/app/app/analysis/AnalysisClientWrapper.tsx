@@ -106,7 +106,7 @@ export function AnalysisClientWrapper({ userId }: AnalysisClientWrapperProps) {
                         </TabsList>
                     </Tabs>
 
-                    <RankingsExpandedView
+                                        <RankingsExpandedView
                         key={`${activeTab}-${limitCommitted}-${minRatingCommitted}`}
                         userId={userId}
                         type={activeTab}
@@ -114,13 +114,16 @@ export function AnalysisClientWrapper({ userId }: AnalysisClientWrapperProps) {
                         minRating={minRatingCommitted}
                     />
                 </div>
-               </Section>
+            </Section>
 
-               {/*
-              <Section>
-              <CollaborationsSection
-              userId={userId}
-              rankingType={activeTab}
-              />
-              </Section>
-              */}
+            {/*
+            <Section>
+                <CollaborationsSection
+                    userId={userId}
+                    rankingType={activeTab}
+                />
+            </Section>
+            */}
+        </div>
+    );
+}
