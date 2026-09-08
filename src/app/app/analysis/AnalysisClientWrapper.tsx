@@ -3,7 +3,7 @@
 import * as React from "react";
 import { RankingsExpandedView } from "@/features/rankings/components/RankingsExpandedView";
 import { RankingRangeControl } from "@/features/rankings/components/RankingRangeControl";
-import { CollaborationsSection } from "@/features/analysis/components/CollaborationsSection";
+// import { CollaborationsSection } from "@/features/analysis/components/CollaborationsSection";
 import { type RankingType } from "@/features/rankings/actions";
 import { Section } from "@/components/layout";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -116,13 +116,11 @@ export function AnalysisClientWrapper({ userId }: AnalysisClientWrapperProps) {
                 </div>
             </Section>
 
-            {/* Colaboraciones con Bento Grid */}
-            <Section>
-                <CollaborationsSection
-                    userId={userId}
-                    rankingType={activeTab}
-                />
-            </Section>
-        </div>
-    );
-}
+            {/*
+<Section>
+    <CollaborationsSection
+        userId={userId}
+        rankingType={activeTab}
+    />
+</Section>
+*/}
