@@ -123,4 +123,4 @@ export function AnalysisClientWrapper({ userId }: AnalysisClientWrapperProps) {
               rankingType={activeTab}
               />
               </Section>
-             */}
+              */}
